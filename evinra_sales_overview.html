@@ -130,9 +130,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex
 .filter-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:0 28px;min-height:52px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
 /* DATE FILTER PILLS */
 .date-filter-group{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.date-pill{height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.date-pill{height:36px;padding:0 13px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
 .date-pill:hover{border-color:var(--border2);color:var(--text)}
-.date-pill.on{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+/* M-01: active state — color + weight + underline (not color-only) */
+.date-pill.on{border-color:var(--p-border);background:var(--p-dim);color:var(--p);font-weight:700;border-bottom-width:2px}
 .date-range-wrap{display:none;align-items:center;gap:5px}
 .date-range-wrap.show{display:flex}
 .date-input{height:30px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11px;font-family:var(--mono);padding:0 9px;outline:none;cursor:pointer;min-width:110px}
@@ -144,20 +145,31 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex
 .card:hover{border-color:var(--border2)}
 .c-title{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:7px}
 /* ── ROW A: FINANCIAL HERO METRICS ────────────────── */
-.hero-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;gap:8px}
+/* C-01/H-01: 7-track grid, Net Revenue spans 2 → room for the number */
+.hero-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+/* C-01: size KPI numbers to the CARD width (not viewport) so they never clip */
+.hero-row>.card{container-type:inline-size}
+/* C-01: below ~1180px the 7-track row is too tight — wrap to 4 wider tracks */
+@media (max-width:1180px){.hero-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
 /* Revenue hero card */
-.rev-card{background:linear-gradient(135deg,var(--card) 55%,var(--p-glow));border-color:var(--p-border);position:relative;overflow:hidden}
+.rev-card{grid-column:span 2;background:linear-gradient(135deg,var(--card) 55%,var(--p-glow));border-color:var(--p-border);position:relative;overflow:hidden}
 .rev-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:var(--p-glow)}
 .rev-label{font-size:11px;font-family:var(--mono);color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-.rev-value{font-family:var(--display);font-weight:800;font-size:38px;color:var(--p);letter-spacing:-1.5px;line-height:1}
-.rev-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:6px}
+/* C-01: prevent number wrap + responsive size */
+.rev-value{font-family:var(--display);font-weight:800;font-size:clamp(18px,8cqw,30px);color:var(--p);letter-spacing:-1.5px;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* H-05: subtitle min 12px */
+.rev-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:6px}
 /* Small financial KPIs */
 .fin-kpi{display:flex;flex-direction:column;justify-content:space-between}
 .fin-kpi-label{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.fin-kpi-value{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-1px;line-height:1;color:var(--text)}
+.fin-kpi-value{font-family:var(--display);font-weight:700;font-size:clamp(11px,9cqw,17px);letter-spacing:-.5px;line-height:1;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:3px}
+.fin-kpi-value .kpi-trend-ic{width:12px;height:12px}
 .fin-kpi-value.red{color:var(--red)}
 .fin-kpi-value.amber{color:var(--amber)}
-.fin-kpi-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:6px}
+/* C-02: signed values use directional icon + sign, not color alone */
+.kpi-trend-ic{width:15px;height:15px;flex-shrink:0;stroke:currentColor}
+/* H-05: subtitle min 12px */
+.fin-kpi-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:6px}
 /* ── ROW C: CHARTS ────────────────────────────────── */
 .chart-row{display:grid;grid-template-columns:1.5fr 1fr;gap:10px}
 /* Ticket type horizontal bars */
@@ -170,15 +182,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex
 .tkt-count{font-size:11px;font-family:var(--mono);color:var(--text2);min-width:58px;text-align:right}
 /* Promo table */
 .promo-table{width:100%;border-collapse:collapse}
-.promo-table th{font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:0 0 10px;text-align:left;border-bottom:1px solid var(--border)}
+/* H-04: sort-able headers + H-05: min 10px */
+.promo-table th{font-size:10px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:0 0 10px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.promo-table th:hover{color:var(--text2)}
+.promo-table th .sort-ic{display:inline-block;margin-left:4px;opacity:.4;font-size:9px}
+.promo-table th.sorted .sort-ic{opacity:1;color:var(--p)}
 .promo-table th:last-child,.promo-table td:last-child{text-align:right}
 .promo-table td{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;color:var(--text2);vertical-align:middle}
 .promo-table tr:last-child td{border-bottom:none}
 .promo-table tr:hover td{color:var(--text)}
 .promo-code{font-family:var(--mono);font-weight:500;color:var(--text);font-size:12px}
-.promo-mini-bar{width:60px;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
-.promo-mini-fill{height:100%;border-radius:3px;background:var(--p)}
-.promo-discount{color:var(--red);font-family:var(--mono);font-size:11px}
+/* M-06: bar 5px → 7px, M-03: tabular nums */
+.promo-mini-bar{width:60px;height:7px;background:var(--bg4);border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.promo-mini-fill{height:100%;border-radius:4px;background:var(--p)}
+.promo-discount{color:var(--red);font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+.promo-usage-cell{display:flex;align-items:center;gap:0}
+.promo-usage-pct{font-size:11px;font-family:var(--mono);color:var(--text2);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 /* LOAD ANIMATIONS */
 @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .hero-row .card:nth-child(1){animation:slideUp .4s .04s both}
@@ -211,7 +230,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex
 
 .filter-sep{width:1px;height:24px;background:var(--border2);align-self:center}
 .search-input::placeholder{color:var(--text3)}
-.btn{height:30px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+/* C-03: buttons min 36px (admin desktop) */
+.btn{height:36px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
 .btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
 .btn-primary:hover{background:var(--p);color:#0B0F0E}
 .btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
@@ -458,7 +478,7 @@ select:focus{border-color:var(--p-border)}
         <div class="card fin-kpi" style="border-color:var(--red-border);background:linear-gradient(135deg,var(--card) 60%,var(--red-dim))">
           <div class="fin-kpi-label" style="color:var(--red);display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Promo Discount</div>
           <div>
-            <div class="fin-kpi-value red">−$5,922,994</div>
+            <div class="fin-kpi-value red"><svg class="kpi-trend-ic" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>−$5,922,994</div>
             <div class="fin-kpi-sub">22.3% of gross · 49 active codes</div>
           </div>
         </div>
@@ -467,7 +487,7 @@ select:focus{border-color:var(--p-border)}
         <div class="card fin-kpi" style="border-color:var(--violet-border);background:linear-gradient(135deg,var(--card) 60%,var(--violet-dim))">
           <div class="fin-kpi-label" style="color:var(--violet);display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Total Refunds</div>
           <div>
-            <div class="fin-kpi-value" style="color:var(--violet)">−$841,204</div>
+            <div class="fin-kpi-value" style="color:var(--violet)"><svg class="kpi-trend-ic" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>−$841,204</div>
             <div class="fin-kpi-sub">3.2% of gross · 1,847 orders</div>
           </div>
         </div>
@@ -476,7 +496,7 @@ select:focus{border-color:var(--p-border)}
         <div class="card fin-kpi" style="border-color:var(--tips);opacity:0.9;background:linear-gradient(135deg,var(--card) 60%,rgba(90,200,160,.08))">
           <div class="fin-kpi-label" style="color:var(--tips);display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Tips &amp; Gratuities</div>
           <div>
-            <div class="fin-kpi-value" style="color:var(--tips)">+$232,766</div>
+            <div class="fin-kpi-value" style="color:var(--tips)"><svg class="kpi-trend-ic" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>+$232,766</div>
             <div class="fin-kpi-sub">POS-collected · 1.1% of add-on rev</div>
           </div>
         </div>
