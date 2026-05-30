@@ -1,0 +1,215 @@
+/* ─────────────────────────────────────────────────────────────
+   Evinra · Design Tokens
+   Single source of truth for theme. Toggle with [data-theme="…"]
+   on <html>. Variables keep legacy names so existing CSS works.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Type families ─────────────────────────────────────────── */
+:root{
+  --display:'Syne',sans-serif;
+  --body:'Outfit',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+
+/* ── DARK · DEFAULT ──────────────────────────────────────────── */
+:root{
+  /* Brand identity (fixed — not theme-dependent) */
+  --brand-red:#C42030;
+  --brand-bg:#081510;
+  --brand-bg2:#0D2018;
+
+  /* Surfaces */
+  --bg:#0B0F0E;
+  --bg2:#131A18;
+  --bg3:#1B2421;
+  --bg4:#222B28;
+  --card:#141A18;
+  --card2:#192320;
+
+  /* Brand */
+  --p:#2DB89C;
+  --p-dim:rgba(45,184,156,.14);
+  --p-border:rgba(45,184,156,.30);
+  --p-glow:rgba(45,184,156,.08);
+  --p-contrast:#06120F;
+
+  /* Semantic accents */
+  --amber:#E0A361;  --amber-dim:rgba(224,163,97,.14);  --amber-border:rgba(224,163,97,.30);
+  --red:#E06363;    --red-dim:rgba(224,99,99,.14);     --red-border:rgba(224,99,99,.30);
+  --blue:#6BA3E0;   --blue-dim:rgba(107,163,224,.14);  --blue-border:rgba(107,163,224,.30);
+  --violet:#9C82E0; --violet-dim:rgba(156,130,224,.14);--violet-border:rgba(156,130,224,.30);
+  --gold:#EAB044;   --gold-dim:rgba(234,176,68,.14);   --gold-border:rgba(234,176,68,.30);
+  --tips:#5AC8A0;
+
+  /* Text — all AA */
+  --text:#ECF2F0;     /* 14.8:1 */
+  --text2:#A6B6B3;    /* 7.2:1  */
+  --text3:#6E827E;    /* 4.6:1  */
+
+  /* Borders */
+  --border:rgba(255,255,255,.08);
+  --border2:rgba(255,255,255,.14);
+
+  /* Elevation */
+  --shadow-sm:0 1px 2px rgba(0,0,0,.40);
+  --shadow-md:0 4px 12px rgba(0,0,0,.35);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.45);
+  --card-shadow-hover:0 12px 40px rgba(0,0,0,.45);
+
+  color-scheme:dark;
+}
+
+/* ── DARK EXPLICIT ───────────────────────────────────────────– */
+[data-theme="dark"]{
+  --brand-red:#C42030;
+  --brand-bg:#081510;
+  --brand-bg2:#0D2018;
+  --bg:#0B0F0E;
+  --bg2:#131A18;
+  --bg3:#1B2421;
+  --bg4:#222B28;
+  --card:#141A18;
+  --card2:#192320;
+  --p:#2DB89C;
+  --p-dim:rgba(45,184,156,.14);
+  --p-border:rgba(45,184,156,.30);
+  --p-glow:rgba(45,184,156,.08);
+  --p-contrast:#06120F;
+  --amber:#E0A361;  --amber-dim:rgba(224,163,97,.14);  --amber-border:rgba(224,163,97,.30);
+  --red:#E06363;    --red-dim:rgba(224,99,99,.14);     --red-border:rgba(224,99,99,.30);
+  --blue:#6BA3E0;   --blue-dim:rgba(107,163,224,.14);  --blue-border:rgba(107,163,224,.30);
+  --violet:#9C82E0; --violet-dim:rgba(156,130,224,.14);--violet-border:rgba(156,130,224,.30);
+  --gold:#EAB044;   --gold-dim:rgba(234,176,68,.14);   --gold-border:rgba(234,176,68,.30);
+  --tips:#5AC8A0;
+  --text:#ECF2F0;
+  --text2:#A6B6B3;
+  --text3:#6E827E;
+  --border:rgba(255,255,255,.08);
+  --border2:rgba(255,255,255,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.40);
+  --shadow-md:0 4px 12px rgba(0,0,0,.35);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.45);
+  --card-shadow-hover:0 12px 40px rgba(0,0,0,.45);
+}
+
+/* ── LIGHT ───────────────────────────────────────────────────– */
+[data-theme="light"]{
+  --brand-red:#C42030;
+  --brand-bg:#081510;
+  --brand-bg2:#0D2018;
+  --bg:#F7F7F4;
+  --bg2:#FFFFFF;
+  --bg3:#F0F0EB;
+  --bg4:#E6E6E0;
+  --card:#FFFFFF;
+  --card2:#FAFAF7;
+
+  --p:#1E8A75;
+  --p-dim:rgba(30,138,117,.10);
+  --p-border:rgba(30,138,117,.32);
+  --p-glow:rgba(30,138,117,.06);
+  --p-contrast:#FFFFFF;
+
+  --amber:#B8772E;  --amber-dim:rgba(184,119,46,.10);  --amber-border:rgba(184,119,46,.32);
+  --red:#B83C3C;    --red-dim:rgba(184,60,60,.10);     --red-border:rgba(184,60,60,.32);
+  --blue:#3A78C2;   --blue-dim:rgba(58,120,194,.10);   --blue-border:rgba(58,120,194,.32);
+  --violet:#6F50C2; --violet-dim:rgba(111,80,194,.10); --violet-border:rgba(111,80,194,.32);
+  --gold:#B8862A;   --gold-dim:rgba(184,134,42,.10);   --gold-border:rgba(184,134,42,.32);
+  --tips:#2E9A75;
+
+  --text:#0E1614;     /* 16.8:1 */
+  --text2:#4F5E5B;    /* 7.9:1  */
+  --text3:#7B8C88;    /* 4.6:1  */
+
+  --border:rgba(14,22,20,.08);
+  --border2:rgba(14,22,20,.14);
+
+  --shadow-sm:0 1px 2px rgba(14,22,20,.05);
+  --shadow-md:0 4px 12px rgba(14,22,20,.08);
+  --shadow-lg:0 16px 40px rgba(14,22,20,.12);
+  --card-shadow-hover:0 10px 30px rgba(14,22,20,.10);
+
+  color-scheme:light;
+}
+
+/* ── Base ──────────────────────────────────────────────────── */
+html{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--body);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  transition:background-color .25s ease, color .25s ease;
+}
+
+/* Tabular figures for prices / stats columns */
+.tabular,.kpi-value,.stat-val,.rev-number,.mini-stat-val,
+.evt-table td:last-child,.tbl td .num{font-variant-numeric:tabular-nums}
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#0B0F0E;cursor:default}
+::-webkit-scrollbar-thumb{background:#6E827E;border-radius:4px;transition:all .2s}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3}
+
+/* Firefox scrollbar - dark theme */
+[data-theme="dark"] * {scrollbar-color:#6E827E #0B0F0E;scrollbar-width:thin}
+
+/* Firefox scrollbar - light theme */
+[data-theme="light"] * {scrollbar-color:#7B8C88 #F7F7F4;scrollbar-width:thin}
+
+/* ── Accessibility ─────────────────────────────────────────── */
+:focus{outline:none}
+:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--p);
+  border-radius:8px;
+}
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+.skip-link{
+  position:absolute;left:8px;top:-40px;
+  padding:8px 12px;border-radius:8px;
+  background:var(--p);color:var(--p-contrast);
+  font-family:var(--mono);font-size:12px;font-weight:600;
+  text-decoration:none;z-index:9999;
+  transition:top .15s;
+}
+.skip-link:focus{top:8px;outline:none;box-shadow:0 0 0 4px var(--p-border)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+  .ticker-pulse{animation:none!important}
+  .ticker-items{transform:none!important}
+}
+
+/* ── Sidebar anchor reset ──────────────────────────────────── */
+a.sb-item,a.nav-tab,a.tb-btn{text-decoration:none;color:inherit}
+
+/* ── Theme toggle button ───────────────────────────────────── */
+.theme-toggle{
+  width:32px;height:32px;border-radius:7px;
+  border:1px solid var(--border);background:var(--bg3);
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);flex-shrink:0;
+  transition:background-color .14s, color .14s, border-color .14s;
+}
+.theme-toggle:hover{
+  border-color:var(--border2);color:var(--text);background:var(--bg4);
+}
+.theme-toggle svg,
+.theme-toggle i{font-size:15px;width:15px;height:15px}
+[data-theme="dark"]  .theme-toggle .icon-sun  {display:none}
+[data-theme="dark"]  .theme-toggle .icon-moon {display:inline-block}
+[data-theme="light"] .theme-toggle .icon-sun  {display:inline-block}
+[data-theme="light"] .theme-toggle .icon-moon {display:none}

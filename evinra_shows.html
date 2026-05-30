@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="color-scheme" content="dark light"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — Shows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<style>/* CRITICAL: Scrollbar styling */
+::-webkit-scrollbar{width:8px!important;height:8px!important}
+::-webkit-scrollbar-track{background:#0B0F0E!important}
+::-webkit-scrollbar-thumb{background:#6E827E!important;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3!important}
+/* Icon toggle for theme switch */
+[data-theme="dark"] .icon-sun{display:none!important}
+/* SVG icon styling - base rules */
+.ev-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ev-icon svg{width:14px;height:14px}
+svg[stroke="currentColor"]{stroke:currentColor!important}
+/* Button SVG colors */
+.sb-item svg{stroke:var(--text2)!important}
+.sb-item:hover svg{stroke:var(--text)!important}
+.sb-item.active svg{stroke:var(--p)!important}
+/* Icon fallbacks - show Unicode symbols instead of broken font icons */
+[class*="hgi-"]::before{content:"⋯";display:inline-flex;align-items:center;justify-content:center}
+[class*="hgi-"]{display:inline-flex!important;align-items:center;justify-content:center;font-size:1em;width:1em;height:1em;line-height:1}
+.hgi-dashboard::before{content:"■"}
+.hgi-menu::before{content:"☰"}
+.hgi-arrow-down-02::before{content:"▼"}
+.hgi-search-01::before{content:"🔍"}
+.hgi-settings-01::before{content:"⚙"}
+.hgi-notification-01::before{content:"🔔"}
+.hgi-arrow-right-02::before{content:"→"}
+.hgi-sun-01::before{content:"☀"}
+.hgi-moon-02::before{content:"☾"}
+/* tokens → assets/tokens.css */
+html,body{height:100%;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex;flex-direction:column;overflow:hidden;height:100%}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#0B0F0E;cursor:default}
+::-webkit-scrollbar-thumb{background:#6E827E;border-radius:4px;transition:all .2s}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3}
+.shell{display:flex;flex:1;min-height:0;overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px);}
+.sb-section{padding:0 0 8px}
+.sb-group{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.10em;color:var(--text3);text-transform:uppercase;padding:8px 16px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-family:var(--body);font-size:12.5px;font-weight:400;color:var(--text2);text-decoration:none;border-radius:0;transition:background .12s,color .12s;position:relative;white-space:nowrap;}
+.sb-item i{font-size:14px;flex-shrink:0}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--p-dim);color:var(--p);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--p);border-radius:0 2px 2px 0;}
+.sb-bottom{margin-top:auto;padding:14px 10px;border-top:1px solid var(--border)}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px}
+.sb-user-name{font-size:12px;font-weight:500;color:var(--text)}
+.sb-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.stats-row{display:grid;gap:12px;flex-shrink:0}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+.stat-card.teal::before{background:var(--p)}
+.stat-card.amber::before{background:var(--amber)}
+.stat-card.violet::before{background:var(--violet)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.gold::before{background:var(--gold)}
+.stat-card.red::before{background:var(--red)}
+.stat-lbl{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
+.stat-val{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.stat-sub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:var(--display);font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-title i{font-size:15px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:500px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:14px;font-weight:700;font-family:var(--display);color:var(--text);display:flex;align-items:center;gap:8px}
+.modal-title i{font-size:16px;color:var(--p)}
+.modal-x{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .14s}
+.modal-x:hover{color:var(--text);border-color:var(--border2)}
+.modal-body{padding:22px;display:flex;flex-direction:column;gap:14px}
+/* ── Bootstrap Theme Overrides ─────────────────────────── */
+.bg-primary{background-color:var(--p) !important}
+.text-primary{color:var(--p) !important}
+.card{background-color:var(--bg2) !important;border-color:var(--border) !important}
+.card-header{background-color:var(--bg3) !important;border-color:var(--border) !important}
+.form-control,.form-select{background-color:var(--bg4) !important;color:var(--text) !important;border-color:var(--border) !important}
+.form-control:focus,.form-select:focus{border-color:var(--p-border) !important;box-shadow:0 0 0 0.2rem var(--p-glow) !important}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.full{grid-template-columns:1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:9.5px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.form-input,.form-select{background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:7px 10px;outline:none;width:100%;transition:border-color .14s}
+.form-select{appearance:none;cursor:pointer}
+.form-input:focus,.form-select:focus{border-color:var(--p-border)}
+.form-input::placeholder{color:var(--text3)}
+.form-hint{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.form-section{font-size:10px;font-family:var(--mono);color:var(--p);text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-top:4px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg2)}
+.toggle{width:36px;height:20px;border-radius:10px;cursor:pointer;position:relative;transition:background .2s;border:none;outline:none;flex-shrink:0}
+.toggle.on{background:var(--p)}
+.toggle.off{background:var(--bg4);border:1px solid var(--border2)}
+.toggle-thumb{width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.toggle.on .toggle-thumb{left:19px}
+.toggle.off .toggle-thumb{left:3px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;color:var(--text3)}
+.empty-state i{font-size:40px;opacity:.4}
+.empty-state p{;font-family:var(--mono)}
+.table-wrap{overflow:auto;flex:1;min-height:0}
+/* ── LOGO ── */
+/* ── SEGMENTED TABS ── */
+.seg-ctrl{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;flex-shrink:0}
+.seg-btn{height:28px;border-radius:6px;border:none;background:transparent;color:var(--text3);font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+i[class*="hgi-"]{display:inline-flex;align-items:center;justify-content:center;line-height:1;vertical-align:middle}
+.seg-btn i{;flex-shrink:0}
+.seg-btn:hover{color:var(--text2)}
+.seg-btn.active{background:var(--bg2);color:var(--p);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+/* ── DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:500;display:none;justify-content:flex-end}
+.drawer-overlay.open{display:flex}
+.drawer{width:560px;background:var(--bg2);height:100%;display:flex;flex-direction:column;border-left:1px solid var(--border2);box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+.drawer-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.drawer-title{font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)}
+.drawer-body{flex:1;overflow-y:auto;padding:24px}
+.drawer-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px}
+/* ── FORM SECTION LABELS ── */
+.form-section-title{;font-weight:600;font-family:var(--display);color:var(--text);margin-bottom:4px}
+.form-section-sub{font-size:11px;color:var(--text3);margin-bottom:16px}
+/* ── STATUS BADGES ── */
+.status-on{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:var(--p-dim);border:1px solid var(--p-border);color:var(--p)}
+.status-off{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:var(--bg4);border:1px solid var(--border);color:var(--text3)}
+/* ── SHOW DETAIL LAYOUT ── */
+.detail-wrap{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0}
+.detail-wrap.active{display:flex}
+.detail-card{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  min-height:0;
+}
+/* Tab bar inside card */
+.detail-tab-bar{
+  padding:10px 20px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg3);
+  flex-shrink:0;
+}
+/* Pane area */
+.detail-panes{
+  flex:1;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+/* Individual panes */
+.detail-pane{display:none;flex-direction:column;gap:14px;padding:20px 24px;overflow-y:auto}
+.detail-pane.active{display:flex;flex:1}
+/* Save bar */
+.save-bar{
+  border-top:1px solid var(--border);
+  padding:12px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+  background:var(--bg3);
+}
+/* Basic info form */
+.field-group{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-group.full{grid-template-columns:1fr}
+.field-block{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:9.5px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.field-input{background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:8px 10px;outline:none;width:100%;transition:border-color .14s}
+.field-input:focus{border-color:var(--p-border)}
+.field-input::placeholder{color:var(--text3)}
+textarea.field-input{resize:vertical;min-height:80px;max-height:160px}
+/* Shows list */
+.shows-desc{font-size:12px;color:var(--text3);font-family:var(--mono)}
+/* ── Figma card-row item (Shows Tickets / Add-Ons) ── */
+.item-card{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 14px;
+  background:var(--bg4);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  margin-bottom:6px;
+  transition:border-color .14s;
+}
+.item-card:hover{border-color:var(--border2)}
+.item-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.12)}
+.item-name{flex:1;font-weight:500;color:var(--text);min-width:0}
+.item-cat{width:120px;font-size:11.5px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+.item-price{width:72px;font-size:12px;font-family:var(--mono);font-weight:600;color:var(--text);text-align:right;flex-shrink:0}
+.item-actions{display:flex;gap:4px;flex-shrink:0}
+.icon-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .14s}
+.icon-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.icon-btn.del:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.add-new-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  border:1px solid var(--border2);background:var(--bg4);border-radius:7px;
+  color:var(--text3);font-size:11px;font-family:var(--mono);cursor:pointer;transition:all .14s}
+.add-new-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.pane-search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg4);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;flex-shrink:0;
+}
+.pane-search-bar input{background:none;border:none;outline:none;color:var(--text);
+  font-size:12.5px;font-family:var(--body);flex:1}
+.pane-search-bar input::placeholder{color:var(--text3)}
+.show-item-row:hover{border-color:var(--border2)}
+.addon-cell{padding:10px 12px;display:flex;align-items:center}
+/* ── GLOBAL APP HEADER ──────────────────────────── */
+/* ── GLOBAL APP HEADER ──────────────────────────── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;height:auto;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:20px}
+.header-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+.header-logo{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.header-logo-label{font-size:8px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;line-height:1;white-space:nowrap;font-weight:600}
+.header-content{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;margin-left:90px}
+.header-page-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.header-breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-right{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .14s}
+.header-user:hover{background:rgba(255,255,255,.04)}
+.header-user-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-user-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.header-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.header-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.header-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .14s}
+.header-icon-btn:hover{border-color:var(--border2);color:var(--text)}
+.act-wrap{display:flex;gap:4px}
+
+.filter-sep{width:1px;height:24px;background:var(--border2);align-self:center}
+.search-input::placeholder{color:var(--text3)}
+.btn{height:30px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn i{}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:#0B0F0E}
+.btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#0B0F0E}
+.btn-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.btn-violet:hover{background:var(--violet);color:#fff}
+.btn-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 12px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+.tbl thead th.sortable{cursor:pointer}
+.tbl thead th.sortable:hover{color:var(--text2)}
+.tbl tbody tr{transition:background .12s;cursor:pointer}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.badge i{font-size:10px}
+.badge-teal{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.badge-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.badge-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.badge-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.badge-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.badge-gold{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold)}
+.badge-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.act-wrap{display:flex;gap:4px}
+.act-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s;color:var(--text3)}
+.act-btn i{}
+.act-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.act-btn.red:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.act-btn.amber:hover{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn .ev-icon{width:14px;height:14px}
+.page-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:var(--mono);color:var(--text2);transition:all .14s}
+.page-btn:hover{border-color:var(--border2);color:var(--text)}
+.page-btn.active{background:var(--p);border-color:var(--p);color:#0B0F0E;font-weight:700}
+
+
+/* Filter dropdown styling */
+select{appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px}
+select:focus{border-color:var(--p-border)}
+.filter-dropdown{position:relative}
+.filter-dropdown svg{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);width:11px;height:11px}
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;flex-shrink:0}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;width:13px;height:13px}
+/* ── EM IMPORT DRAWER ── */
+.em-check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .14s;margin-bottom:6px;background:var(--bg4)}
+.em-check-item:hover{border-color:var(--p-border);background:rgba(10,203,165,.04)}
+.em-check-item.selected{border-color:var(--p-border);background:rgba(10,203,165,.07);box-shadow:0 0 0 1px var(--p-border)}
+.em-check-item input[type="checkbox"]{width:16px;height:16px;margin-top:3px;accent-color:var(--p);flex-shrink:0;cursor:pointer}
+/* ── STOREFRONT MODE SELECTOR ─────────────────────────────────── */
+.sf-mode-card{padding:14px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg4);cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;display:flex;flex-direction:column;gap:10px;user-select:none}
+.sf-mode-card:hover{border-color:var(--border2)}
+.sf-mode-card.selected{border-color:var(--p-border)!important;background:rgba(10,203,165,.05)!important;box-shadow:0 0 0 1px var(--p-border)}
+.sf-card-title{font-size:12.5px;font-weight:600;font-family:var(--display);color:var(--text);transition:color .15s}
+.sf-mode-card.selected .sf-card-title{color:var(--p)}
+.sf-check{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.sf-mode-card.selected .sf-check{background:var(--p);border-color:var(--p)}
+/* color-dot used in renderTicketsTable */
+.color-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg style="height:38px;width:auto;display:block" viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+<path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+<path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+<path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+<path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+<path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+<path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+<path d="M219.307 76.6345V74.2444H231.761V76.6345H226.936V89.9841H224.131V76.6345H219.307Z" style="fill:var(--text3)"/>
+<path d="M236.989 74.2444V89.9841H234.162V74.2444H236.989Z" style="fill:var(--text3)"/>
+<path d="M253.413 79.555H250.562C250.481 79.0836 250.331 78.666 250.112 78.3023C249.894 77.9334 249.622 77.6208 249.297 77.3646C248.971 77.1085 248.601 76.9163 248.184 76.7882C247.772 76.655 247.328 76.5884 246.85 76.5884C246.002 76.5884 245.249 76.8036 244.594 77.234C243.939 77.6593 243.425 78.2843 243.054 79.1092C242.683 79.929 242.498 80.9307 242.498 82.1143C242.498 83.3183 242.683 84.3328 243.054 85.1577C243.43 85.9775 243.944 86.5974 244.594 87.0176C245.249 87.4326 245.999 87.6401 246.842 87.6401C247.31 87.6401 247.747 87.5786 248.153 87.4556C248.565 87.3275 248.933 87.1405 249.259 86.8946C249.589 86.6487 249.866 86.3464 250.089 85.9877C250.318 85.6291 250.476 85.2192 250.562 84.758L253.413 84.7734C253.306 85.5215 253.075 86.2234 252.719 86.8792C252.368 87.5351 251.908 88.114 251.339 88.6161C250.77 89.1131 250.105 89.5025 249.342 89.7843C248.58 90.061 247.734 90.1993 246.804 90.1993C245.432 90.1993 244.208 89.8791 243.131 89.2387C242.053 88.5982 241.205 87.6734 240.585 86.4642C239.965 85.255 239.655 83.805 239.655 82.1143C239.655 80.4183 239.968 78.9683 240.593 77.7643C241.218 76.5551 242.069 75.6303 243.146 74.9898C244.223 74.3494 245.443 74.0292 246.804 74.0292C247.673 74.0292 248.481 74.1521 249.228 74.3981C249.975 74.644 250.641 75.0052 251.225 75.4817C251.809 75.9531 252.29 76.5321 252.666 77.2186C253.047 77.9001 253.296 78.6789 253.413 79.555Z" style="fill:var(--text3)"/>
+<path d="M256.002 89.9841V74.2444H258.83V81.4764H259.02L265.11 74.2444H268.563L262.526 81.3073L268.616 89.9841H265.217L260.56 83.2363L258.83 85.296V89.9841H256.002Z" style="fill:var(--text3)"/>
+<path d="M270.527 89.9841V74.2444H280.68V76.6345H273.355V80.9076H280.154V83.2978H273.355V87.594H280.741V89.9841H270.527Z" style="fill:var(--text3)"/>
+<path d="M282.879 76.6345V74.2444H295.333V76.6345H290.508V89.9841H287.703V76.6345H282.879Z" style="fill:var(--text3)"/>
+<path d="M300.561 74.2444V89.9841H297.734V74.2444H300.561Z" style="fill:var(--text3)"/>
+<path d="M316.451 74.2444V89.9841H313.936L306.581 79.263H306.451V89.9841H303.623V74.2444H306.154L313.501 84.9732H313.639V74.2444H316.451Z" style="fill:var(--text3)"/>
+<path d="M329.989 79.2706C329.862 78.8556 329.687 78.4842 329.463 78.1562C329.245 77.8232 328.981 77.5389 328.671 77.3032C328.366 77.0675 328.015 76.8907 327.619 76.7729C327.223 76.6499 326.791 76.5884 326.323 76.5884C325.485 76.5884 324.738 76.801 324.082 77.2263C323.427 77.6516 322.911 78.2767 322.535 79.1016C322.164 79.9213 321.979 80.9204 321.979 82.0989C321.979 83.2876 322.164 84.2944 322.535 85.1193C322.906 85.9442 323.422 86.5718 324.082 87.0022C324.743 87.4275 325.51 87.6401 326.384 87.6401C327.177 87.6401 327.863 87.4864 328.442 87.179C329.026 86.8715 329.476 86.436 329.791 85.8724C330.106 85.3037 330.264 84.6376 330.264 83.8742L330.904 83.9741H326.666V81.7453H333V83.636C333 84.9835 332.715 86.1491 332.146 87.1329C331.577 88.1166 330.795 88.8749 329.799 89.4077C328.803 89.9355 327.66 90.1993 326.369 90.1993C324.931 90.1993 323.668 89.874 322.581 89.2233C321.499 88.5675 320.653 87.6375 320.043 86.4335C319.438 85.2243 319.136 83.7897 319.136 82.1296C319.136 80.859 319.314 79.7241 319.669 78.725C320.03 77.7259 320.533 76.8779 321.178 76.1811C321.824 75.4792 322.581 74.9463 323.45 74.5825C324.319 74.2136 325.264 74.0292 326.285 74.0292C327.149 74.0292 327.954 74.1572 328.701 74.4134C329.448 74.6645 330.111 75.0232 330.691 75.4894C331.275 75.9557 331.755 76.509 332.131 77.1495C332.507 77.7899 332.754 78.497 332.87 79.2706H329.989Z" style="fill:var(--text3)"/>
+</svg>
+    </div>
+    
+<div class="header-content">
+      <div class="header-page-title" id="topTitle">Shows</div>
+      <div class="header-breadcrumb" id="topBread">Settings / Shows</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="topActions" style="display:flex;align-items:center;gap:8px"></div>
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:inline-block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-group">Main</div>
+      <a href="evinra_dashboard_mvp.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg></span>Dashboard <span class="sb-badge">MVP</span></a>
+      <a href="evinra_events.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events</a>
+<a href="evinra_order_detail.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Orders</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Reports</div>
+      <a href="evinra_sales_overview.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg></span>Sales Overview</a>
+      <a href="evinra_event_sales_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Sales Report</a>
+      <a href="evinra_attendance_scan_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg></span>Attendance &amp; Scan</a>
+      <a href="evinra_refund_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Refund Report</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Settings</div>
+      <a href="evinra_general.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>General</a>
+      <a href="evinra_shows.html" class="sb-item active"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Shows</a>
+      <a href="evinra_seating_map.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Layout Management</a>
+      <a href="evinra_discounts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo Codes</a>
+      <a href="evinra_credit_plans.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Plans</a>
+      <a href="evinra_experience_tickets.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Experience Ticketing</a>
+      <a href="evinra_other_vendors.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Others Vendors</a>
+      <a href="evinra_vendor_sales_links.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Vendor Referral Links</a>
+      <a href="evinra_fees_taxes.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Fees &amp; Taxes</a>
+      <a href="evinra_users.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- Content -->
+    <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:20px 28px;gap:14px;min-height:0">
+
+      <!-- ═══ SHOWS LIST ═══════════════════════════════════════════ -->
+      <div id="view-list" style="display:flex;flex-direction:column;flex:1;min-height:0;gap:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+          <p class="shows-desc">Manage shows, ticket templates and add-on configurations</p>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="position:relative">
+              <select id="listProdFilter" onchange="filterShows(document.getElementById('listSearch').value)" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 26px 6px 10px;outline:none;min-width:150px;cursor:pointer">
+                <option value="">All Productions</option>
+                <option>Flying Lions Circus</option>
+                <option>Nova Circus</option>
+                <option>SunPeak Events</option>
+                <option>Solar Spectacular</option>
+                <option>Circus of Dreams</option>
+              </select>
+              <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:4px 10px">
+              <span style="font-size:10px;font-family:var(--mono);color:var(--text3);white-space:nowrap">From</span>
+              <input id="listDateFrom" type="date" oninput="filterShows(document.getElementById('listSearch').value)"
+                style="background:transparent;border:none;color:var(--text);font-size:11.5px;font-family:var(--mono);outline:none;cursor:pointer;width:130px">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:4px 10px">
+              <span style="font-size:10px;font-family:var(--mono);color:var(--text3);white-space:nowrap">To</span>
+              <input id="listDateTo" type="date" oninput="filterShows(document.getElementById('listSearch').value)"
+                style="background:transparent;border:none;color:var(--text);font-size:11.5px;font-family:var(--mono);outline:none;cursor:pointer;width:130px">
+            </div>
+            <div style="position:relative">
+              <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><span class="ev-icon" style="width:13px;height:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span></span>
+              <input id="listSearch" type="text" placeholder="Search shows…" oninput="filterShows(this.value)"
+                style="background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px 6px 30px;outline:none;width:200px">
+            </div>
+            <button class="btn btn-primary" onclick="openAddShowDrawer()">
+              <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>
+              Add Show
+            </button>
+          </div>
+        </div>
+        <div class="card" style="flex:1;overflow:auto">
+          <table class="tbl">
+            <thead><tr><th>ID</th><th>Production</th><th>Name</th><th>Description</th><th>From</th><th>To</th><th>Seats</th><th>Source</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="showsBody"><tr><td colspan="8" style="padding:48px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">Loading…</td></tr></tbody>
+          </table>
+          <div id="showsEmpty" style="display:none;padding:48px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">No shows match your search</div>
+        </div>
+      </div>
+
+      <!-- ═══ SHOW DETAIL ══════════════════════════════════════════ -->
+      <div id="view-detail" class="detail-wrap">
+
+        <div class="detail-card">
+
+          <!-- Tab bar -->
+          <div class="detail-tab-bar">
+            <div class="seg-ctrl">
+              <button class="seg-btn active" id="seg-info"    onclick="switchDetailTab('info')"><span class="ev-icon" style="width:13px;height:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></span>Basic Information</button>
+              <button class="seg-btn"         id="seg-tickets" onclick="switchDetailTab('tickets')"><span class="ev-icon" style="width:13px;height:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Tickets</button>
+              <button class="seg-btn"         id="seg-addons"  onclick="switchDetailTab('addons')"><span class="ev-icon" style="width:13px;height:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></span>Add-Ons</button>
+            
+            
+            </div>
+          </div>
+
+          <!-- Panes -->
+          <div class="detail-panes">
+
+            <!-- BASIC INFO -->
+            <div id="pane-info" class="detail-pane active">
+              <div id="show-em-notice" style="display:none;align-items:center;gap:10px;background:rgba(10,203,165,.07);border:1px solid var(--p-border);border-radius:8px;padding:10px 14px">
+                <span style="flex-shrink:0;display:inline-flex;color:var(--p)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <span style="font-size:12px;color:var(--text2)">This show was imported from <strong style="color:var(--p)">Evinra Management</strong> and cannot be edited here. Manage it directly in EM.</span>
+              </div>
+              <div>
+                <div class="form-section-title">Basic Information</div>
+                <div class="form-section-sub">Core details for this show</div>
+              </div>
+              <div class="field-group">
+                <div class="field-block">
+                  <label class="field-label">Show Name *</label>
+                  <input id="bi-name" class="field-input" placeholder="e.g. Flying Lions Circus 2026">
+                </div>
+                <div class="field-block">
+                  <label class="field-label">Production *</label>
+                  <div style="position:relative">
+                    <select id="bi-prod" class="field-input" style="appearance:none;padding-right:26px;cursor:pointer">
+                      <option value="">Select production…</option>
+                      <option>Flying Lions Circus</option><option>Nova Circus</option>
+                      <option>SunPeak Events</option><option>Solar Spectacular</option>
+                    </select>
+                    <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                  </div>
+                </div>
+              </div>
+              <div class="field-group full">
+                <div class="field-block">
+                  <label class="field-label">Description</label>
+                  <textarea id="bi-desc" class="field-input" placeholder="Brief description of this show…"></textarea>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-block">
+                  <label class="field-label">From Date</label>
+                  <input id="bi-date-from" type="date" class="field-input">
+                </div>
+                <div class="field-block">
+                  <label class="field-label">To Date</label>
+                  <input id="bi-date-to" type="date" class="field-input">
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field-block">
+                  <label class="field-label">Total Seats *</label>
+                  <input id="bi-seats" type="number" class="field-input" placeholder="e.g. 2500" min="1">
+                </div>
+                <div class="field-block">
+                  <label class="field-label">Show ID</label>
+                  <input id="bi-id" class="field-input" readonly style="font-family:var(--mono);color:var(--text3)">
+                </div>
+              </div>
+
+              <!-- ── STOREFRONT SALES MODE ──────────────────────────── -->
+              <div style="height:1px;background:var(--border);margin:2px 0"></div>
+              <div>
+                <div class="form-section-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="display:inline-flex;color:var(--p)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+                  Storefront Sales Mode
+                </div>
+                <div class="form-section-sub">Choose how customers purchase add-ons on the public storefront</div>
+              </div>
+
+              <!-- Two mode option cards -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="sfModeGrid">
+
+                <!-- Card A: Credit Packages -->
+                <div class="sf-mode-card selected" id="sfCard-credits" onclick="selectSFMode('credits')">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <div style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--violet-dim);flex-shrink:0">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--violet)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg>
+                      </div>
+                      <div class="sf-card-title">Credit Packages</div>
+                    </div>
+                    <div class="sf-check" id="sfCheck-credits">
+                      <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#0B0F0E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.55;padding-left:39px">Customers buy credit bundles and redeem credits at each ride or experience.</div>
+                </div>
+
+                <!-- Card B: Direct Purchase -->
+                <div class="sf-mode-card" id="sfCard-direct" onclick="selectSFMode('direct')">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <div style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--p-dim);flex-shrink:0">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--p)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                      </div>
+                      <div class="sf-card-title">Rides &amp; Experiences</div>
+                    </div>
+                    <div class="sf-check" id="sfCheck-direct"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.55;padding-left:39px">Customers buy rides &amp; experiences directly at each item's listed price.</div>
+                </div>
+
+              </div><!-- /sfModeGrid -->
+
+              <!-- Panel A: Credit Packages management -->
+              <div id="sfPanel-credits">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <div>
+                    <div style="font-size:11.5px;font-weight:600;font-family:var(--display);color:var(--text)">Credit Packages</div>
+                    <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">Bundles available for purchase on the storefront</div>
+                  </div>
+                  <button class="btn" onclick="openCpModal(null)" style="height:28px;border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet);font-size:11px;padding:0 12px;gap:5px">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg>
+                    Add Package
+                  </button>
+                </div>
+                <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                  <div style="display:grid;grid-template-columns:1fr 76px 76px 58px 64px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:var(--bg4)">
+                    <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Package Name</div>
+                    <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:center">Credits</div>
+                    <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Price</div>
+                    <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:center">Active</div>
+                    <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Actions</div>
+                  </div>
+                  <div id="cpTableBody"></div>
+                </div>
+              </div>
+
+              <!-- Panel B: Direct Purchase info -->
+              <div id="sfPanel-direct" style="display:none">
+                <div style="background:var(--p-dim);border:1px solid var(--p-border);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px">
+                  <span style="color:var(--p);flex-shrink:0;display:inline-flex;margin-top:1px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></span>
+                  <div>
+                    <p style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">Direct pricing active</p>
+                    <p style="font-size:11px;font-family:var(--mono);color:var(--text3);line-height:1.65">Customers see and purchase rides &amp; experiences at the prices set in the <strong style="color:var(--text2)">Add-Ons</strong> tab. Credit packages are not offered in this mode.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- TICKETS — IDs match renderTicketsTable() exactly -->
+            <div id="pane-tickets" class="detail-pane">
+
+              <!-- Catalog banner -->
+              <div id="tkModuleBanner" style="background:var(--p-dim);border:1px solid var(--p-border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+                <span style="display:inline-flex;align-items:center;color:var(--p);flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                <p style="font-size:11px;font-family:var(--mono);color:var(--p);flex:1">
+                  <strong>Catalog module active.</strong> Ticket templates inherited from <strong>Evinra Event Management → Catalog</strong>. Add local tickets or disable inherited ones.
+                </p>
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                  <span style="font-size:9px;font-family:var(--mono);color:var(--text3)">Catalog Module</span>
+                  <button class="toggle on" id="tkModuleToggle" onclick="toggleTicketModule(this)"><div class="toggle-thumb"></div></button>
+                
+                
+                </div>
+              </div>
+
+              <!-- Header row -->
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+                <div>
+                  <div class="form-section-title">Ticket Types</div>
+                  <div class="form-section-sub">Define ticket categories, pricing and availability for this show</div>
+                </div>
+                <button class="btn btn-primary" onclick="openTicketDrawer(-1)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg> Add Ticket</button>
+              
+              
+              </div>
+
+              <!-- Filters — exact same IDs as renderTicketsTable() -->
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+                <div style="position:relative">
+                  <select id="tkTypeFilter" onchange="renderTicketsTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 26px 6px 10px;outline:none;min-width:140px">
+                    <option value="">Ticket Type</option>
+                    <option>General Admission</option><option>VIP</option><option>Child</option><option>Senior</option><option>Box Office</option>
+                  </select>
+                  <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                </div>
+                <div style="position:relative">
+                  <select id="tkSaleFilter" onchange="renderTicketsTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 26px 6px 10px;outline:none;min-width:110px">
+                    <option value="">Status</option><option value="on">On Sale</option><option value="off">Off Sale</option>
+                  </select>
+                  <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                </div>
+                <div style="position:relative;flex:1;max-width:220px">
+                  <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+                  <input type="text" id="tkSearch" oninput="renderTicketsTable()" placeholder="Search tickets…"
+                    style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11.5px;font-family:var(--body);padding:6px 10px 6px 30px;outline:none">
+                </div>
+              </div>
+
+              <!-- Grid table matching renderTicketsTable() output exactly -->
+              <div class="card" style="flex:1;overflow:auto">
+                <!-- Header: grid-template-columns:1fr 160px 80px 80px 100px 60px -->
+                <div style="display:grid;grid-template-columns:1fr 160px 80px 80px 100px 60px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.10);background:var(--bg3);position:sticky;top:0;z-index:2">
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Ticket Name</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Ticket Type</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Qty</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Price</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:center">Status</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Actions</div>
+                </div>
+                <div id="ticketsTableBody"></div>
+              </div>
+
+            </div>
+
+            <div id="pane-addons" class="detail-pane">
+
+              <!-- Catalog banner -->
+              <div id="rdModuleBanner" style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+                <span style="display:inline-flex;align-items:center;color:var(--amber);flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></span>
+                <p style="font-size:11px;font-family:var(--mono);color:var(--amber);flex:1">
+                  <strong>Catalog module active.</strong> Rides & Experiences inherited from <strong>Evinra Event Management → Catalog</strong>. Credit overrides are managed inside each Event's Add-Ons tab.
+                </p>
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                  <span style="font-size:9px;font-family:var(--mono);color:var(--text3)">Catalog Module</span>
+                  <button class="toggle on" id="rdModuleToggle" onclick="toggleRideModule(this)"><div class="toggle-thumb"></div></button>
+                
+                
+                </div>
+              </div>
+
+              <!-- Header row -->
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+                <div>
+                  <div class="form-section-title">Rides & Experiences</div>
+                  <div class="form-section-sub">Add-ons available for this show with credit assignments</div>
+                </div>
+                <button class="btn btn-primary" onclick="openRideModal(null)" style="border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg> Add Ride / Exp.</button>
+              
+              
+              </div>
+
+              <!-- Filters — exact same IDs as renderRidesTable() -->
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+                <div style="position:relative">
+                  <select id="rdTypeFilter" onchange="renderRidesTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 26px 6px 10px;outline:none;min-width:140px">
+                    <option value="">Type: All</option><option value="Ride">Ride</option><option value="Experience">Experience</option>
+                  </select>
+                  <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                </div>
+                <div style="position:relative">
+                  <select id="rdInshowFilter" onchange="renderRidesTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 26px 6px 10px;outline:none;min-width:130px">
+                    <option value="">In-Show Sales</option><option value="1">Enabled</option><option value="0">Disabled</option>
+                  </select>
+                  <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                </div>
+                <div style="position:relative;flex:1;max-width:220px">
+                  <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+                  <input type="text" id="rdSearch" oninput="renderRidesTable()" placeholder="Search rides…"
+                    style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:11.5px;font-family:var(--body);padding:6px 10px 6px 30px;outline:none">
+                </div>
+              </div>
+
+              <!-- Grid table matching renderRidesTable() output exactly -->
+              <div class="card" style="flex:1;overflow:auto">
+                <!-- Header: grid-template-columns:1fr 80px 80px 100px 80px 60px 88px -->
+                <div style="display:grid;grid-template-columns:1fr 80px 80px 100px 80px 60px 88px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.10);background:var(--bg3);position:sticky;top:0;z-index:2">
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Name</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Type</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Price</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Credits</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">In-Show</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px">POS</div>
+                  <div style="font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Actions</div>
+                </div>
+                <div id="ridesTableBody"></div>
+              </div>
+
+            </div>
+
+            
+
+            </div><!-- /detail-panes -->
+
+          <!-- Save bar -->
+          <div class="save-bar">
+            <span style="font-size:11px;font-family:var(--mono);color:var(--text3)" id="saveStatus">Changes apply to this show's event templates</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost" onclick="goBackToList()"><span class="ev-icon" style="width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>Back to Shows</button>
+              <button id="show-save-btn" class="btn btn-primary" onclick="saveShow()"><span class="ev-icon" style="width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Save Changes</button>
+            </div>
+          </div>
+
+        </div><!-- /detail-card -->
+      </div><!-- /view-detail -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ═══ MODALS ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="showModal" onclick="if(event.target===this)closeShowModal()">
+  <div class="modal-card" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span> <span id="showModalTitle">Create Show</span></div>
+      <div class="modal-x" onclick="closeShowModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div>
+    
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Show Name *</label>
+          <input id="sm-name" class="form-input" placeholder="e.g. Flying Lions Circus 2026">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Production *</label>
+          <div style="position:relative">
+            <select id="sm-prod" class="form-select" style="padding-right:28px">
+              <option value="">Select production…</option>
+              <option>Flying Lions Circus</option>
+              <option>Nova Circus</option>
+              <option>SunPeak Events</option>
+              <option>Solar Spectacular</option>
+            </select>
+            <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);display:inline-flex"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <textarea id="sm-desc" class="form-input" rows="3" placeholder="Brief description of this show…" style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Total Seats *</label>
+          <input id="sm-seats" type="number" class="form-input" placeholder="e.g. 2500" min="1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Show ID</label>
+          <input id="sm-id" class="form-input" placeholder="Auto-generated" style="font-family:var(--mono);color:var(--text3)">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeShowModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShowModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg> Save Show</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ───────────────────────────────────── -->
+
+<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)closeDeleteModal()">
+  <div class="modal-card" style="width:380px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red)"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span> Delete Show</div>
+      <div class="modal-x" onclick="closeDeleteModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div>
+    
+    </div>
+    <div class="modal-body">
+      <p style=";color:var(--text2);line-height:1.6">Delete <strong id="deleteShowName" style="color:var(--text)"></strong>? This will permanently remove the show and all ticket/add-on templates. Events linked to this show will retain their configurations.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-red" onclick="confirmDelete()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg> Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="ticketDrawer" onclick="if(event.target===this)closeTicketDrawer()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawerTitle">Edit Ticket</div>
+      <div class="modal-x" onclick="closeTicketDrawer()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="drawer-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Ticket Name *</label><input class="form-input" id="tName" placeholder="e.g. Adult General Admission"></div>
+        <div class="form-field"><label class="form-label">Ticket Type *</label>
+          <select class="form-select" id="tType">
+            <option>General Admission</option>
+            <option>VIP</option>
+            <option>Family Pack</option>
+            <option>Student</option>
+            <option>Senior</option>
+            <option>Group</option>
+            <option>Press</option>
+            <option>Complimentary</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Price ($)</label><input type="number" class="form-input" id="tPrice" placeholder="29.99" step="0.01"></div>
+        <div class="form-field"><label class="form-label">Quantity Available</label><input type="number" class="form-input" id="tQty" placeholder="500"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Min / Max per Order</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" class="form-input" placeholder="Min 1" min="1" style="flex:1">
+            <input type="number" class="form-input" placeholder="Max 10" min="1" style="flex:1">
+          </div>
+        </div>
+        <div></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <!-- Time Settings -->
+      <div style=";font-weight:600;font-family:var(--display);color:var(--text)">Time Settings</div>
+      <!-- Custom Sale Time toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div>
+          <p style="font-size:12px;color:var(--text);font-weight:500">Use Custom Sale Time</p>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Override the event's default sale window for this ticket</span>
+        </div>
+        <button class="toggle off" id="tCustomTime" onclick="this.classList.toggle('on');this.classList.toggle('off');toggleCustomTime()"><div class="toggle-thumb"></div></button>
+      
+      
+      </div>
+      <!-- Custom date fields — hidden by default -->
+      <div id="tCustomTimeFields" style="display:none;flex-direction:column;gap:10px">
+        <div style="background:var(--bg3);border:1px solid var(--amber-border);border-radius:8px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 12l10 10 10-10L12 2z"/><path d="M12 8v5M12 16v.5"/></svg></span>
+          <p style="font-size:11px;color:var(--amber);line-height:1.5;font-family:var(--mono)">This ticket will use its own sale window instead of the event's sale dates.</p>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Sale Start *</label><input type="datetime-local" class="form-input" id="tSaleStart"></div>
+          <div class="form-field"><label class="form-label">Sale End *</label><input type="datetime-local" class="form-input" id="tSaleEnd"></div>
+        </div>
+      </div>
+      <!-- On Sale + Transferable -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div><p style="font-size:12px;color:var(--text);font-weight:500">On Sale</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Visible to customers when enabled</span></div>
+        <button class="toggle on" id="tOnSale" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+      
+      
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div><p style="font-size:12px;color:var(--text);font-weight:500">Transferable</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Allow ticket holder to transfer</span></div>
+        <button class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+      
+      
+      </div>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <div style=";font-weight:600;font-family:var(--display);color:var(--text)">Sales Channels</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:-6px">Where this ticket can be purchased</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div>
+            <p style="font-size:12px;color:var(--text);font-weight:500">Box Office</p>
+            <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">In-person at venue</span>
+          </div>
+          <button class="toggle on" id="tBoxOffice" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        
+        
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div>
+            <p style="font-size:12px;color:var(--text);font-weight:500">Storefront (POS)</p>
+            <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Kiosk / POS terminal</span>
+          </div>
+          <button class="toggle on" id="tStorefront" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        
+        
+        </div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-ghost" onclick="closeTicketDrawer()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTicket()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Save Ticket</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="rideModal" onclick="if(event.target===this)closeRideModal()">
+  <div class="modal-card" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg></span><span id="rideModalTitle">Add Ride / Experience</span></div>
+      <div class="modal-x" onclick="closeRideModal()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Name *</label><input class="form-input" id="rideName" placeholder="e.g. Roller Coaster"></div>
+        <div class="form-field"><label class="form-label">Type *</label>
+          <select class="form-select" id="rideType">
+            <option value="Ride">Ride</option>
+            <option value="Experience">Experience</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Price ($)</label>
+          <div style="display:flex">
+            <span style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3)">$</span>
+            <input type="number" class="form-input" id="ridePrice" placeholder="5.00" step="0.01" min="0" style="border-radius:0 7px 7px 0">
+          </div>
+        </div>
+        <div></div>
+      </div>
+      <!-- Credit Assignment -->
+      <div style="background:var(--bg3);border:1px solid var(--violet-border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--violet);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:6px"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Assignment</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">Credits deducted per scan at the ride / experience point. 1 credit = global rate.</div>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Credits Required *</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" class="form-input" id="rideCredits" placeholder="3" min="1" max="100" style="font-family:var(--mono);font-size:14px;font-weight:600;width:80px" oninput="document.getElementById('rideCreditUSD').textContent='$'+(parseInt(this.value)||0).toFixed(2)">
+              <span style="font-size:11px;font-family:var(--mono);color:var(--text3)">= <span id="rideCreditUSD" style="color:var(--p)">$0.00</span></span>
+            </div>
+          </div>
+          <div></div>
+        </div>
+      </div>
+      <!-- Channels -->
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div><p style="font-size:12px;color:var(--text);font-weight:500">In-Show Sales</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Web & mobile</span></div>
+          <button class="toggle on" id="rideInshow" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        
+        
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div><p style="font-size:12px;color:var(--text);font-weight:500">Storefront (POS)</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">POS / kiosk</span></div>
+          <button class="toggle on" id="ridePos" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        
+        
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRide()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CREDIT PACKAGE MODAL ════════════════════════════════════════════ -->
+<div class="modal-overlay" id="cpModal" onclick="if(event.target===this)closeCpModal()">
+  <div class="modal-card" style="width:420px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--violet)">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>
+        <span id="cpModalTitle">Add Credit Package</span>
+      </div>
+      <div class="modal-x" onclick="closeCpModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Package Name *</label>
+          <input class="form-input" id="cpName" placeholder="e.g. Starter Pack">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Credits Included *</label>
+          <input type="number" class="form-input" id="cpCredits" placeholder="e.g. 10" min="1" style="font-family:var(--mono)">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Price ($) *</label>
+          <div style="display:flex">
+            <span style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3)">$</span>
+            <input type="number" class="form-input" id="cpPrice" placeholder="15.00" step="0.01" min="0" style="border-radius:0 7px 7px 0;font-family:var(--mono)">
+          </div>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <input class="form-input" id="cpDesc" placeholder="Optional — short description shown to customers">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div>
+          <p style="font-size:12px;color:var(--text);font-weight:500">Active on Storefront</p>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Visible to customers when enabled</span>
+        </div>
+        <button class="toggle on" id="cpActive" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCpModal()">Cancel</button>
+      <button class="btn" onclick="saveCp()" style="height:30px;border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet);font-size:11px;padding:0 14px;gap:6px">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
+        Save Package
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD SHOW DRAWER ══════════════════════════════════════════════════ -->
+<div class="drawer-overlay" id="addShowDrawer" onclick="if(event.target===this)closeAddShowDrawer()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" style="display:flex;align-items:center;gap:8px">
+        <span class="ev-icon" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>
+        Add Show
+      </div>
+      <div class="modal-x" onclick="closeAddShowDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div>
+    </div>
+    <!-- Tab bar (only shown when Evinra EM module is active for this tenant) -->
+    <div id="asd-tab-bar" style="padding:12px 24px 0;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div class="seg-ctrl" style="width:fit-content">
+        <button class="seg-btn active" id="asd-tab-import" onclick="switchAddDrawerTab('import')">
+          <span class="ev-icon" style="width:13px;height:13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+          Import from Evinra EM
+        </button>
+        <button class="seg-btn" id="asd-tab-manual" onclick="switchAddDrawerTab('manual')">
+          <span class="ev-icon" style="width:13px;height:13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>
+          Create Manually
+        </button>
+      </div>
+    </div>
+    <!-- ── Import from Evinra EM pane ── -->
+    <div id="asd-pane-import" class="drawer-body" style="display:flex;flex-direction:column;gap:12px">
+      <!-- Info banner -->
+      <div style="background:var(--p-dim);border:1px solid var(--p-border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="color:var(--p);flex-shrink:0;display:inline-flex"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <p style="font-size:11px;font-family:var(--mono);color:var(--p);margin:0">Shows from <strong>Evinra Event Management</strong> are automatically marked <strong>Active</strong> when imported.</p>
+      </div>
+      <!-- Production filter -->
+      <div style="position:relative;flex-shrink:0">
+        <select id="em-prod-filter" onchange="renderEMList()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 26px 6px 10px;outline:none;width:100%;cursor:pointer">
+          <option value="">All Productions</option>
+          <option>Flying Lions Circus</option>
+          <option>Nova Circus</option>
+          <option>SunPeak Events</option>
+          <option>Solar Spectacular</option>
+          <option>Circus of Dreams</option>
+        </select>
+        <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+      </div>
+      <!-- EM shows checklist -->
+      <div id="emShowsList" style="flex:1;overflow-y:auto;min-height:0"></div>
+    </div>
+    <!-- ── Create Manually pane ── -->
+    <div id="asd-pane-manual" class="drawer-body" style="display:none;flex-direction:column;gap:14px">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Show Name *</label>
+          <input id="asd-name" class="form-input" placeholder="e.g. Flying Lions Circus 2026">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Production *</label>
+          <div style="position:relative">
+            <select id="asd-prod" class="form-select" style="padding-right:28px">
+              <option value="">Select production…</option>
+              <option>Flying Lions Circus</option>
+              <option>Nova Circus</option>
+              <option>SunPeak Events</option>
+              <option>Solar Spectacular</option>
+              <option>Circus of Dreams</option>
+            </select>
+            <span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <textarea id="asd-desc" class="form-input" rows="3" placeholder="Brief description of this show…" style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">From Date</label>
+          <input id="asd-date-from" type="date" class="form-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">To Date</label>
+          <input id="asd-date-to" type="date" class="form-input">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Total Seats *</label>
+          <input id="asd-seats" type="number" class="form-input" placeholder="e.g. 2500" min="1">
+        </div>
+        <div></div>
+      </div>
+    </div>
+    <!-- ── Import footer ── -->
+    <div class="drawer-footer" id="asd-foot-import" style="display:flex">
+      <button class="btn btn-ghost" onclick="closeAddShowDrawer()">Cancel</button>
+      <button class="btn btn-primary" onclick="importSelectedEM()">
+        <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        Import Selected
+      </button>
+    </div>
+    <!-- ── Manual footer ── -->
+    <div class="drawer-footer" id="asd-foot-manual" style="display:none">
+      <button class="btn btn-ghost" onclick="closeAddShowDrawer()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManualShowFromDrawer()">
+        <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
+        Save Show
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RIDE DELETE CONFIRM ══════════════════════════════════════════════ -->
+
+
+
+<script>
+/* ── TAB SWITCHER ─────────────────────────────────── */
+function switchDetailTab(tab) {
+  ['info','tickets','addons'].forEach(function(t) {
+    var pane = document.getElementById('pane-' + t);
+    var btn  = document.getElementById('seg-'  + t);
+    if (pane) pane.classList.toggle('active', t === tab);
+    if (btn)  btn.classList.toggle('active',  t === tab);
+  });
+  if (tab === 'tickets') { try { renderTicketsTable(); } catch(e) {} }
+  if (tab === 'addons')  { try { renderRidesTable();   } catch(e) {} }
+}
+window.switchDetailTab = switchDetailTab;
+
+/* ══ TICKETS (from Events) ══════════════════════════════════════ */
+
+
+
+
+
+
+
+
+
+
+function confirmDeleteRide() {
+  if(rideEditId !== null) {
+    const idx = RIDES_EXP.findIndex(r=>r.id===rideEditId);
+    if(idx>-1) RIDES_EXP.splice(idx,1);
+    renderRidesTable();
+    document.getElementById('rideDeleteModal').classList.remove('open');
+    rideEditId = null;
+  }
+}
+
+
+/* ── Override renderTicketsTable to target show table elements ── */
+// Already handled by the function from Events which uses showTicketsBody/showTicketsTable IDs
+// but we need to patch the IDs it targets
+
+
+/* ══ TICKETS + RIDES (identical to Events) ══════════════════════ */
+const TICKETS=[
+  {id:0, name:'Adult General Admission', ticketType:'General Admission', price:29.99, qty:500, color:'#2A9B85', sale:true},
+  {id:1, name:'Child General Admission', ticketType:'General Admission', price:14.99, qty:200, color:'#2A9B85', sale:true},
+  {id:2, name:'VIP Front Row',           ticketType:'VIP',               price:89.99, qty:100, color:'#8B6BD4', sale:true},
+  {id:3, name:'Family Pack (2+2)',       ticketType:'Family Pack',       price:99.99, qty:200, color:'#D4884A', sale:false},
+  {id:4, name:'Student ID',              ticketType:'Student',           price:19.99, qty:150, color:'#4A8BD4', sale:true},
+  {id:5, name:'Senior 65+',             ticketType:'Senior',            price:24.99, qty:100, color:'#E8A020', sale:true},
+];
+
+
+let RIDES_EXP = [
+  {id:1, name:'Roller Coaster',    type:'Ride',       color:'#D4884A', price:5.00,  credits:3,  inshow:true,  pos:true},
+  {id:2, name:'Ferris Wheel',      type:'Ride',       color:'#D4884A', price:4.00,  credits:2,  inshow:true,  pos:true},
+  {id:3, name:'Carousel',          type:'Ride',       color:'#D4884A', price:2.00,  credits:1,  inshow:true,  pos:true},
+  {id:4, name:'VIP Backstage Pass',type:'Experience', color:'#8B6BD4', price:79.99, credits:10, inshow:true,  pos:false},
+  {id:5, name:'Cast Photo Package',type:'Experience', color:'#8B6BD4', price:24.99, credits:5,  inshow:false, pos:false},
+  {id:6, name:'Meet & Greet',      type:'Experience', color:'#8B6BD4', price:49.99, credits:8,  inshow:true,  pos:false},
+  {id:7, name:'Clown Act',         type:'Experience', color:'#2A9B85', price:35.00, credits:6,  inshow:true,  pos:false},
+  {id:8, name:'Bumper Cars',       type:'Ride',       color:'#D4884A', price:3.00,  credits:2,  inshow:false, pos:true},
+];
+
+let ticketEditId = null;
+let rideEditId = null;
+
+function renderTicketsTable(){
+  const body = document.getElementById('ticketsTableBody');
+  if(!body) return;
+  const typeFilter = (document.getElementById('tkTypeFilter')||{}).value || '';
+  const saleFilter = (document.getElementById('tkSaleFilter')||{}).value || '';
+  const q          = ((document.getElementById('tkSearch')||{}).value || '').toLowerCase();
+
+  const filtered = TICKETS.filter(t => {
+    if(typeFilter && t.ticketType !== typeFilter) return false;
+    if(saleFilter === 'on'  && !t.sale) return false;
+    if(saleFilter === 'off' &&  t.sale) return false;
+    if(q && !`${t.name} ${t.ticketType}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    body.innerHTML='<div style="padding:30px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">'+(TICKETS.length ? 'No tickets match your filters' : 'No tickets added yet')+'</div>';
+    return;
+  }
+  body.innerHTML = filtered.map(t=>{
+    const sw = t.sale
+      ?`<span class="status-on"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>On Sale</span>`
+      :`<span class="status-off">Off Sale</span>`;
+    return `<div style="display:grid;grid-template-columns:1fr 160px 80px 80px 100px 60px;padding:10px 12px;border-bottom:1px solid var(--border);align-items:center;gap:0;transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="color-dot" style="background:${t.color||'#2A9B85'}"></div>
+        <div style="font-size:12px;font-weight:500;color:var(--text)">${t.name}</div>
+      </div>
+      <div><span style="font-size:11px;color:var(--text2)">${t.ticketType}</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text2);text-align:right">${t.qty}</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text);font-weight:600;text-align:right">$${t.price.toFixed(2)}</div>
+      <div style="text-align:center">${sw}</div>
+      <div style="display:flex;gap:4px;justify-content:flex-end">
+        <div class="act-btn" onclick="openTicketDrawer(${t.id})" title="Edit"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+        <div class="act-btn red" onclick="deleteTicket(${t.id})" title="Remove"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openTicketDrawer(id){
+  const t = id===-1 ? null : TICKETS.find(x=>x.id===id);
+  ticketEditId = t ? t.id : null;
+  document.getElementById('drawerTitle').textContent = t ? 'Edit Ticket — '+t.name : 'New Ticket';
+  document.getElementById('tName').value  = t ? t.name        : '';
+  document.getElementById('tType').value  = t ? t.ticketType  : 'General Admission';
+  document.getElementById('tPrice').value = t ? t.price        : '';
+  document.getElementById('tQty').value   = t ? t.qty          : '';
+  const sw=document.getElementById('tOnSale');
+  sw.className='toggle '+(t&&t.sale?'on':'off');
+  // Reset custom time toggle
+  const ct=document.getElementById('tCustomTime');
+  if(ct){ ct.className='toggle '+(t&&t.customTime?'on':'off'); }
+  const ctf=document.getElementById('tCustomTimeFields');
+  if(ctf){ ctf.style.display=(t&&t.customTime)?'flex':'none'; }
+  if(t&&t.saleStart) document.getElementById('tSaleStart').value=t.saleStart;
+  if(t&&t.saleEnd)   document.getElementById('tSaleEnd').value=t.saleEnd;
+  const bo=document.getElementById('tBoxOffice');
+  if(bo) bo.className='toggle '+((t&&t.boxOffice!==false)?'on':'off');
+  const sf=document.getElementById('tStorefront');
+  if(sf) sf.className='toggle '+((t&&t.storefront!==false)?'on':'off');
+  document.getElementById('ticketDrawer').classList.add('open');
+}
+
+function closeTicketDrawer(){
+  document.getElementById('ticketDrawer').classList.remove('open');
+  ticketEditId = null;
+}
+
+function saveTicket(){
+  const name       = document.getElementById('tName').value.trim();
+  const ticketType = document.getElementById('tType').value;
+  const price      = parseFloat(document.getElementById('tPrice').value)||0;
+  const qty        = parseInt(document.getElementById('tQty').value)||0;
+  const sale       = document.getElementById('tOnSale').classList.contains('on');
+  const customTime = document.getElementById('tCustomTime').classList.contains('on');
+  const saleStart  = customTime ? (document.getElementById('tSaleStart').value||'') : '';
+  const saleEnd    = customTime ? (document.getElementById('tSaleEnd').value||'')   : '';
+  const boxOffice  = document.getElementById('tBoxOffice').classList.contains('on');
+  const storefront = document.getElementById('tStorefront').classList.contains('on');
+  if(!name){ alert('Ticket name is required.'); return; }
+  if(ticketEditId !== null){
+    const t = TICKETS.find(x=>x.id===ticketEditId);
+    if(t) Object.assign(t,{name,ticketType,price,qty,sale,customTime,saleStart,saleEnd,boxOffice,storefront});
+  } else {
+    TICKETS.push({id:ticketNextId++,name,ticketType,price,qty,sale,customTime,saleStart,saleEnd,boxOffice,storefront});
+  }
+  closeTicketDrawer();
+  if(document.getElementById('ticketsTableBody')) renderTicketsTable();
+}
+
+function deleteTicket(id){
+  if(!confirm('Remove this ticket?')) return;
+  const idx = TICKETS.findIndex(x=>x.id===id);
+  if(idx>-1){ TICKETS.splice(idx,1); renderTicketsTable(); }
+}
+
+function renderRidesTable(){
+  const body = document.getElementById('ridesTableBody');
+  if(!body) return;
+  const typeFilter   = (document.getElementById('rdTypeFilter')||{}).value   || '';
+  const inshowFilter = (document.getElementById('rdInshowFilter')||{}).value || '';
+  const q            = ((document.getElementById('rdSearch')||{}).value || '').toLowerCase();
+
+  const filtered = RIDES_EXP.filter(r => {
+    if(typeFilter   && r.type !== typeFilter)           return false;
+    if(inshowFilter === 'on'  && !r.inshow)             return false;
+    if(inshowFilter === 'off' &&  r.inshow)             return false;
+    if(q && !r.name.toLowerCase().includes(q))          return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    body.innerHTML='<div style="padding:30px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">'+(RIDES_EXP.length?'No items match your filters':'No rides or experiences added yet')+'</div>';
+    return;
+  }
+  body.innerHTML = filtered.map(r => `
+    <div style="display:grid;grid-template-columns:1fr 80px 80px 100px 80px 60px 88px;border-bottom:1px solid var(--border);align-items:center">
+      <div class="addon-cell"><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:14px;height:14px;border-radius:50%;background:${r.color};flex-shrink:0"></div>
+        <span style="color:var(--text);font-weight:500;font-size:12px">${r.name}</span>
+      </div></div>
+      <div class="addon-cell"><span class="badge ${r.type==='Ride'?'badge-amber':'badge-violet'}" style="font-size:9px">${r.type}</span></div>
+      <div class="addon-cell" style="font-family:var(--mono);color:var(--text);font-size:12px">$${r.price.toFixed(2)}</div>
+      <div class="addon-cell">
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:12px;border:1px solid var(--p-border);background:var(--p-dim);color:var(--p)">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>${r.credits} cr = $${r.credits.toFixed(2)}
+        </span>
+      </div>
+      <div class="addon-cell"><button class="toggle ${r.inshow?'on':'off'}" onclick="rideToggle(${r.id},'inshow',this)"><div class="toggle-thumb"></div></button></div>
+      <div class="addon-cell"><button class="toggle ${r.pos?'on':'off'}" onclick="rideToggle(${r.id},'pos',this)"><div class="toggle-thumb"></div></button></div>
+      <div class="addon-cell"><div style="display:flex;gap:4px">
+        <div class="act-btn" onclick="openRideModal(${r.id})" title="Edit"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+        <div class="act-btn red" onclick="deleteRide(${r.id})" title="Remove"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span></div>
+      </div></div>
+    </div>`).join('');
+}
+
+function openRideModal(id){
+  rideEditId = id || null;
+  const r = id ? RIDES_EXP.find(x=>x.id===id) : null;
+  document.getElementById('rideModalTitle').textContent = r ? 'Edit — '+r.name : 'Add Ride / Experience';
+  document.getElementById('rideName').value    = r ? r.name    : '';
+  document.getElementById('rideType').value    = r ? r.type    : 'Ride';
+  document.getElementById('ridePrice').value   = r ? r.price   : '';
+  document.getElementById('rideCredits').value = r ? r.credits : '';
+  document.getElementById('rideCreditUSD').textContent = r ? '$'+r.credits.toFixed(2) : '$0.00';
+  document.getElementById('rideInshow').className = 'toggle '+(r&&r.inshow?'on':'off');
+  document.getElementById('ridePos').className    = 'toggle '+(r&&r.pos?'on':'off');
+  document.getElementById('rideModal').classList.add('open');
+}
+
+function closeRideModal(){ document.getElementById('rideModal').classList.remove('open'); rideEditId=null; }
+
+function saveRide(){
+  const name    = document.getElementById('rideName').value.trim();
+  const type    = document.getElementById('rideType').value;
+  const price   = parseFloat(document.getElementById('ridePrice').value)||0;
+  const credits = parseInt(document.getElementById('rideCredits').value)||0;
+  const inshow  = document.getElementById('rideInshow').classList.contains('on');
+  const pos     = document.getElementById('ridePos').classList.contains('on');
+  if(!name){ alert('Name is required.'); return; }
+  if(!credits){ alert('Credits required must be greater than 0.'); return; }
+  if(rideEditId){
+    const r = RIDES_EXP.find(x=>x.id===rideEditId);
+    if(r) Object.assign(r,{name,type,price,credits,inshow,pos});
+  } else {
+    RIDES_EXP.push({id:rideNextId++,name,type,price,credits,inshow,pos});
+  }
+  closeRideModal();
+  renderRidesTable();
+}
+
+function deleteRide(id){
+  rideDeleteId = id;
+  const r = RIDES_EXP.find(x=>x.id===id);
+  document.getElementById('rideDeleteName').textContent = r ? r.name : '';
+  document.getElementById('rideDeleteModal').classList.add('open');
+}
+
+function closeRideDelete(){ document.getElementById('rideDeleteModal').classList.remove('open'); rideDeleteId=null; }
+
+function confirmRideDelete(){
+  const idx = RIDES_EXP.findIndex(x=>x.id===rideDeleteId);
+  if(idx>-1) RIDES_EXP.splice(idx,1);
+  closeRideDelete();
+  renderRidesTable();
+}
+
+function rideToggle(id, field, btn) {
+  const r = RIDES_EXP.find(x => x.id === id);
+  if (!r) return;
+  r[field] = !r[field];
+  btn.className = 'toggle ' + (r[field] ? 'on' : 'off');
+}
+
+/* ── FEES & TAXES CRUD ─────────────────────────── */
+// Simulates data pulled from Settings → Fees & Taxes
+const FEES = [
+  {id:1, name:'Service Fee',    type:'Percentage', value:5,   applied:'Per Ticket', active:true,  override:null},
+  {id:2, name:'Facility Fee',   type:'Fixed',      value:2,   applied:'Per Order',  active:true,  override:null},
+  {id:3, name:'Processing Fee', type:'Percentage', value:2.5, applied:'Per Ticket', active:false, override:null},
+];
+const TAXES = [
+  {id:1, name:'Florida Sales Tax', type:'Percentage', value:7, applied:'Subtotal', active:true, override:null},
+];
+let feeNextId=4, taxNextId=2, feeEditId=null, taxEditId=null;
+
+
+/* ══ TENANT MODULE FLAGS ══════════════════════════════════════════ */
+// Set to true if this tenant has purchased the Evinra Event Management module
+const TENANT_HAS_EM_MODULE = true;
+
+/* ══ SHOWS CRUD ═══════════════════════════════════════════════════ */
+/* Shows now come from the canonical dataset (assets/data.js) */
+const SHOWS = EVINRA.showsList.map(function(o){ return Object.assign({}, o); });
+const COLORS = ['#2A9B85', '#D4884A', '#8B6BD4', '#4A8BD4', '#E8A020', '#C94B4B'];
+
+/* ── Shows available in Evinra Event Management (not yet imported) ── */
+const EM_SHOWS = [];
+
+let currentShowId = null;
+let deleteTarget  = null;
+let editShowId    = null;
+
+/* ── SHOWS LIST ── */
+function filterShows(q) {
+  const prodFilter = (document.getElementById('listProdFilter')||{}).value || '';
+  const dateFrom   = (document.getElementById('listDateFrom')||{}).value || '';
+  const dateTo     = (document.getElementById('listDateTo')||{}).value   || '';
+  const rows = document.querySelectorAll('#showsBody tr');
+  let visible = 0;
+  rows.forEach(r => {
+    const prodMatch = !prodFilter || (r.dataset.production || '') === prodFilter;
+    const textMatch = !q || r.textContent.toLowerCase().includes(q.toLowerCase());
+    const rowFrom   = r.dataset.dateFrom || '';
+    const rowTo     = r.dataset.dateTo   || '';
+    const fromMatch = !dateFrom || (rowTo   >= dateFrom);
+    const toMatch   = !dateTo   || (rowFrom <= dateTo);
+    const show = prodMatch && textMatch && fromMatch && toMatch;
+    r.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('showsEmpty').style.display = visible ? 'none' : 'block';
+}
+
+/* ── NAVIGATE TO DETAIL ── */
+function openShowDetail(id) {
+  currentShowId = id;
+  const sh = SHOWS.find(s => s.id === id);
+  if (!sh) return;
+
+  // Topbar
+  document.getElementById('topTitle').textContent = sh.name;
+  document.getElementById('topBread').innerHTML = `
+    <span onclick="goBackToList()" style="cursor:pointer;color:var(--text3)">Shows</span>
+    <span>/</span><span>Show Settings</span>
+    <span>/</span>
+    <span style="font-family:var(--mono);font-size:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);border-radius:8px;padding:1px 7px">${sh.id}</span>`;
+  document.getElementById('topActions').innerHTML = `
+    <button class="btn btn-ghost" onclick="goBackToList()" style="margin-right:6px">
+      <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span> Back
+    </button>
+    <button class="btn btn-primary" onclick="saveShow()">
+      <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span> Save Changes
+    </button>`;
+
+  // Populate basic info
+  document.getElementById('bi-name').value      = sh.name;
+  document.getElementById('bi-prod').value      = sh.production;
+  document.getElementById('bi-desc').value      = sh.desc;
+  document.getElementById('bi-date-from').value = sh.dateFrom || '';
+  document.getElementById('bi-date-to').value   = sh.dateTo   || '';
+  document.getElementById('bi-seats').value     = sh.seats;
+  document.getElementById('bi-id').value        = sh.id;
+
+  // Storefront sales mode
+  if (typeof selectSFMode === 'function') {
+    selectSFMode(sh.sfSalesMode || 'credits');
+  }
+
+  // EM readonly lock
+  const isEM = !!sh.emId;
+  const emNotice  = document.getElementById('show-em-notice');
+  const saveBtn   = document.getElementById('show-save-btn');
+  const saveStatus = document.getElementById('saveStatus');
+  if (emNotice)   emNotice.style.display   = isEM ? 'flex' : 'none';
+  if (saveBtn)    saveBtn.style.display    = isEM ? 'none' : '';
+  if (saveStatus) saveStatus.style.display = isEM ? 'none' : '';
+  ['bi-name','bi-prod','bi-desc','bi-date-from','bi-date-to','bi-seats'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled      = isEM;
+    el.style.opacity = isEM ? '0.5' : '';
+    el.style.cursor  = isEM ? 'not-allowed' : '';
+  });
+
+  // Switch views
+  document.getElementById('view-list').style.display   = 'none';
+  document.getElementById('view-detail').style.display = 'flex';
+  switchDetailTab('info');
+}
+
+function goBackToList() {
+  currentShowId = null;
+  document.getElementById('view-detail').style.display = 'none';
+  document.getElementById('view-list').style.display   = 'flex';
+  document.getElementById('topTitle').textContent = 'Shows';
+  document.getElementById('topBread').innerHTML = '<span>Settings</span><span>/</span><span style="color:var(--text2)">Shows</span>';
+  document.getElementById('topActions').innerHTML = '';
+}
+
+function saveShow() {
+  const sh = SHOWS.find(s => s.id === currentShowId);
+  if (!sh) return;
+  if (sh.emId) return; /* EM shows are read-only */
+  sh.name         = document.getElementById('bi-name').value.trim()    || sh.name;
+  sh.production   = document.getElementById('bi-prod').value            || sh.production;
+  sh.desc         = document.getElementById('bi-desc').value.trim();
+  sh.dateFrom     = document.getElementById('bi-date-from').value       || sh.dateFrom;
+  sh.dateTo       = document.getElementById('bi-date-to').value         || sh.dateTo;
+  sh.seats        = parseInt(document.getElementById('bi-seats').value) || sh.seats;
+  sh.sfSalesMode  = sfSalesMode;
+  const st = document.getElementById('saveStatus');
+  if (st) { st.textContent = '✓ Changes saved'; st.style.color = 'var(--p)';
+    setTimeout(()=>{ st.textContent='Changes apply to this show\'s event templates'; st.style.color=''; }, 2000); }
+}
+
+/* ── CREATE / EDIT SHOW MODAL (kept for edit path) ── */
+function openCreateModal() { openAddShowDrawer('manual'); } // back-compat alias
+
+function openEditShowModal(id) {
+  editShowId = id;
+  const sh = SHOWS.find(s => s.id === id);
+  if (!sh) return;
+  document.getElementById('showModalTitle').textContent = 'Edit Show';
+  document.getElementById('sm-name').value  = sh.name;
+  document.getElementById('sm-prod').value  = sh.production;
+  document.getElementById('sm-desc').value  = sh.desc;
+  document.getElementById('sm-seats').value = sh.seats;
+  document.getElementById('sm-id').value    = sh.id;
+  document.getElementById('showModal').classList.add('open');
+}
+
+function closeShowModal() { document.getElementById('showModal').classList.remove('open'); }
+
+function saveShowModal() {
+  const name  = document.getElementById('sm-name').value.trim();
+  const prod  = document.getElementById('sm-prod').value;
+  const desc  = document.getElementById('sm-desc').value.trim();
+  const seats = parseInt(document.getElementById('sm-seats').value) || 0;
+  if (!name)  { alert('Show name is required.'); return; }
+  if (!prod)  { alert('Production is required.'); return; }
+  if (!seats) { alert('Seats must be > 0.'); return; }
+  if (editShowId) {
+    const sh = SHOWS.find(s => s.id === editShowId);
+    if (sh) Object.assign(sh, { name, production: prod, desc, seats });
+  } else {
+    const newId = 'SH' + String(SHOWS.length + 1).padStart(3,'0');
+    SHOWS.push({ id: newId, production: prod, name, desc, seats });
+  }
+  refreshShowsTable();
+  closeShowModal();
+}
+
+/* ── DELETE MODAL ── */
+function openDeleteModal(id) {
+  deleteTarget = id;
+  const sh = SHOWS.find(s => s.id === id);
+  document.getElementById('deleteShowName').textContent = sh ? sh.name : id;
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('open');
+  deleteTarget = null;
+}
+
+function confirmDelete() {
+  if (!deleteTarget) return;
+  const idx = SHOWS.findIndex(s => s.id === deleteTarget);
+  if (idx > -1) SHOWS.splice(idx, 1);
+  refreshShowsTable();
+  closeDeleteModal();
+}
+
+/* ── REFRESH TABLE ── */
+function refreshShowsTable() {
+  const body = document.getElementById('showsBody');
+  const EDIT = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  const DEL  = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>';
+  body.innerHTML = SHOWS.map((sh, idx) => {
+    const color = COLORS[idx % COLORS.length];
+    const dot = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${color};margin-right:6px;flex-shrink:0;vertical-align:middle"></span>`;
+    const srcBadge = sh.source === 'evinra-em'
+      ? `<span class="badge badge-teal">Evinra EM</span>`
+      : `<span class="badge badge-muted">Manual</span>`;
+    const stBadge = sh.status === 'active'
+      ? `<span class="badge badge-teal">Active</span>`
+      : `<span class="badge badge-muted">Draft</span>`;
+    return `<tr onclick="openShowDetail('${sh.id}')" style="cursor:pointer" data-production="${sh.production}" data-date-from="${sh.dateFrom||''}" data-date-to="${sh.dateTo||''}">
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${sh.id}</td>
+      <td>${sh.production}</td>
+      <td style="font-weight:500;color:var(--text)">${dot}${sh.name}</td>
+      <td class="shows-desc">${sh.desc}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${sh.dateFrom || '—'}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${sh.dateTo   || '—'}</td>
+      <td style="font-family:var(--mono)">${sh.seats.toLocaleString()}</td>
+      <td>${srcBadge}</td>
+      <td>${stBadge}</td>
+      <td><div class="act-wrap">
+        <div class="act-btn" onclick="event.stopPropagation();openShowDetail('${sh.id}')" title="Configure"><span class="ev-icon" style="width:13px;height:13px">${EDIT}</span></div>
+        <div class="act-btn red" onclick="event.stopPropagation();openDeleteModal('${sh.id}')" title="Delete"><span class="ev-icon" style="width:13px;height:13px">${DEL}</span></div>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── KEYBOARD ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeShowModal();
+    closeDeleteModal();
+    closeAddShowDrawer && closeAddShowDrawer();
+    closeTicketDrawer && closeTicketDrawer();
+    closeRideModal && closeRideModal();
+    closeCpModal && closeCpModal();
+  }
+});
+
+/* ── DEEP LINK: evinra_shows.html#SHW-001 opens that show directly ── */
+(function() {
+  const hash = window.location.hash.replace('#', '').trim();
+  if (hash) {
+    setTimeout(function() { openShowDetail(hash); }, 120);
+  }
+})();
+
+/* ── EXPOSE ALL ON WINDOW ── */
+window.openShowDetail    = openShowDetail;
+window.goBackToList      = goBackToList;
+window.saveShow          = saveShow;
+window.filterShows       = filterShows;
+window.openCreateModal   = openCreateModal;
+window.openEditShowModal = openEditShowModal;
+window.closeShowModal    = closeShowModal;
+window.saveShowModal     = saveShowModal;
+window.openDeleteModal   = openDeleteModal;
+window.closeDeleteModal  = closeDeleteModal;
+window.confirmDelete     = confirmDelete;
+window.refreshShowsTable = refreshShowsTable;
+// Ticket/ride functions (ported from Events)
+window.openTicketDrawer  = openTicketDrawer;
+window.closeTicketDrawer = closeTicketDrawer;
+window.saveTicket        = saveTicket;
+window.deleteTicket      = deleteTicket;
+window.renderTicketsTable= renderTicketsTable;
+window.openRideModal     = openRideModal;
+window.closeRideModal    = closeRideModal;
+window.saveRide          = saveRide;
+window.deleteRide        = deleteRide;
+window.confirmRideDelete = typeof confirmRideDelete !== 'undefined' ? confirmRideDelete : (confirmDeleteRide || function(){});
+
+
+/* ── CATALOG MODULE INHERITANCE ─────────────────────────────── */
+let tkModuleActive = true;   // Shows: catalog tickets module
+let rdModuleActive = true;   // Shows: catalog rides module
+
+function toggleTicketModule(btn) {
+  tkModuleActive = !tkModuleActive;
+  btn.classList.toggle('on',  tkModuleActive);
+  btn.classList.toggle('off', !tkModuleActive);
+  const banner = document.getElementById('tkModuleBanner');
+  if (banner) {
+    banner.style.background = tkModuleActive ? 'var(--p-dim)' : 'var(--bg4)';
+    banner.style.borderColor = tkModuleActive ? 'var(--p-border)' : 'var(--border)';
+    const p = banner.querySelector('p');
+    if (p) p.style.color = tkModuleActive ? 'var(--p)' : 'var(--text3)';
+    const shield = banner.querySelector('span');
+    if (shield) shield.style.color = tkModuleActive ? 'var(--p)' : 'var(--text3)';
+  }
+  renderTicketsTable();
+}
+
+function toggleRideModule(btn) {
+  rdModuleActive = !rdModuleActive;
+  btn.classList.toggle('on',  rdModuleActive);
+  btn.classList.toggle('off', !rdModuleActive);
+  const banner = document.getElementById('rdModuleBanner');
+  if (banner) {
+    banner.style.background = rdModuleActive ? 'var(--amber-dim)' : 'var(--bg4)';
+    banner.style.borderColor = rdModuleActive ? 'var(--amber-border)' : 'var(--border)';
+    const p = banner.querySelector('p');
+    if (p) p.style.color = rdModuleActive ? 'var(--amber)' : 'var(--text3)';
+    const icon = banner.querySelector('span');
+    if (icon) icon.style.color = rdModuleActive ? 'var(--amber)' : 'var(--text3)';
+  }
+  renderRidesTable();
+}
+
+window.toggleTicketModule = toggleTicketModule;
+window.toggleRideModule   = toggleRideModule;
+
+
+
+
+/* ── Wire into switchDetailTab ── */
+
+
+/* ══ SHOWS CARD-LIST RENDERERS (Figma 21901:8062 layout) ═══════ */
+
+const SHOW_COLORS = ['#2A9B85','#C94B4B','#8B6BD4','#D4884A','#4A8BD4','#E8A020'];
+
+
+
+
+
+
+
+
+function toggleShowItem(btn) {
+  if (btn.classList.contains('on')) {
+    btn.classList.remove('on'); btn.classList.add('off');
+  } else {
+    btn.classList.remove('off'); btn.classList.add('on');
+  }
+}
+window.toggleShowItem = toggleShowItem;
+
+
+
+
+
+function renderShowRides() {
+  var list = document.getElementById('showRidesList');
+  if (!list) return;
+  var q = ((document.getElementById('rdSearch')||{}).value||'').toLowerCase();
+  var data = RIDES_EXP.filter(function(r){ return !q||r.name.toLowerCase().includes(q); });
+  if (!data.length) { list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">No add-ons yet</div>'; return; }
+  var E = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var D = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>';
+  list.innerHTML = data.map(function(r) {
+    var ride = r.type==='Ride';
+    var tSt  = ride ? 'border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)' : 'border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)';
+    var cat  = rdModuleActive ? '<span style="font-size:9px;font-family:var(--mono);padding:1px 6px;border-radius:8px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);margin-left:6px">Catalog</span>' : '';
+    return '<div class="item-card">' +
+      '<div class="item-dot" style="background:' + r.color + '"></div>' +
+      '<div class="item-name">' + r.name + cat + '</div>' +
+      '<div class="item-cat"><span style="font-size:9.5px;font-family:var(--mono);padding:2px 7px;border-radius:8px;border:1px solid;' + tSt + '">' + r.type + '</span></div>' +
+      '<div class="item-price">$' + Number(r.price).toFixed(2) + '</div>' +
+      '<div class="item-actions">' +
+        '<div class="icon-btn" onclick="openRideModal(' + r.id + ')">' + E + '</div>' +
+        '<div class="icon-btn del" onclick="deleteRide(' + r.id + ')">' + D + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+window.toggleShowItem  = toggleShowItem;
+
+/* ══ ADD SHOW DRAWER ══════════════════════════════════════════════ */
+function openAddShowDrawer(tab) {
+  var tabBar = document.getElementById('asd-tab-bar');
+  if (TENANT_HAS_EM_MODULE) {
+    // Show tab bar and default to import tab
+    if (tabBar) tabBar.style.display = '';
+    switchAddDrawerTab(tab || 'import');
+    var ef = document.getElementById('em-prod-filter'); if(ef) ef.value='';
+    renderEMList();
+  } else {
+    // Hide tab bar — only manual creation available
+    if (tabBar) tabBar.style.display = 'none';
+    switchAddDrawerTab('manual');
+  }
+  ['asd-name','asd-desc','asd-seats','asd-date-from','asd-date-to'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var p = document.getElementById('asd-prod'); if(p) p.value='';
+  document.getElementById('addShowDrawer').classList.add('open');
+}
+
+function closeAddShowDrawer() {
+  var d = document.getElementById('addShowDrawer');
+  if(d) d.classList.remove('open');
+}
+
+function switchAddDrawerTab(tab) {
+  ['import','manual'].forEach(function(t) {
+    var pane = document.getElementById('asd-pane-'+t);
+    var btn  = document.getElementById('asd-tab-'+t);
+    var foot = document.getElementById('asd-foot-'+t);
+    if(pane) pane.style.display = t===tab ? 'flex' : 'none';
+    if(btn)  { btn.classList.toggle('active', t===tab); }
+    if(foot) foot.style.display = t===tab ? 'flex' : 'none';
+  });
+}
+
+function renderEMList() {
+  const prodFilter = (document.getElementById('em-prod-filter')||{}).value || '';
+  // IDs of already-imported EM shows
+  const importedEmIds = new Set(SHOWS.filter(function(s){ return s.emId; }).map(function(s){ return s.emId; }));
+  const available = EM_SHOWS.filter(function(s){
+    if(prodFilter && s.production !== prodFilter) return false;
+    if(importedEmIds.has(s.id)) return false;
+    return true;
+  });
+  const list = document.getElementById('emShowsList');
+  if(!list) return;
+  if(!available.length) {
+    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">All available Evinra EM shows have been imported.</div>';
+    return;
+  }
+  list.innerHTML = available.map(function(s){
+    return '<label class="em-check-item">' +
+      '<input type="checkbox" class="em-check" value="'+s.id+'" onchange="this.closest(\'.em-check-item\').classList.toggle(\'selected\',this.checked)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">' +
+          '<span class="badge badge-teal" style="font-size:9px">Active</span>' +
+          '<span style="font-size:12px;font-weight:500;color:var(--text)">'+s.name+'</span>' +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text3);font-family:var(--mono)">'+s.production+' · '+s.seats.toLocaleString()+' seats</div>' +
+        (s.desc ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+s.desc+'</div>' : '') +
+      '</div>' +
+    '</label>';
+  }).join('');
+}
+
+function importSelectedEM() {
+  const checked = document.querySelectorAll('#emShowsList .em-check:checked');
+  if(!checked.length){ alert('Select at least one show to import.'); return; }
+  checked.forEach(function(cb){
+    const em = EM_SHOWS.find(function(s){ return s.id===cb.value; });
+    if(!em) return;
+    const newId = 'SH' + String(SHOWS.length + 1).padStart(3,'0');
+    SHOWS.push({ id:newId, emId:em.id, production:em.production, name:em.name, desc:em.desc, seats:em.seats, source:'evinra-em', status:'active' });
+  });
+  refreshShowsTable();
+  closeAddShowDrawer();
+}
+
+function saveManualShowFromDrawer() {
+  const name     = ((document.getElementById('asd-name')||{}).value||'').trim();
+  const prod     = (document.getElementById('asd-prod')||{}).value || '';
+  const desc     = ((document.getElementById('asd-desc')||{}).value||'').trim();
+  const dateFrom = ((document.getElementById('asd-date-from')||{}).value||'').trim();
+  const dateTo   = ((document.getElementById('asd-date-to')||{}).value||'').trim();
+  const seats    = parseInt((document.getElementById('asd-seats')||{}).value)||0;
+  if(!name)  { alert('Show name is required.');  return; }
+  if(!prod)  { alert('Production is required.'); return; }
+  if(!seats) { alert('Seats must be > 0.');      return; }
+  const newId = 'SH' + String(SHOWS.length + 1).padStart(3,'0');
+  SHOWS.push({ id:newId, production:prod, name:name, desc:desc, dateFrom:dateFrom, dateTo:dateTo, seats:seats, source:'manual', status:'active' });
+  refreshShowsTable();
+  closeAddShowDrawer();
+}
+
+window.openAddShowDrawer      = openAddShowDrawer;
+window.closeAddShowDrawer     = closeAddShowDrawer;
+window.switchAddDrawerTab     = switchAddDrawerTab;
+window.renderEMList           = renderEMList;
+window.importSelectedEM       = importSelectedEM;
+window.saveManualShowFromDrawer = saveManualShowFromDrawer;
+
+/* ══ STOREFRONT SALES MODE ══════════════════════════════════════ */
+var sfSalesMode = 'credits'; // 'credits' | 'direct' — current show's setting
+
+var CREDIT_PACKAGES = [
+  {id:1, name:'Starter Pack',   credits:5,  price:8.00,  desc:'Perfect for a quick visit',    active:true},
+  {id:2, name:'Value Pack',     credits:12, price:16.00, desc:'Most popular — great for families', active:true},
+  {id:3, name:'Family Bundle',  credits:25, price:30.00, desc:'Full access for groups',        active:true},
+  {id:4, name:'VIP Bundle',     credits:50, price:55.00, desc:'Complete experience access',    active:false},
+];
+var cpNextId = 10;
+var cpEditId = null;
+
+function selectSFMode(mode) {
+  sfSalesMode = mode;
+  ['credits','direct'].forEach(function(m) {
+    var card  = document.getElementById('sfCard-'  + m);
+    var check = document.getElementById('sfCheck-' + m);
+    var panel = document.getElementById('sfPanel-' + m);
+    if (card)  card.classList.toggle('selected', m === mode);
+    if (check) {
+      if (m === mode) {
+        check.innerHTML = '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#0B0F0E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+      } else {
+        check.innerHTML = '';
+      }
+    }
+    if (panel) panel.style.display = m === mode ? '' : 'none';
+  });
+  if (mode === 'credits') renderCpTable();
+}
+
+function renderCpTable() {
+  var body = document.getElementById('cpTableBody');
+  if (!body) return;
+  if (!CREDIT_PACKAGES.length) {
+    body.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">No packages yet — add one to get started</div>';
+    return;
+  }
+  var EDIT = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var DEL  = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>';
+  body.innerHTML = CREDIT_PACKAGES.map(function(p) {
+    var statusEl = p.active
+      ? '<span class="status-on" style="font-size:9px">On</span>'
+      : '<span class="status-off" style="font-size:9px">Off</span>';
+    return '<div style="display:grid;grid-template-columns:1fr 76px 76px 58px 64px;padding:9px 12px;border-bottom:1px solid var(--border);align-items:center;transition:background .12s" onmouseover="this.style.background=\'rgba(255,255,255,.02)\'" onmouseout="this.style.background=\'\'">' +
+      '<div>' +
+        '<div style="font-size:12px;font-weight:500;color:var(--text)">' + p.name + '</div>' +
+        (p.desc ? '<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px">' + p.desc + '</div>' : '') +
+      '</div>' +
+      '<div style="text-align:center">' +
+        '<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-family:var(--mono);font-weight:700;color:var(--violet)">' + p.credits + '<span style="font-size:9px;font-weight:400;color:var(--text3);margin-left:1px">cr</span></span>' +
+      '</div>' +
+      '<div style="text-align:right;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text)">$' + p.price.toFixed(2) + '</div>' +
+      '<div style="text-align:center">' + statusEl + '</div>' +
+      '<div style="display:flex;gap:4px;justify-content:flex-end">' +
+        '<div class="act-btn" onclick="openCpModal(' + p.id + ')" title="Edit"><span class="ev-icon" style="width:13px;height:13px">' + EDIT + '</span></div>' +
+        '<div class="act-btn red" onclick="deleteCp(' + p.id + ')" title="Remove"><span class="ev-icon" style="width:13px;height:13px">' + DEL + '</span></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openCpModal(id) {
+  cpEditId = id || null;
+  var p = id ? CREDIT_PACKAGES.find(function(x) { return x.id === id; }) : null;
+  document.getElementById('cpModalTitle').textContent = p ? 'Edit — ' + p.name : 'Add Credit Package';
+  document.getElementById('cpName').value    = p ? p.name           : '';
+  document.getElementById('cpCredits').value = p ? p.credits        : '';
+  document.getElementById('cpPrice').value   = p ? p.price          : '';
+  document.getElementById('cpDesc').value    = p ? (p.desc || '')   : '';
+  var tog = document.getElementById('cpActive');
+  if (tog) tog.className = 'toggle ' + (p && !p.active ? 'off' : 'on');
+  document.getElementById('cpModal').classList.add('open');
+}
+
+function closeCpModal() {
+  document.getElementById('cpModal').classList.remove('open');
+  cpEditId = null;
+}
+
+function saveCp() {
+  var name    = (document.getElementById('cpName').value    || '').trim();
+  var credits = parseInt(document.getElementById('cpCredits').value) || 0;
+  var price   = parseFloat(document.getElementById('cpPrice').value) || 0;
+  var desc    = (document.getElementById('cpDesc').value    || '').trim();
+  var active  = document.getElementById('cpActive').classList.contains('on');
+  if (!name)    { alert('Package name is required.');        return; }
+  if (!credits) { alert('Credits must be greater than 0.'); return; }
+  if (!price)   { alert('Price must be greater than 0.');   return; }
+  if (cpEditId) {
+    var p = CREDIT_PACKAGES.find(function(x) { return x.id === cpEditId; });
+    if (p) Object.assign(p, {name:name, credits:credits, price:price, desc:desc, active:active});
+  } else {
+    CREDIT_PACKAGES.push({id:cpNextId++, name:name, credits:credits, price:price, desc:desc, active:active});
+  }
+  closeCpModal();
+  renderCpTable();
+}
+
+function deleteCp(id) {
+  if (!confirm('Remove this credit package?')) return;
+  var idx = CREDIT_PACKAGES.findIndex(function(x) { return x.id === id; });
+  if (idx > -1) { CREDIT_PACKAGES.splice(idx, 1); renderCpTable(); }
+}
+
+window.selectSFMode  = selectSFMode;
+window.renderCpTable = renderCpTable;
+window.openCpModal   = openCpModal;
+window.closeCpModal  = closeCpModal;
+window.saveCp        = saveCp;
+window.deleteCp      = deleteCp;
+
+/* ── INIT ── */
+refreshShowsTable();
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

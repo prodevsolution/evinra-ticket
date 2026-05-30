@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo *)",
+      "PowerShell(gh repo view nextlevelbuilder/ui-ux-pro-max-skill)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell($skillsPath = \"$env:USERPROFILE\\\\.claude\\\\skills\"; if \\(-not \\(Test-Path $skillsPath\\)\\) { New-Item -ItemType Directory -Force $skillsPath | Out-Null }; cd $skillsPath; git clone https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git ui-ux-pro-max-skill)",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.claude\\\\skills\\\\ui-ux-pro-max-skill\" -Force | Select-Object Name)",
+      "Bash(cat \"C:\\\\Users\\\\ypena\\\\evinra_box_office\\\\.claude\\\\launch.json\" 2>/dev/null; echo \"---evinra launch---\"; cat \"C:\\\\Users\\\\ypena\\\\evinra\\\\.claude\\\\launch.json\" 2>/dev/null; echo \"---done---\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(ls -la \"C:\\\\Users\\\\ypena\\\\OneDrive - Prodevsolution\\\\Production\\\\Evinra\\\\favicon\\\\favicon.ico\" 2>&1; echo \"---evinra assets---\"; ls \"C:\\\\Users\\\\ypena\\\\evinra\\\\assets\" 2>&1 | head; echo \"---existing favicon refs---\"; ls \"C:\\\\Users\\\\ypena\\\\evinra\\\\favicon.ico\" 2>&1)",
+      "Bash(cp \"C:\\\\Users\\\\ypena\\\\OneDrive - Prodevsolution\\\\Production\\\\Evinra\\\\favicon\\\\favicon.ico\" \"C:\\\\Users\\\\ypena\\\\evinra\\\\favicon.ico\" && ls -la \"C:\\\\Users\\\\ypena\\\\evinra\\\\favicon.ico\")"
+    ]
+  }
+}

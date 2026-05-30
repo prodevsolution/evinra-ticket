@@ -1,0 +1,36 @@
+<!-- ══ APP HEADER ════════════════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg width="99" height="87" viewBox="0 0 99 87" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M79.1668 44.2102C77.9482 32.0139 76.1674 21.7672 66.7428 15.6673C60.9673 11.9292 54.3776 10.5795 47.5635 10.8217C40.7482 11.0639 34.2718 12.8779 28.7763 17.017C13.6017 28.4435 14.2027 58.0073 29.2684 69.2727C38.6576 76.2923 52.1647 77.0444 62.7047 72.412C68.8345 69.7193 78.1937 67.5975 84.8801 68.0396C82.2106 72.1199 78.8336 75.5725 74.8122 78.4097C67.5382 83.5419 59.0444 85.6915 50.2351 86.0047C44.2075 86.218 38.1899 85.5237 32.4778 83.5386C27.3188 81.7456 22.6276 79.0507 18.624 75.3214C14.6204 71.5922 11.5988 67.1043 9.44484 62.0853C7.05978 56.5276 5.93891 50.5755 5.72451 44.5479C5.51011 38.5203 6.20663 32.5038 8.19066 26.7905C9.9825 21.6316 12.6786 16.9404 16.4078 12.9368C20.137 8.9332 24.625 5.91161 29.6439 3.75762C35.2016 1.37146 41.1537 0.251693 47.1813 0.0372933C53.209 -0.177106 59.2255 0.518303 64.9387 2.50344C70.0976 4.29528 74.7888 6.99138 78.7924 10.7206C82.7949 14.4487 85.8176 18.9389 87.9716 23.9567C92.5218 34.56 90.6266 47.5984 88.4926 58.3783C64.0967 52.2985 53.2556 66.8377 24.1562 56.5598C51.7248 59.2748 65.9818 42.9294 79.169 44.2091L79.1668 44.2102Z" fill="#3A4B70"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.65593 22.8169C3.65593 22.8169 4.07473 29.8066 13.4761 33.668C15.9867 34.6989 19.1382 35.5076 23.0929 35.9008C46.1059 38.187 55.4917 18.6212 78.3846 17.2281C86.2396 16.7504 92.8771 17.7747 95.5632 22.4426C98.1505 26.9394 99.2136 36.2974 97.8172 42.6872C92.6294 35.7731 86.5285 33.9224 79.791 34.7433C65.3707 36.4996 48.0321 50.4878 30.4736 53.2294C24.4549 54.1692 17.9507 54.0437 12.5518 52.2574C10.099 51.4465 7.87282 50.2911 6.02432 48.7393C-0.438762 43.3104 -2.41612 33.2858 3.65371 22.8158L3.65593 22.8169Z" fill="#AFBD77"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M9.2415 24.0667C8.13506 22.8092 4.70023 21.5228 3.65601 22.817C3.65601 22.817 3.74488 26.1874 7.29524 29.7077C7.75625 27.7537 8.51054 25.9308 9.2415 24.0678V24.0667Z" fill="#8A9271"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M90.3323 46.4686C92.4118 45.8187 97.6319 44.8578 97.8185 42.6883C97.7096 39.5401 90.7811 36.4585 90.7122 36.4796C90.8766 39.9855 90.5711 43.0049 90.3323 46.4686Z" fill="#8A9271"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M78.8768 41.4697C86.9518 39.1091 90.5777 43.0427 90.5777 43.0427C90.6843 41.5663 90.7288 37.8782 90.6832 36.4096C87.9993 34.4523 82.1017 34.1979 77.9592 35.0288C78.1725 36.6029 78.839 41.1609 78.8768 41.4697Z" fill="#092037"/>
+      </svg>
+    </div>
+    <div class="header-title">
+      <div class="header-page-title" id="headerTitle">PAGE_TITLE</div>
+      <div class="header-breadcrumb" id="headerBreadcrumb">PAGE_BREADCRUMB</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:inline-block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>

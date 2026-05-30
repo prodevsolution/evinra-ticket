@@ -1,0 +1,41 @@
+﻿{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hub",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5530", "--directory", "C:\\Users\\ypena\\evinra-shared-db"],
+      "port": 5530,
+      "autoPort": false
+    },
+    {
+      "name": "evinra",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["server.js"],
+      "port": 5500,
+      "autoPort": false
+    },
+    {
+      "name": "storefront",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5510", "--directory", "C:\\Users\\ypena\\Evinra_Storefront"],
+      "port": 5510,
+      "autoPort": false
+    },
+    {
+      "name": "box-office",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5520", "--directory", "C:\\Users\\ypena\\evinra_box_office"],
+      "port": 5520,
+      "autoPort": false
+    },
+    {
+      "name": "mobile-scan",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5540", "--directory", "C:\\Users\\ypena\\Evinra_MobileScan"],
+      "port": 5540,
+      "autoPort": false
+    }
+  ]
+}
+

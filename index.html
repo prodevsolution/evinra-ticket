@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="color-scheme" content="dark light"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — Ticketing OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="assets/theme.js"></script>
+<style>/* CRITICAL: Scrollbar styling */
+::-webkit-scrollbar{width:8px!important;height:8px!important}
+::-webkit-scrollbar-track{background:#0B0F0E!important}
+::-webkit-scrollbar-thumb{background:#6E827E!important;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3!important}
+/* Icon toggle for theme switch */
+[data-theme="dark"] .icon-sun{display:none!important}
+/* SVG icon styling */
+.ev-icon{display:inline-flex;align-items:center;justify-content:center;width:1em;height:1em;flex-shrink:0}
+.ev-icon svg{width:1em;height:1em;stroke-width:1.8!important;overflow:visible}
+svg[stroke="currentColor"]{stroke:currentColor!important;stroke-width:1.8!important}
+.sb-item svg{stroke:var(--text2)!important}
+.sb-item:hover svg{stroke:var(--text)!important}
+.sb-item.active svg{stroke:var(--p)!important}
+/* Icon fallbacks - show Unicode symbols instead of broken font icons */
+[class*="hgi-"]::before{content:"⋯";display:inline-flex;align-items:center;justify-content:center}
+[class*="hgi-"]{display:inline-flex!important;align-items:center;justify-content:center;font-size:1em;width:1em;height:1em;line-height:1}
+.hgi-dashboard::before{content:"■"}
+.hgi-menu::before{content:"☰"}
+.hgi-arrow-down-02::before{content:"▼"}
+.hgi-search-01::before{content:"🔍"}
+.hgi-settings-01::before{content:"⚙"}
+.hgi-notification-01::before{content:"🔔"}
+.hgi-arrow-right-02::before{content:"→"}
+.hgi-sun-01::before{content:"☀"}
+.hgi-moon-02::before{content:"☾"}
+/* tokens → assets/tokens.css */
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--body)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#0B0F0E;cursor:default}
+::-webkit-scrollbar-thumb{background:#6E827E;border-radius:4px;transition:all .2s}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3}
+/* ── TOP NAV ─────────────────────────────────── */
+.topnav{
+  position:sticky;top:0;z-index:100;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  height:60px;display:flex;align-items:center;
+  padding:0 40px;gap:0;
+}
+.nav-logo{display:flex;align-items:center;margin-right:40px}
+.nav-logo svg{height:34px;width:auto}
+.nav-tabs{display:flex;align-items:center;gap:2px;flex:1}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:7px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .14s;white-space:nowrap;border:1px solid transparent}
+.nav-tab i{font-size:15px;flex-shrink:0}
+.nav-tab:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-tab.active{background:var(--p-dim);color:var(--p);border-color:var(--p-border)}
+.nav-sep{width:1px;height:24px;background:var(--border2);margin:0 8px;flex-shrink:0}
+.nav-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.nav-badge{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);font-size:11px;font-family:var(--mono);color:var(--text2)}
+.nav-badge i{font-size:14px}
+/* ── HERO ────────────────────────────────────── */
+.hero{
+  padding:52px 40px 40px;
+  background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+}
+.hero-inner{max-width:1200px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.hero-title{font-family:var(--display);font-size:32px;font-weight:800;color:var(--text);letter-spacing:-1.2px;line-height:1.1}
+.hero-title span{color:var(--p)}
+.hero-sub{font-size:14px;color:var(--text2);margin-top:8px;max-width:520px;line-height:1.6}
+.hero-stats{display:flex;align-items:center;gap:24px;flex-shrink:0}
+.hero-stat{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.hero-stat-val{font-family:var(--display);font-size:24px;font-weight:700;color:var(--p);letter-spacing:-.8px}
+.hero-stat-lbl{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.hero-stat-sep{width:1px;height:36px;background:var(--border2)}
+/* ── CONTENT ─────────────────────────────────── */
+.content{max-width:1200px;margin:0 auto;padding:36px 40px 60px}
+/* ── SECTION HEADER ──────────────────────────── */
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.section-pip{width:3px;height:18px;border-radius:2px;background:var(--p);flex-shrink:0}
+.section-title{font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.section-count{font-size:10px;font-family:var(--mono);color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 7px}
+/* ── CARDS GRID ──────────────────────────────── */
+.cards-grid{display:grid;gap:12px;margin-bottom:36px}
+.cards-grid.col-3{grid-template-columns:repeat(3,1fr)}
+.cards-grid.col-4{grid-template-columns:repeat(4,1fr)}
+.cards-grid.col-2{grid-template-columns:repeat(2,1fr)}
+/* ── PAGE CARD ───────────────────────────────── */
+.page-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:20px;
+  display:flex;flex-direction:column;gap:14px;
+  cursor:pointer;transition:all .18s;
+  position:relative;overflow:hidden;
+  text-decoration:none;
+}
+.page-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--card-color,var(--p));
+  border-radius:12px 12px 0 0;
+}
+.page-card::after{
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;border-radius:50%;
+  background:var(--card-glow,rgba(42,155,133,.08));
+  filter:blur(24px);pointer-events:none;
+}
+.page-card:hover{
+  border-color:var(--card-color,var(--p-border));
+  background:var(--bg3);
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,0,0,.3);
+}
+.card-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  background:var(--card-icon-bg,var(--p-dim));
+  color:var(--card-color,var(--p));
+  border:1px solid var(--card-color-dim,var(--p-border));
+}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card-arrow{font-size:16px;color:var(--text3);transition:all .18s;margin-top:2px}
+.page-card:hover .card-arrow{color:var(--card-color,var(--p));transform:translate(2px,-2px)}
+.card-name{font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.3px;line-height:1.2}
+.card-desc{font-size:12px;color:var(--text3);line-height:1.5;flex:1}
+.card-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card-tag{font-size:9.5px;font-family:var(--mono);padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);color:var(--text3)}
+.card-tag.highlight{border-color:var(--card-color-dim,var(--p-border));background:var(--card-icon-bg,var(--p-dim));color:var(--card-color,var(--p))}
+/* layout card — smaller */
+.layout-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:16px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:all .16s;
+}
+.layout-card:hover{border-color:var(--border2);background:var(--bg3)}
+.layout-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--bg4);border:1px solid var(--border);color:var(--text2)}
+.layout-name{;font-weight:600;color:var(--text);font-family:var(--display)}
+.layout-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.layout-arrow{margin-left:auto;font-size:14px;color:var(--text3)}
+.layout-card:hover .layout-arrow{color:var(--text2)}
+/* settings card */
+.settings-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:16px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:all .16s;
+}
+.settings-card:hover{border-color:var(--border2);background:var(--bg3)}
+.settings-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg4);border:1px solid var(--border);color:var(--text2)}
+.settings-name{;font-weight:600;color:var(--text);font-family:var(--display)}
+.settings-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.settings-arrow{margin-left:auto;font-size:14px;color:var(--text3)}
+.settings-card:hover .settings-arrow{color:var(--text2)}
+/* ── FOOTER ──────────────────────────────────── */
+.footer{border-top:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between}
+.footer-left{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.footer-left span{color:var(--p)}
+.footer-right{display:flex;align-items:center;gap:16px}
+.footer-link{font-size:11px;font-family:var(--mono);color:var(--text3);cursor:pointer;transition:color .14s}
+.footer-link:hover{color:var(--text2)}
+.act-wrap{display:flex;gap:4px}
+
+.filter-sep{width:1px;height:24px;background:var(--border2);align-self:center}
+.search-input::placeholder{color:var(--text3)}
+.btn{height:30px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn i{}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:#0B0F0E}
+.btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#0B0F0E}
+.btn-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.btn-violet:hover{background:var(--violet);color:#fff}
+.btn-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 12px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+.tbl thead th.sortable{cursor:pointer}
+.tbl thead th.sortable:hover{color:var(--text2)}
+.tbl tbody tr{transition:background .12s;cursor:pointer}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.badge i{font-size:10px}
+.badge-teal{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.badge-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.badge-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.badge-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.badge-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.badge-gold{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold)}
+.badge-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.act-wrap{display:flex;gap:4px}
+.act-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s;color:var(--text3)}
+.act-btn i{}
+.act-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.act-btn.red:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.act-btn.amber:hover{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn .ev-icon{width:14px;height:14px}
+.page-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:var(--mono);color:var(--text2);transition:all .14s}
+.page-btn:hover{border-color:var(--border2);color:var(--text)}
+.page-btn.active{background:var(--p);border-color:var(--p);color:#0B0F0E;font-weight:700}
+
+
+/* Filter dropdown styling */
+select{appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px}
+select:focus{border-color:var(--p-border)}
+.filter-dropdown{position:relative}
+.filter-dropdown svg{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);width:11px;height:11px}
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;flex-shrink:0}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;width:13px;height:13px}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo" onclick="location.href='evinra_dashboard_v2.html'" style="cursor:pointer" title="Dashboard"><div class="sb-logo" style="padding:16px 18px 14px;border-bottom:1px solid var(--border)">
+      <svg style="height:32px;width:auto;display:block" viewBox="0 0 110 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M24.8425 22.8257C25.9489 24.8791 26.426 27.1357 26.2848 29.3577C26.076 32.6749 24.4963 35.9184 21.597 38.301C19.8187 39.7632 17.69 40.7596 15.4223 41.2435C13.1599 41.7273 10.7711 41.6964 8.4724 41.1042C8.87752 38.4025 12.7338 37.7716 12.7338 37.7716C13.3277 37.7452 13.9157 37.6706 14.4907 37.5464C16.0795 37.2074 17.5829 36.4992 18.8538 35.4543C20.9023 33.7695 22.017 31.4779 22.1655 29.1369C22.2339 28.0585 22.0956 26.9681 21.7495 25.9208C22.2349 25.4977 22.7265 25.0527 23.2241 24.5824C23.8172 24.0215 24.3583 23.4325 24.8406 22.8241L24.8425 22.8257Z" fill="#0ACBA5"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M5.98204 47.4616C6.24166 33.3818 13.2308 32.8331 21.7984 24.728C26.1109 20.6484 27.6519 15.088 24.767 11.5118C26.4839 14.5804 22.1565 19.8415 18.3838 22.9447C7.30441 32.0543 1.98609 33.4669 5.98204 47.4616Z" fill="#344767"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2.12746 42.5315C2.31771 32.2111 6.00565 29.7093 11.6972 25.3323C15.346 22.5263 21.4991 19.3876 21.9547 14.3387C20.5133 19.0283 12.2552 20.7438 6.58902 25.2818C6.4558 24.5804 6.41262 23.8705 6.45641 23.1639C6.60477 20.8213 7.71947 18.5296 9.76804 16.8465C11.0373 15.8033 12.5424 15.0951 14.1312 14.7544C14.7062 14.6319 15.296 14.5555 15.888 14.5292C15.888 14.5292 19.7443 13.8983 20.1495 11.1966C17.8508 10.6043 15.4619 10.5735 13.1996 11.0573C10.9336 11.5411 8.80323 12.5393 7.02487 13.9998C4.12552 16.3824 2.54591 19.6259 2.33702 22.943C2.21535 24.8787 2.5596 26.8381 3.38082 28.667C1.20198 31.8586 0.314037 36.191 2.12558 42.5299L2.12746 42.5315Z" fill="#0ACBA5"/>
+<path d="M46.7132 26.2524C46.1416 24.1097 44.4551 22.8724 42.2256 22.8724C39.996 22.8724 38.3096 24.1097 37.7379 26.2524H46.7132ZM37.595 29.1193C37.9952 31.6543 39.796 33.1331 42.2256 33.1331C43.8263 33.1331 45.1697 32.4993 45.9986 31.3224H49.2286C48.1424 34.2195 45.5985 36 42.2256 36C37.7093 36 34.6509 32.7709 34.6509 28.0027C34.6509 23.2346 37.7093 20.0055 42.2256 20.0055C46.7418 20.0055 49.8003 23.2346 49.8003 28.0027C49.8003 28.3951 49.7717 28.7572 49.7431 29.1193H37.595Z" style="fill:var(--text)"/>
+<path d="M55.2609 35.5473L49.5156 20.4582H52.6026L56.9759 32.0768L61.2635 20.4582H64.3505L58.6052 35.5473H55.2609Z" style="fill:var(--text)"/>
+<path d="M65.2525 15.7805C65.2525 14.7243 65.9671 14 66.9961 14C68.0251 14 68.7397 14.7243 68.7397 15.7805C68.7397 16.8669 68.0251 17.6214 66.9961 17.6214C65.9671 17.6214 65.2525 16.8669 65.2525 15.7805ZM65.4811 35.5473V20.4582H68.4824V35.5473H65.4811Z" style="fill:var(--text)"/>
+<path d="M73.6152 28.0027V35.5473H70.6139V20.4582H73.6152V22.299C74.6728 20.9108 76.2449 20.0055 78.4173 20.0055C82.3333 20.0055 84.7629 22.9931 84.7629 27.0069V35.5473H81.7616V26.9465C81.7616 24.4719 80.5611 22.8724 78.1601 22.8724C75.5304 22.8724 73.6152 24.7737 73.6152 28.0027Z" style="fill:var(--text)"/>
+<path d="M89.7528 35.5473H86.7515V20.4582H89.7528V21.5748C90.9533 20.1564 92.6969 19.6132 94.9264 20.2167L94.4119 22.9328C91.1534 22.3594 89.7528 24.3512 89.7528 28.0027V35.5473Z" style="fill:var(--text)"/>
+<path d="M106.65 35.5473V33.8573C105.563 35.155 103.934 36 101.733 36C97.417 36 94.3586 32.7709 94.3586 28.0027C94.3586 23.2346 97.417 20.0055 101.733 20.0055C103.934 20.0055 105.563 20.8505 106.65 22.1481V20.4582H109.651V35.5473H106.65ZM97.2169 28.0027C97.2169 31.2318 99.1606 33.1331 101.933 33.1331C104.734 33.1331 106.65 31.2318 106.65 28.0027C106.65 24.7737 104.734 22.8724 101.933 22.8724C99.1606 22.8724 97.2169 24.7737 97.2169 28.0027Z" style="fill:var(--text)"/>
+<path d="M35.8839 43.9124V40.6293H34.6509V40.0821H37.7362V40.6293H36.5032V43.9124H35.8839Z" fill="#AEAEAE"/>
+<path d="M39.34 43.9124V40.0821H39.9593V43.9124H39.34Z" fill="#AEAEAE"/>
+<path d="M43.6115 40.5581C42.7952 40.5581 42.2153 41.0944 42.2153 42.0027C42.2153 42.9111 42.7952 43.4419 43.6115 43.4419C44.2703 43.4419 44.7826 43.0971 44.9515 42.4897H45.6102C45.4132 43.409 44.6588 43.9945 43.6115 43.9945C42.3898 43.9945 41.5622 43.1902 41.5622 42.0027C41.5622 40.8153 42.3898 40.0109 43.6115 40.0109C44.6475 40.0109 45.4076 40.5964 45.6102 41.4993H44.9403C44.7657 40.8974 44.2703 40.5581 43.6115 40.5581Z" fill="#AEAEAE"/>
+<path d="M47.2686 43.9124V40.0821H47.8879V41.948L49.577 40.0821H50.3427L48.7775 41.8057L50.3314 43.9124H49.577L48.3721 42.2599L47.8879 42.7907V43.9124H47.2686Z" fill="#AEAEAE"/>
+<path d="M51.9449 43.9124V40.0821H54.7093V40.6293H52.5643V41.6689H54.349V42.2161H52.5643V43.3653H54.7093V43.9124H51.9449Z" fill="#AEAEAE"/>
+<path d="M57.473 43.9124V40.6293H56.24V40.0821H59.3253V40.6293H58.0923V43.9124H57.473Z" fill="#AEAEAE"/>
+<path d="M60.9292 43.9124V40.0821H61.5485V43.9124H60.9292Z" fill="#AEAEAE"/>
+<path d="M63.2358 43.9124V40.0821H64.0803L65.7412 43.119V40.0821H66.3605V43.9124H65.516L63.8551 40.8755V43.9124H63.2358Z" fill="#AEAEAE"/>
+<path d="M69.9919 42.4897V41.9425H72.0638C72.0638 41.9644 72.0638 41.9808 72.0638 42.0027C72.0638 43.1902 71.2362 43.9945 70.0145 43.9945C68.7927 43.9945 67.9651 43.1902 67.9651 42.0027C67.9651 40.8153 68.7927 40.0109 70.0145 40.0109C71.0504 40.0109 71.8105 40.5964 72.0132 41.4993H71.3432C71.1686 40.8974 70.6732 40.5581 70.0145 40.5581C69.1981 40.5581 68.6182 41.0944 68.6182 42.0027C68.6182 42.9111 69.1981 43.4419 70.0145 43.4419C70.6788 43.4419 71.1855 43.0971 71.3544 42.4897H69.9919Z" fill="#AEAEAE"/>
+<path d="M78.9119 42.9001C78.9119 42.4405 78.3883 42.3803 77.8759 42.2599C77.2285 42.1122 76.4403 41.9699 76.4403 41.1382C76.4403 40.3995 77.0708 40 77.8928 40C78.743 40 79.2666 40.4323 79.5594 40.7606L79.1202 41.1491C78.8218 40.7989 78.4277 40.5527 77.8928 40.5527C77.3073 40.5527 77.0821 40.8317 77.0821 41.1327C77.0821 41.5486 77.5381 41.6033 78.0054 41.7127C78.6811 41.8769 79.5594 41.9973 79.5594 42.8728C79.5594 43.6279 78.9119 44 78.1349 44C77.3073 44 76.5923 43.5732 76.3445 43.2285L76.7837 42.8399C77.1553 43.2394 77.6226 43.4473 78.118 43.4473C78.591 43.4473 78.9119 43.2613 78.9119 42.9001Z" fill="#AEAEAE"/>
+<path d="M83.0489 42.6539V43.9124H82.4296V42.6539L80.932 40.0821H81.5963L82.7392 42.0903L83.8765 40.0821H84.5465L83.0489 42.6539Z" fill="#AEAEAE"/>
+<path d="M88.4844 42.9001C88.4844 42.4405 87.9608 42.3803 87.4485 42.2599C86.801 42.1122 86.0128 41.9699 86.0128 41.1382C86.0128 40.3995 86.6434 40 87.4654 40C88.3155 40 88.8391 40.4323 89.1319 40.7606L88.6927 41.1491C88.3944 40.7989 88.0002 40.5527 87.4654 40.5527C86.8798 40.5527 86.6546 40.8317 86.6546 41.1327C86.6546 41.5486 87.1107 41.6033 87.578 41.7127C88.2536 41.8769 89.1319 41.9973 89.1319 42.8728C89.1319 43.6279 88.4844 44 87.7075 44C86.8799 44 86.1648 43.5732 85.9171 43.2285L86.3562 42.8399C86.7278 43.2394 87.1951 43.4473 87.6906 43.4473C88.1635 43.4473 88.4844 43.2613 88.4844 42.9001Z" fill="#AEAEAE"/>
+<path d="M91.8925 43.9124V40.6293H90.6595V40.0821H93.7448V40.6293H92.5118V43.9124H91.8925Z" fill="#AEAEAE"/>
+<path d="M95.3487 43.9124V40.0821H98.1131V40.6293H95.968V41.6689H97.7527V42.2161H95.968V43.3653H98.1131V43.9124H95.3487Z" fill="#AEAEAE"/>
+<path d="M103.213 43.9124V41.1819L102.087 43.9124H101.468L100.342 41.1819V43.9124H99.7226V40.0821H100.511L101.778 43.1628L103.044 40.0821H103.833V43.9124H103.213Z" fill="#AEAEAE"/>
+<path d="M108.003 42.9001C108.003 42.4405 107.48 42.3803 106.967 42.2599C106.32 42.1122 105.532 41.9699 105.532 41.1382C105.532 40.3995 106.162 40 106.984 40C107.835 40 108.358 40.4323 108.651 40.7606L108.212 41.1491C107.913 40.7989 107.519 40.5527 106.984 40.5527C106.399 40.5527 106.174 40.8317 106.174 41.1327C106.174 41.5486 106.63 41.6033 107.097 41.7127C107.773 41.8769 108.651 41.9973 108.651 42.8728C108.651 43.6279 108.003 44 107.226 44C106.399 44 105.684 43.5732 105.436 43.2285L105.875 42.8399C106.247 43.2394 106.714 43.4473 107.21 43.4473C107.682 43.4473 108.003 43.2613 108.003 42.9001Z" fill="#AEAEAE"/>
+</svg>
+    </div></div>
+  <div class="nav-tabs">
+    <div class="nav-tab active">◆All Modules</div>
+    <div class="nav-tab" onclick="filterSection('reports')">◆Reports</div>
+    <div class="nav-tab" onclick="filterSection('layout')">◆Layout</div>
+    <div class="nav-tab" onclick="filterSection('settings')">⚙️Settings</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge">◆South Florida Fairgrounds</div>
+    <div class="nav-badge">◆Flying Lions</div>
+    <button type="button" class="theme-toggle" aria-label="Toggle color theme" data-toggle-theme style="margin-left:auto;width:32px;height:32px;min-width:32px;min-height:32px;border-radius:7px;border:1px solid var(--border)!important;background:var(--bg3)!important;display:inline-flex!important;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;transition:all .14s;padding:0;z-index:10">
+      <i class="hgi-stroke hgi-sun-01 icon-sun" aria-hidden="true" style="font-size:15px;width:15px;height:15px;display:none"></i>
+      <i class="hgi-stroke hgi-moon-02 icon-moon" aria-hidden="true" style="font-size:15px;width:15px;height:15px;display:inline-block"></i>
+    </button>
+    <div class="tb-btn tb-notif">🔔</div>
+    <div class="tb-btn">🔍</div>
+    <div class="nav-avatar">YP</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-title">Evinra <span>Ticketing OS</span></div>
+      <div class="hero-sub">Command center for live event operations. Select a module below to get started.</div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val">7</div>
+        <div class="hero-stat-lbl">Reports</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">14</div>
+        <div class="hero-stat-lbl">Shows</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">2</div>
+        <div class="hero-stat-lbl">Productions</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- REPORTS -->
+  <div class="section-header" id="sec-reports">
+    <div class="section-pip"></div>
+    <div class="section-title">Reports</div>
+    <div class="section-count">8 modules</div>
+  </div>
+  <div class="cards-grid col-4" id="grid-reports">
+
+    <a class="page-card" href="evinra_dashboard_mvp.html"
+       style="--card-color:var(--p);--card-glow:rgba(42,155,133,.12);--card-icon-bg:var(--p-dim);--card-color-dim:var(--p-border)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Dashboard</div>
+        <div class="card-desc">Live command center. Real-time KPIs, upcoming shows, alerts, and revenue at a glance.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Live</span>
+        <span class="card-tag">KPIs</span>
+        <span class="card-tag">Alerts</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_sales_overview.html"
+       style="--card-color:var(--p);--card-glow:rgba(42,155,133,.10);--card-icon-bg:var(--p-dim);--card-color-dim:var(--p-border)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Sales Overview</div>
+        <div class="card-desc">KPI summary, revenue waterfall, top-line metrics across all productions.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Revenue</span>
+        <span class="card-tag">KPIs</span>
+        <span class="card-tag">Charts</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_event_sales_report.html"
+       style="--card-color:var(--tips);--card-glow:rgba(90,200,160,.10);--card-icon-bg:rgba(90,200,160,.12);--card-color-dim:rgba(90,200,160,.22)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Sales Report</div>
+        <div class="card-desc">Per-show breakdown with fees, discounts, tips, refunds, and net revenue.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Gross / Net</span>
+        <span class="card-tag">Refunds</span>
+        <span class="card-tag">Per Show</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_order_detail.html"
+       style="--card-color:var(--blue);--card-glow:rgba(74,139,212,.10);--card-icon-bg:var(--blue-dim);--card-color-dim:rgba(74,139,212,.22)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Order Transactions</div>
+        <div class="card-desc">Full order log grouped by order ID with item-level detail, fees, and tips.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Orders</span>
+        <span class="card-tag">Items</span>
+        <span class="card-tag">Fees</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_inshow_analytics.html"
+       style="--card-color:var(--violet);--card-glow:rgba(139,107,212,.10);--card-icon-bg:var(--violet-dim);--card-color-dim:rgba(139,107,212,.22)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">In-Show Analytics</div>
+        <div class="card-desc">Concessions, novelties, rides, and show experience purchases during performance.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">In-Show</span>
+        <span class="card-tag">QR</span>
+        <span class="card-tag">Mobile</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_attendance_scan_report.html"
+       style="--card-color:var(--amber);--card-glow:rgba(212,136,74,.10);--card-icon-bg:var(--amber-dim);--card-color-dim:rgba(212,136,74,.22)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Attendance / Scan</div>
+        <div class="card-desc">Real-time scan log with attendance rate, invalid scans, and re-entry tracking.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Scan Rate</span>
+        <span class="card-tag">Gate</span>
+        <span class="card-tag">No-Shows</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_vendor_settlement.html"
+       style="--card-color:#5AC8A0;--card-glow:rgba(90,200,160,.10);--card-icon-bg:rgba(90,200,160,.12);--card-color-dim:rgba(90,200,160,.22)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Vendor Settlement</div>
+        <div class="card-desc">Commission breakdown per vendor with gross sales, rates, and settlement status.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Commission</span>
+        <span class="card-tag">Vendors</span>
+        <span class="card-tag">Settlement</span>
+      </div>
+    </a>
+
+    <a class="page-card" href="evinra_refund_report.html"
+       style="--card-color:var(--red);--card-glow:rgba(201,75,75,.10);--card-icon-bg:var(--red-dim);--card-color-dim:var(--red-border)">
+      <div class="card-header">
+        <div class="card-icon">◆</div>
+        ◆
+      </div>
+      <div>
+        <div class="card-name">Refund Report</div>
+        <div class="card-desc">Finance-critical. Refund amount, reason, agent, device, and approval status.</div>
+      </div>
+      <div class="card-tags">
+        <span class="card-tag highlight">Finance</span>
+        <span class="card-tag">Reason</span>
+        <span class="card-tag">Agent</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="section-header" id="sec-layout">
+    <div class="section-pip" style="background:var(--blue)"></div>
+    <div class="section-title">Layout</div>
+    <div class="section-count">3 modules</div>
+  </div>
+  <div class="cards-grid col-3" id="grid-layout" style="margin-bottom:36px">
+    <div class="layout-card">
+      <div class="layout-icon">◆</div>
+      <div><div class="layout-name">Seating Map</div><div class="layout-desc">Visual seat layout, section assignment, and capacity configuration</div></div>
+      ◆
+    </div>
+    <div class="layout-card">
+      <div class="layout-icon">◆</div>
+      <div><div class="layout-name">Sections & Zones</div><div class="layout-desc">Define sections, pricing zones, and access tiers for the venue</div></div>
+      ◆
+    </div>
+    <div class="layout-card">
+      <div class="layout-icon">◆</div>
+      <div><div class="layout-name">Entry Points</div><div class="layout-desc">Configure gates, scanner devices, and access control rules</div></div>
+      ◆
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="section-header" id="sec-settings">
+    <div class="section-pip" style="background:var(--text3)"></div>
+    <div class="section-title">Settings</div>
+    <div class="section-count">3 modules</div>
+  </div>
+  <div class="cards-grid col-3" id="grid-settings">
+    <div class="settings-card">
+      <div class="settings-icon">◆</div>
+      <div><div class="settings-name">Users</div><div class="settings-desc">Manage staff accounts, roles, and permissions</div></div>
+      ◆
+    </div>
+    <div class="settings-card">
+      <div class="settings-icon">◆</div>
+      <div><div class="settings-name">Productions</div><div class="settings-desc">Configure touring productions, branding, and event schedules</div></div>
+      ◆
+    </div>
+    <div class="settings-card">
+      <div class="settings-icon">◆</div>
+      <div><div class="settings-name">Shows</div><div class="settings-desc">Create and manage individual show instances, times, and capacity</div></div>
+      ◆
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-left">Evinra Ticketing OS · <span>v1.0</span> · South Florida Fairgrounds</div>
+  <div class="footer-right">
+    <div class="footer-link">Documentation</div>
+    <div class="footer-link">Support</div>
+    <div class="footer-link">API</div>
+  </div>
+</div>
+
+<script>
+// Tab filter
+const tabs = document.querySelectorAll('.nav-tab');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+function filterSection(sec){
+  const target = document.getElementById('sec-' + sec);
+  if(target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Card hover glow
+document.querySelectorAll('.page-card').forEach(card=>{
+  card.addEventListener('mousemove', e=>{
+    const r = card.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    card.style.setProperty('--mx', x+'px');
+    card.style.setProperty('--my', y+'px');
+  });
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

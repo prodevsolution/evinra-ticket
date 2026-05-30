@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+  <title>Evinra | Ticket System — Sign In</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+
+  <style>
+    /* ── Reset ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+      background: var(--brand-bg);
+      color: var(--text);
+    }
+
+    a { text-decoration: none; }
+
+    /* ── Layout ─────────────────────────────── */
+    .login-wrap {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── BRAND PANEL (left) ─────────────────── */
+    .brand-panel {
+      flex: 0 0 54%;
+      background: linear-gradient(150deg, var(--brand-bg) 0%, var(--brand-bg2) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px 56px 44px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Dot grid texture */
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(45,184,156,.18) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Radial glow behind headline */
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      top: 35%;
+      left: -10%;
+      width: 70%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(45,184,156,.10) 0%, transparent 68%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .brand-panel > * { position: relative; z-index: 1; }
+
+    /* Logo */
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .brand-name {
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.4px;
+    }
+
+    .brand-tagline {
+      font-family: var(--mono);
+      font-size: 8.5px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      color: rgba(255,255,255,.38);
+      text-transform: uppercase;
+    }
+
+    /* Hero text block */
+    .brand-hero { margin-top: 8px; }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--tips);
+      margin-bottom: 18px;
+    }
+
+    .brand-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--tips);
+      box-shadow: 0 0 8px var(--tips);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: .5; transform: scale(.8); }
+    }
+
+    .brand-headline {
+      font-family: var(--display);
+      font-size: clamp(32px, 3.6vw, 52px);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -.8px;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .brand-headline .accent {
+      color: var(--p);
+    }
+
+    .brand-desc {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: rgba(255,255,255,.52);
+      max-width: 440px;
+    }
+
+    /* Feature list */
+    .brand-features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand-feat {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .feat-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(45,184,156,.08);
+      border: 1px solid rgba(45,184,156,.20);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--p);
+      font-size: 18px;
+    }
+
+    .brand-feat span {
+      font-size: 13.5px;
+      color: rgba(255,255,255,.60);
+      line-height: 1.45;
+    }
+
+    /* ── FORM PANEL (right) ─────────────────── */
+    .form-panel {
+      flex: 1;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      overflow-y: auto;
+      border-left: 1px solid rgba(255,255,255,.05);
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Form header */
+    .form-header { display: flex; flex-direction: column; gap: 6px; }
+
+    .form-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--p);
+    }
+
+    .form-title {
+      font-family: var(--display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.3px;
+    }
+
+    .form-sub {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    /* Fields */
+    .fields { display: flex; flex-direction: column; gap: 16px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .field-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    .forgot-link {
+      font-size: 11.5px;
+      color: var(--p);
+      transition: opacity .15s;
+    }
+    .forgot-link:hover { opacity: .75; }
+
+    .field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-icon {
+      position: absolute;
+      left: 13px;
+      font-size: 15px;
+      color: var(--text3);
+      pointer-events: none;
+      transition: color .15s;
+    }
+
+    .field-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 44px 0 40px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: var(--body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .18s, background .18s;
+    }
+
+    .field-input::placeholder { color: var(--text3); }
+
+    .field-input:focus {
+      border-color: var(--p-border);
+      background: var(--bg2);
+      box-shadow: 0 0 0 3px var(--p-glow);
+    }
+
+    .field-input:focus + .field-icon,
+    .field-wrap:focus-within .field-icon {
+      color: var(--p);
+    }
+
+    .field-eye {
+      position: absolute;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: none;
+      color: var(--text3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 15px;
+      transition: color .15s, background .15s;
+    }
+    .field-eye:hover { color: var(--text); background: var(--bg4); }
+
+    /* Remember me */
+    .field-remember {
+      display: flex;
+      align-items: center;
+    }
+
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      user-select: none;
+    }
+
+    .check-input { display: none; }
+
+    .check-box {
+      width: 17px;
+      height: 17px;
+      border-radius: 5px;
+      border: 1.5px solid var(--border2);
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+    }
+
+    .check-box::after {
+      content: '';
+      width: 5px;
+      height: 9px;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(42deg) translateY(-1px);
+      opacity: 0;
+      transition: opacity .12s;
+    }
+
+    .check-input:checked ~ .check-box {
+      background: var(--p);
+      border-color: var(--p);
+    }
+
+    .check-input:checked ~ .check-box::after { opacity: 1; }
+
+    /* Sign In button */
+    .btn-signin {
+      width: 100%;
+      height: 46px;
+      background: var(--p);
+      color: var(--p-contrast, #06120F);
+      border: none;
+      border-radius: 10px;
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: .2px;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(45,184,156,.25);
+    }
+
+    .btn-signin:hover  { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 26px rgba(45,184,156,.32); }
+    .btn-signin:active { opacity: 1; transform: translateY(0); }
+    .btn-signin:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-signin-icon { font-size: 16px; transition: transform .2s; }
+    .btn-signin:hover .btn-signin-icon { transform: translateX(3px); }
+
+    /* Divider */
+    .form-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text3);
+      font-size: 11px;
+    }
+    .form-divider::before,
+    .form-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Footer */
+    .form-footer {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text3);
+    }
+    .form-footer a { color: var(--p); margin-left: 4px; }
+    .form-footer a:hover { text-decoration: underline; }
+
+    /* Copyright */
+    .brand-copyright {
+      font-size: 11px;
+      color: rgba(255,255,255,.20);
+      font-family: var(--mono);
+    }
+
+    /* ── Responsive ─────────────────────────── */
+    @media (max-width: 768px) {
+      html, body { overflow: auto; }
+      .login-wrap { flex-direction: column; height: auto; min-height: 100vh; }
+      .brand-panel {
+        flex: none;
+        padding: 36px 28px 32px;
+        justify-content: flex-start;
+        gap: 28px;
+      }
+      .form-panel {
+        flex: none;
+        padding: 36px 24px 48px;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,.06);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+
+  <!-- ═══════════════════════════════════════
+       LEFT · Brand panel
+  ═══════════════════════════════════════ -->
+  <div class="brand-panel">
+
+    <!-- Logo -->
+    <div class="brand-logo">
+      <svg width="40" height="48" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Outer flame body -->
+        <path d="M20 2C20 2 7 13 5 23C3 32 8 39 14 43C10 38 10 31 14 26C16 23 19 20 20 16C21 20 24 23 26 26C30 31 30 38 26 43C32 39 37 32 35 23C33 13 20 2 20 2Z" fill="#C42030"/>
+        <!-- Inner flame glow -->
+        <path d="M20 18C20 18 15 25 15 30C15 35 17 38 20 42C23 38 25 35 25 30C25 25 20 18 20 18Z" fill="#E83040"/>
+        <!-- Highlight -->
+        <path d="M17 10C14 15 12 20 13 26" stroke="rgba(255,210,210,0.22)" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-logo-text">
+        <span class="brand-name">evinra</span>
+        <span class="brand-tagline">Sales Management</span>
+      </div>
+    </div>
+
+    <!-- Hero copy -->
+    <div class="brand-hero">
+      <div class="brand-badge">
+        <span class="brand-badge-dot"></span>
+        Welcome Back
+      </div>
+      <h1 class="brand-headline">
+        Ticketing OS for<br>
+        <span class="accent">live experiences</span>
+      </h1>
+      <p class="brand-desc">
+        Evinra Suite is an integrated platform designed to manage every
+        aspect of event production, venue operations and sales —&nbsp;from a
+        single system.
+      </p>
+    </div>
+
+    <!-- Features -->
+    <div class="brand-features">
+      <div class="brand-feat">
+        <div class="feat-icon"><i class="ti ti-layout-dashboard"></i></div>
+        <span>Manage events, shows and venues in real time</span>
+      </div>
+      <div class="brand-feat">
+        <div class="feat-icon"><i class="ti ti-chart-bar"></i></div>
+        <span>Live revenue, waterfall and channel attribution</span>
+      </div>
+      <div class="brand-feat">
+        <div class="feat-icon"><i class="ti ti-qrcode"></i></div>
+        <span>Gate scan, attendance and seat-level control</span>
+      </div>
+    </div>
+
+    <span class="brand-copyright">© 2025 Evinra · All rights reserved</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       RIGHT · Form panel
+  ═══════════════════════════════════════ -->
+  <div class="form-panel">
+    <div class="form-card">
+
+      <!-- Header -->
+      <div class="form-header">
+        <span class="form-eyebrow">Evinra Suite</span>
+        <h2 class="form-title">Sign in to your account</h2>
+        <p class="form-sub">Enter your credentials to continue</p>
+      </div>
+
+      <!-- Form -->
+      <form class="fields" onsubmit="handleSignIn(event)" novalidate>
+
+        <!-- Email -->
+        <div class="field-group">
+          <label class="field-label" for="email">Email address</label>
+          <div class="field-wrap">
+            <i class="ti ti-mail field-icon"></i>
+            <input
+              class="field-input"
+              id="email"
+              type="email"
+              placeholder="you@organization.com"
+              autocomplete="email"
+              required>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <div class="field-row">
+            <label class="field-label" for="password">Password</label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+          <div class="field-wrap">
+            <i class="ti ti-lock field-icon"></i>
+            <input
+              class="field-input"
+              id="password"
+              type="password"
+              placeholder="••••••••••"
+              autocomplete="current-password"
+              required>
+            <button type="button" class="field-eye" onclick="togglePwd()" aria-label="Show / hide password">
+              <i class="ti ti-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember -->
+        <div class="field-remember">
+          <label class="check-label">
+            <input type="checkbox" class="check-input" id="remember">
+            <span class="check-box"></span>
+            Keep me signed in for 30 days
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-signin" id="signinBtn">
+          <span class="btn-signin-text">Sign In</span>
+          <i class="ti ti-arrow-right btn-signin-icon"></i>
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="form-divider">Need access?</div>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        Contact your system administrator
+        <a href="mailto:admin@evinra.com">admin@evinra.com</a>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /login-wrap -->
+
+<script>
+(function(){
+  /* ── Password toggle ── */
+  function togglePwd(){
+    var inp = document.getElementById('password');
+    var ico = document.getElementById('eyeIcon');
+    var show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    ico.className = show ? 'ti ti-eye-off' : 'ti ti-eye';
+  }
+  window.togglePwd = togglePwd;
+
+  /* ── Sign in ── */
+  function handleSignIn(e){
+    e.preventDefault();
+    var btn  = document.getElementById('signinBtn');
+    var txt  = btn.querySelector('.btn-signin-text');
+    var ico  = btn.querySelector('.btn-signin-icon');
+
+    btn.disabled = true;
+    txt.textContent = 'Signing in…';
+    ico.className = 'ti ti-loader-2 btn-signin-icon';
+    ico.style.animation = 'spin .8s linear infinite';
+
+    // inject keyframe once
+    if(!document.getElementById('_spin')){
+      var s = document.createElement('style');
+      s.id = '_spin';
+      s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(s);
+    }
+
+    setTimeout(function(){
+      window.location.href = 'evinra_dashboard_v2.html';
+    }, 1400);
+  }
+  window.handleSignIn = handleSignIn;
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="color-scheme" content="dark light"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — Users</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="assets/theme.js"></script>
+<style>
+/* ── Dark default tokens (inline fallback) ──────────── */
+html[data-theme="dark"],html:not([data-theme]){
+  --bg:#0B0F0E;--bg2:#131A18;--bg3:#1B2421;--bg4:#222B28;
+  --card:#141A18;--card2:#192320;
+  --p:#2DB89C;--p-dim:rgba(45,184,156,.14);--p-border:rgba(45,184,156,.30);--p-glow:rgba(45,184,156,.08);--p-contrast:#06120F;
+  --amber:#E0A361;--amber-dim:rgba(224,163,97,.14);--amber-border:rgba(224,163,97,.30);
+  --red:#E06363;--red-dim:rgba(224,99,99,.14);--red-border:rgba(224,99,99,.30);
+  --blue:#6BA3E0;--blue-dim:rgba(107,163,224,.14);--blue-border:rgba(107,163,224,.30);
+  --violet:#9C82E0;--violet-dim:rgba(156,130,224,.14);--violet-border:rgba(156,130,224,.30);
+  --gold:#EAB044;--gold-dim:rgba(234,176,68,.14);--gold-border:rgba(234,176,68,.30);
+  --tips:#5AC8A0;
+  --text:#ECF2F0;--text2:#A6B6B3;--text3:#6E827E;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+}
+html[data-theme="light"]{
+  --bg:#F7F7F4;--bg2:#FFFFFF;--bg3:#F0F0EB;--bg4:#E6E6E0;
+  --card:#FFFFFF;--card2:#FAFAF7;
+  --p:#1E8A75;--p-dim:rgba(30,138,117,.10);--p-border:rgba(30,138,117,.32);--p-glow:rgba(30,138,117,.06);--p-contrast:#FFFFFF;
+  --amber:#B8772E;--amber-dim:rgba(184,119,46,.10);--amber-border:rgba(184,119,46,.32);
+  --red:#B83C3C;--red-dim:rgba(184,60,60,.10);--red-border:rgba(184,60,60,.32);
+  --blue:#3A78C2;--blue-dim:rgba(58,120,194,.10);--blue-border:rgba(58,120,194,.32);
+  --violet:#6F50C2;--violet-dim:rgba(111,80,194,.10);--violet-border:rgba(111,80,194,.32);
+  --gold:#B8862A;--gold-dim:rgba(184,134,42,.10);--gold-border:rgba(184,134,42,.32);
+  --tips:#2E9A75;
+  --text:#0E1614;--text2:#4F5E5B;--text3:#7B8C88;
+  --border:rgba(14,22,20,.08);--border2:rgba(14,22,20,.14);
+}
+::-webkit-scrollbar{width:8px!important;height:8px!important}
+::-webkit-scrollbar-track{background:#0B0F0E!important}
+::-webkit-scrollbar-thumb{background:#6E827E!important;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3!important}
+[data-theme="dark"] .icon-sun{display:none!important}
+[data-theme="light"] .icon-moon{display:none!important}
+
+/* ── Shell ───────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.shell{display:flex;min-height:100vh}
+
+/* ── App Header ──────────────────────────────────────── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;height:auto;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:20px}
+.header-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+.header-logo{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.header-logo-label{font-size:8px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;line-height:1;white-space:nowrap;font-weight:600}
+.header-content{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;margin-left:24px}
+.header-page-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.header-breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-right{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .14s}
+.header-icon-btn:hover{border-color:var(--border2);color:var(--text)}
+.header-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .14s}
+.header-user:hover{background:rgba(255,255,255,.04)}
+[data-theme="light"] .header-user:hover{background:rgba(14,22,20,.04)}
+.header-user-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-user-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.header-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.header-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px);}
+.sb-section{padding:0 0 8px}
+.sb-group{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.10em;color:var(--text3);text-transform:uppercase;padding:8px 16px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-family:var(--body);font-size:12.5px;font-weight:400;color:var(--text2);text-decoration:none;border-radius:0;transition:background .12s,color .12s;position:relative;white-space:nowrap;}
+.sb-item i{font-size:14px;flex-shrink:0;width:16px;text-align:center}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--p-dim);color:var(--p);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--p);border-radius:0 2px 2px 0;}
+
+/* ── Main ────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px}
+.topbar-left{display:flex;align-items:center;gap:8px;flex:1}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.content{padding:22px 28px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+
+/* ── Search input ────────────────────────────────────── */
+.search-wrap{position:relative;flex:1;max-width:320px}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+.search-input{width:100%;height:32px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:var(--body);padding:0 10px 0 30px;outline:none;transition:border-color .14s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--p-border)}
+
+/* ── Filter pills ────────────────────────────────────── */
+.fp{height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.fp:hover{border-color:var(--border2);color:var(--text)}
+.fp.on{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.fp-sep{width:1px;height:20px;background:var(--border2)}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn{height:32px;border-radius:8px;font-size:11.5px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:var(--p-contrast)}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.btn-danger{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{height:26px;padding:0 10px;font-size:10.5px;border-radius:6px}
+.btn:disabled{opacity:.40;cursor:not-allowed;pointer-events:none}
+
+/* ── Cards / Bento ───────────────────────────────────── */
+.bento{display:grid;gap:10px}
+.bento-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.c-title{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.c-title::before{content:'';display:inline-block;flex-shrink:0;width:7px;height:7px;border-radius:1px;background:var(--p);transform:rotate(45deg);opacity:.85}
+
+/* ── KPI mini ────────────────────────────────────────── */
+.kpi-wrap{padding:14px 18px}
+.kpi-val{font-family:var(--display);font-weight:800;font-size:28px;line-height:1;letter-spacing:-1px;color:var(--text);margin-bottom:6px}
+.kpi-val.accent{color:var(--p)}
+.kpi-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:.4px}
+.kpi-delta{font-size:10px;font-family:var(--mono);margin-top:4px}
+.kpi-delta.up{color:var(--p)}
+.kpi-delta.neutral{color:var(--text3)}
+.kpi-bar{margin-top:10px;height:2px;background:var(--bg4);border-radius:1px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:1px;background:var(--p)}
+
+/* ── EM Module Banner ────────────────────────────────── */
+.em-banner{padding:20px 24px;border-radius:12px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;transition:border-color .3s,background .3s}
+.em-banner.em-on{border-color:var(--p-border);background:linear-gradient(135deg,var(--card) 60%,rgba(45,184,156,.05))}
+.em-banner.em-off{border-color:var(--border);background:var(--card)}
+.em-dot-wrap{flex-shrink:0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .3s}
+.em-banner.em-on .em-dot-wrap{background:var(--p-dim)}
+.em-banner.em-off .em-dot-wrap{background:var(--bg4)}
+.em-dot{width:12px;height:12px;border-radius:50%;transition:background .3s}
+.em-banner.em-on .em-dot{background:var(--p);animation:emPulse 2s ease-in-out infinite}
+.em-banner.em-off .em-dot{background:var(--text3)}
+@keyframes emPulse{0%,100%{box-shadow:0 0 0 0 rgba(45,184,156,.4)}50%{box-shadow:0 0 0 6px rgba(45,184,156,0)}}
+.em-body{flex:1;min-width:0}
+.em-title-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.em-name{font-size:14px;font-weight:600;font-family:var(--display);color:var(--text)}
+.em-status-badge{font-size:9px;font-family:var(--mono);font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:.6px;text-transform:uppercase}
+.em-banner.em-on .em-status-badge{background:var(--p-dim);color:var(--p);border:1px solid var(--p-border)}
+.em-banner.em-off .em-status-badge{background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+.em-subtitle{font-size:11.5px;color:var(--text2);font-family:var(--mono)}
+.em-meta{display:flex;gap:20px;margin-top:8px;flex-wrap:wrap}
+.em-meta-item{display:flex;align-items:center;gap:6px;font-size:10.5px;font-family:var(--mono);color:var(--text3)}
+.em-meta-item i{font-size:12px}
+.em-meta-item span{color:var(--text2)}
+.em-actions{display:flex;align-items:center;gap:14px;flex-shrink:0}
+
+/* ── EM settings link ────────────────────────────────── */
+.em-settings-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--text3);text-decoration:none;transition:color .14s}
+.em-settings-link:hover{color:var(--text2)}
+
+/* ── Users table ─────────────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 14px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+.tbl tbody tr{transition:background .12s;cursor:default}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+
+/* ── User cell ───────────────────────────────────────── */
+.user-cell{display:flex;align-items:center;gap:11px}
+.u-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--display);flex-shrink:0;color:#0B0F0E}
+.u-name{font-size:12.5px;font-weight:500;color:var(--text)}
+.u-email{font-size:10.5px;color:var(--text3);font-family:var(--mono)}
+
+/* ── Source badge ────────────────────────────────────── */
+.src-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;font-weight:500;border:1px solid}
+.src-em{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.src-manual{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+
+/* ── Role chips in table ─────────────────────────────── */
+.roles-cell{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow:hidden}
+.role-chip{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap;font-weight:500}
+.role-chip.c-teal{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.role-chip.c-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.role-chip.c-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.role-chip.c-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.role-chip.c-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.role-chip.c-gold{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold)}
+.roles-overflow{font-size:9.5px;font-family:var(--mono);color:var(--text3);background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 7px;white-space:nowrap}
+.roles-empty{font-size:11px;color:var(--text3);font-style:italic}
+
+/* ── Status pill ─────────────────────────────────────── */
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);font-weight:500}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.status-active .status-dot{background:var(--p)}
+.status-active{color:var(--p)}
+.status-inactive .status-dot{background:var(--text3)}
+.status-inactive{color:var(--text3)}
+
+/* ── Row actions ─────────────────────────────────────── */
+.row-actions{display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .14s}
+.tbl tbody tr:hover .row-actions{opacity:1}
+.act-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s;color:var(--text3);font-size:13px}
+.act-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.act-btn.danger:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.act-btn.warn:hover{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+
+/* ── Table empty state ───────────────────────────────── */
+.tbl-empty{text-align:center;padding:48px 20px!important;border-bottom:none!important}
+.tbl-empty-icon{font-size:32px;color:var(--text3);margin-bottom:10px}
+.tbl-empty-msg{font-size:13px;color:var(--text2);margin-bottom:4px}
+.tbl-empty-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* ── Modal overlay ───────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-card{background:var(--card);border:1px solid var(--border2);border-radius:14px;display:flex;flex-direction:column;width:560px;max-width:95vw;max-height:85vh;box-shadow:0 24px 60px rgba(0,0,0,.5);transform:translateY(8px);transition:transform .2s}
+.modal-overlay.open .modal-card{transform:translateY(0)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.modal-title-block{display:flex;flex-direction:column;gap:3px}
+.modal-title{font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.modal-subtitle{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.modal-x{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .14s;font-size:14px;flex-shrink:0}
+.modal-x:hover{border-color:var(--border2);color:var(--text)}
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px}
+.modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:16px 24px;flex-shrink:0;border-top:1px solid var(--border)}
+
+/* ── Role selection grid ─────────────────────────────── */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.role-option{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-radius:9px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .15s;user-select:none}
+.role-option:hover{border-color:var(--border2);background:var(--bg4)}
+.role-option.selected{border-color:var(--p-border);background:var(--p-dim)}
+.role-option-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:background .15s}
+.role-option-body{flex:1;min-width:0}
+.role-option-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.2}
+.role-option-desc{font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.3}
+.role-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .15s;font-size:9px;color:transparent}
+.role-option.selected .role-check{background:var(--p);border-color:var(--p);color:#0B0F0E}
+
+/* ── Add user form ───────────────────────────────────── */
+.form-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-label{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text2);letter-spacing:.4px;text-transform:uppercase}
+.form-input{height:36px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--body);padding:0 12px;outline:none;transition:border-color .14s;width:100%}
+.form-input::placeholder{color:var(--text3)}
+.form-input:focus{border-color:var(--p-border)}
+.form-hint{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── Confirm modal ───────────────────────────────────── */
+.confirm-card{width:420px}
+.confirm-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.confirm-title{font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* ── Pagination ──────────────────────────────────────── */
+.pagi{display:flex;align-items:center;gap:4px;padding:14px 14px 4px;border-top:1px solid var(--border);justify-content:space-between}
+.pagi-info{font-size:10.5px;font-family:var(--mono);color:var(--text3)}
+.pagi-btns{display:flex;gap:4px}
+.pg-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:var(--mono);color:var(--text2);transition:all .14s}
+.pg-btn:hover{border-color:var(--border2);color:var(--text)}
+.pg-btn.active{background:var(--p);border-color:var(--p);color:#0B0F0E;font-weight:700}
+
+/* ── Add-user tab switcher ───────────────────────────── */
+.add-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:4px}
+.add-tab-btn{flex:1;height:32px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:11.5px;font-family:var(--mono);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .14s}
+.add-tab-btn:hover{color:var(--text)}
+.add-tab-btn.active{background:var(--bg2);border:1px solid var(--border2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+
+/* ── EM Directory list ───────────────────────────────── */
+.em-dir-list{border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--bg3)}
+.em-dir-scroll{max-height:272px;overflow-y:auto}
+.em-dir-item{display:flex;align-items:center;gap:11px;padding:10px 14px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border)}
+.em-dir-item:last-child{border-bottom:none}
+.em-dir-item:hover{background:rgba(255,255,255,.03)}
+.em-dir-item.selected{background:var(--p-dim)}
+.em-dir-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);background:var(--bg4);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .14s;font-size:10px;color:transparent}
+.em-dir-item.selected .em-dir-check{background:var(--p);border-color:var(--p);color:#0B0F0E}
+.em-dir-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--display);flex-shrink:0;color:#0B0F0E}
+.em-dir-info{flex:1;min-width:0}
+.em-dir-name{font-size:12px;font-weight:500;color:var(--text);line-height:1.2}
+.em-dir-email{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.em-dir-dept{font-size:10px;font-family:var(--mono);color:var(--text3);background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0}
+
+/* ── Animation ───────────────────────────────────────── */
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.content > *{animation:slideUp .35s both}
+.content > *:nth-child(1){animation-delay:.04s}
+.content > *:nth-child(2){animation-delay:.08s}
+.content > *:nth-child(3){animation-delay:.12s}
+</style>
+</head>
+<body>
+
+<!-- ── App Header ─────────────────────────────────────── -->
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg style="height:38px;width:auto;display:block" viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+<path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+<path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+<path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+<path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+<path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+<path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+<path d="M219.307 76.6345V74.2444H231.761V76.6345H226.936V89.9841H224.131V76.6345H219.307Z" style="fill:var(--text3)"/>
+<path d="M236.989 74.2444V89.9841H234.162V74.2444H236.989Z" style="fill:var(--text3)"/>
+<path d="M253.413 79.555H250.562C250.481 79.0836 250.331 78.666 250.112 78.3023C249.894 77.9334 249.622 77.6208 249.297 77.3646C248.971 77.1085 248.601 76.9163 248.184 76.7882C247.772 76.655 247.328 76.5884 246.85 76.5884C246.002 76.5884 245.249 76.8036 244.594 77.234C243.939 77.6593 243.425 78.2843 243.054 79.1092C242.683 79.929 242.498 80.9307 242.498 82.1143C242.498 83.3183 242.683 84.3328 243.054 85.1577C243.43 85.9775 243.944 86.5974 244.594 87.0176C245.249 87.4326 245.999 87.6401 246.842 87.6401C247.31 87.6401 247.747 87.5786 248.153 87.4556C248.565 87.3275 248.933 87.1405 249.259 86.8946C249.589 86.6487 249.866 86.3464 250.089 85.9877C250.318 85.6291 250.476 85.2192 250.562 84.758L253.413 84.7734C253.306 85.5215 253.075 86.2234 252.719 86.8792C252.368 87.5351 251.908 88.114 251.339 88.6161C250.77 89.1131 250.105 89.5025 249.342 89.7843C248.58 90.061 247.734 90.1993 246.804 90.1993C245.432 90.1993 244.208 89.8791 243.131 89.2387C242.053 88.5982 241.205 87.6734 240.585 86.4642C239.965 85.255 239.655 83.805 239.655 82.1143C239.655 80.4183 239.968 78.9683 240.593 77.7643C241.218 76.5551 242.069 75.6303 243.146 74.9898C244.223 74.3494 245.443 74.0292 246.804 74.0292C247.673 74.0292 248.481 74.1521 249.228 74.3981C249.975 74.644 250.641 75.0052 251.225 75.4817C251.809 75.9531 252.29 76.5321 252.666 77.2186C253.047 77.9001 253.296 78.6789 253.413 79.555Z" style="fill:var(--text3)"/>
+<path d="M256.002 89.9841V74.2444H258.83V81.4764H259.02L265.11 74.2444H268.563L262.526 81.3073L268.616 89.9841H265.217L260.56 83.2363L258.83 85.296V89.9841H256.002Z" style="fill:var(--text3)"/>
+<path d="M270.527 89.9841V74.2444H280.68V76.6345H273.355V80.9076H280.154V83.2978H273.355V87.594H280.741V89.9841H270.527Z" style="fill:var(--text3)"/>
+<path d="M282.879 76.6345V74.2444H295.333V76.6345H290.508V89.9841H287.703V76.6345H282.879Z" style="fill:var(--text3)"/>
+<path d="M300.561 74.2444V89.9841H297.734V74.2444H300.561Z" style="fill:var(--text3)"/>
+<path d="M316.451 74.2444V89.9841H313.936L306.581 79.263H306.451V89.9841H303.623V74.2444H306.154L313.501 84.9732H313.639V74.2444H316.451Z" style="fill:var(--text3)"/>
+<path d="M329.989 79.2706C329.862 78.8556 329.687 78.4842 329.463 78.1562C329.245 77.8232 328.981 77.5389 328.671 77.3032C328.366 77.0675 328.015 76.8907 327.619 76.7729C327.223 76.6499 326.791 76.5884 326.323 76.5884C325.485 76.5884 324.738 76.801 324.082 77.2263C323.427 77.6516 322.911 78.2767 322.535 79.1016C322.164 79.9213 321.979 80.9204 321.979 82.0989C321.979 83.2876 322.164 84.2944 322.535 85.1193C322.906 85.9442 323.422 86.5718 324.082 87.0022C324.743 87.4275 325.51 87.6401 326.384 87.6401C327.177 87.6401 327.863 87.4864 328.442 87.179C329.026 86.8715 329.476 86.436 329.791 85.8724C330.106 85.3037 330.264 84.6376 330.264 83.8742L330.904 83.9741H326.666V81.7453H333V83.636C333 84.9835 332.715 86.1491 332.146 87.1329C331.577 88.1166 330.795 88.8749 329.799 89.4077C328.803 89.9355 327.66 90.1993 326.369 90.1993C324.931 90.1993 323.668 89.874 322.581 89.2233C321.499 88.5675 320.653 87.6375 320.043 86.4335C319.438 85.2243 319.136 83.7897 319.136 82.1296C319.136 80.859 319.314 79.7241 319.669 78.725C320.03 77.7259 320.533 76.8779 321.178 76.1811C321.824 75.4792 322.581 74.9463 323.45 74.5825C324.319 74.2136 325.264 74.0292 326.285 74.0292C327.149 74.0292 327.954 74.1572 328.701 74.4134C329.448 74.6645 330.111 75.0232 330.691 75.4894C331.275 75.9557 331.755 76.509 332.131 77.1495C332.507 77.7899 332.754 78.497 332.87 79.2706H329.989Z" style="fill:var(--text3)"/>
+</svg>
+    </div>
+    <div class="header-content">
+      <div class="header-page-title">Users</div>
+      <div class="header-breadcrumb">Settings / Users</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ── Sidebar ────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-group">Main</div>
+      <a href="evinra_dashboard_mvp.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg></span>Dashboard <span class="sb-badge">MVP</span></a>
+      <a href="evinra_events.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events</a>
+<a href="evinra_order_detail.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Orders</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Reports</div>
+      <a href="evinra_sales_overview.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg></span>Sales Overview</a>
+      <a href="evinra_event_sales_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Sales Report</a>
+      <a href="evinra_attendance_scan_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg></span>Attendance &amp; Scan</a>
+      <a href="evinra_refund_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Refund Report</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Settings</div>
+      <a href="evinra_general.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>General</a>
+      <a href="evinra_shows.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Shows</a>
+      <a href="evinra_seating_map.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Layout Management</a>
+      <a href="evinra_discounts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo Codes</a>
+      <a href="evinra_credit_plans.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Plans</a>
+      <a href="evinra_experience_tickets.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Experience Ticketing</a>
+      <a href="evinra_other_vendors.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Others Vendors</a>
+      <a href="evinra_vendor_sales_links.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Vendor Referral Links</a>
+      <a href="evinra_fees_taxes.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Fees &amp; Taxes</a>
+      <a href="evinra_users.html" class="sb-item active"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</a>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="search-wrap">
+          <i class="bi bi-search"></i>
+          <input class="search-input" id="searchInput" type="text" placeholder="Search name or email…" oninput="onSearch(this.value)">
+        </div>
+        <div class="fp-sep"></div>
+        <button class="fp on" id="fpAll" onclick="setStatusFilter('all')">All</button>
+        <button class="fp" id="fpActive" onclick="setStatusFilter('active')">Active</button>
+        <button class="fp" id="fpInactive" onclick="setStatusFilter('inactive')">Inactive</button>
+        <div class="fp-sep"></div>
+        <button class="fp" id="fpRoleAll" onclick="setRoleFilter('all')">
+          <i class="bi bi-funnel" style="font-size:10px"></i>
+          <span id="roleFilterLabel">All Roles</span>
+        </button>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" id="addUserBtn" onclick="openAddUser()">
+          <i class="bi bi-person-plus" style="font-size:13px"></i>Add User
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ── EM Module Banner ──────────────────────── -->
+      <div class="em-banner em-on card" id="emBanner">
+        <div class="em-dot-wrap">
+          <div class="em-dot"></div>
+        </div>
+        <div class="em-body">
+          <div class="em-title-row">
+            <div class="em-name">Event Management Module</div>
+            <div class="em-status-badge" id="emStatusBadge">Connected</div>
+          </div>
+          <div class="em-subtitle" id="emSubtitle">
+            EM connected — browse the directory to add users to TS
+          </div>
+          <div class="em-meta" id="emMeta">
+            <div class="em-meta-item"><i class="bi bi-hdd-network"></i>Source: <span>EM Platform v2.1</span></div>
+            <div class="em-meta-item"><i class="bi bi-people-fill"></i>Available in directory: <span id="emDirCount">—</span></div>
+          </div>
+        </div>
+        <div class="em-actions" style="flex-direction:column;align-items:flex-end;gap:8px">
+          <div id="emStatusPill"></div>
+          <a href="evinra_general.html" class="em-settings-link">
+            <i class="bi bi-sliders" style="font-size:11px"></i>
+            Manage in General Settings
+            <i class="bi bi-arrow-right" style="font-size:10px"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Stats Row ─────────────────────────────── -->
+      <div class="bento bento-4">
+        <div class="card kpi-wrap">
+          <div class="c-title">Total Users</div>
+          <div class="kpi-val accent" id="statTotal">5</div>
+          <div class="kpi-lbl">Registered in TS</div>
+          <div class="kpi-bar" style="margin-top:10px"><div class="kpi-bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="card kpi-wrap">
+          <div class="c-title">Active</div>
+          <div class="kpi-val" id="statActive">4</div>
+          <div class="kpi-lbl">Currently active</div>
+          <div class="kpi-delta up" id="statActiveDelta">↑ 80% of total</div>
+        </div>
+        <div class="card kpi-wrap">
+          <div class="c-title">With Roles</div>
+          <div class="kpi-val" id="statWithRoles">4</div>
+          <div class="kpi-lbl">Users with ≥1 TS role</div>
+          <div class="kpi-delta neutral" id="statNoRoles">1 pending assignment</div>
+        </div>
+        <div class="card kpi-wrap">
+          <div class="c-title">From EM</div>
+          <div class="kpi-val accent" id="statSynced">3</div>
+          <div class="kpi-lbl" id="statSyncedLbl">Added via EM directory</div>
+          <div class="kpi-delta up" id="statSyncedDelta">↑ 60% of total</div>
+        </div>
+      </div>
+
+      <!-- ── Users Table ────────────────────────────── -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:16px 20px 12px;display:flex;align-items:center;border-bottom:1px solid var(--border)">
+          <div class="c-title" style="margin-bottom:0">User List</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="usersTable">
+            <thead>
+              <tr>
+                <th style="width:34px;padding-left:20px"><input type="checkbox" id="checkAll" onclick="toggleSelectAll(this)" style="accent-color:var(--p);cursor:pointer"></th>
+                <th>User</th>
+                <th>Source</th>
+                <th>TS Roles</th>
+                <th>Status</th>
+                <th>Last Active</th>
+                <th style="text-align:right;padding-right:20px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody">
+              <!-- rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="pagi" id="pagiWrap">
+          <div class="pagi-info" id="pagiInfo">Showing 1–5 of 5</div>
+          <div class="pagi-btns">
+            <div class="pg-btn"><i class="bi bi-chevron-left" style="font-size:10px"></i></div>
+            <div class="pg-btn active">1</div>
+            <div class="pg-btn"><i class="bi bi-chevron-right" style="font-size:10px"></i></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     ROLE ASSIGNMENT MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="roleModal" onclick="if(event.target===this)closeRoleModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title-block">
+        <div class="modal-title">
+          <i class="bi bi-shield-check" style="color:var(--p);font-size:15px"></i>
+          Assign TS Roles
+        </div>
+        <div class="modal-subtitle" id="roleModalSubtitle">Select one or more Ticket System roles</div>
+      </div>
+      <!-- user info chip -->
+      <div style="display:flex;align-items:center;gap:10px;margin-left:auto;margin-right:16px">
+        <div id="roleModalAvatar" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--display);background:var(--p);color:#0B0F0E;flex-shrink:0"></div>
+        <div>
+          <div id="roleModalName" style="font-size:12px;font-weight:600;color:var(--text)"></div>
+          <div id="roleModalEmail" style="font-size:10px;color:var(--text3);font-family:var(--mono)"></div>
+        </div>
+      </div>
+      <div class="modal-x" onclick="closeRoleModal()"><i class="bi bi-x"></i></div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px">
+        <i class="bi bi-info-circle" style="margin-right:4px"></i>
+        Users can hold multiple TS roles simultaneously. Each role grants its configured permissions.
+      </div>
+      <div class="role-grid" id="roleGrid">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-right:auto" id="roleSelCount">0 roles selected</div>
+      <button class="btn btn-ghost" onclick="closeRoleModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRoles()">
+        <i class="bi bi-check2" style="font-size:13px"></i>Save Roles
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     ADD USER MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="addUserModal" onclick="if(event.target===this)closeAddUser()">
+  <div class="modal-card" style="width:600px">
+    <div class="modal-header">
+      <div class="modal-title-block">
+        <div class="modal-title">
+          <i class="bi bi-person-plus" style="color:var(--p);font-size:15px"></i>
+          Add User to Ticket System
+        </div>
+        <div class="modal-subtitle" id="addUserModalSubtitle">Grant TS access to a new user</div>
+      </div>
+      <div class="modal-x" onclick="closeAddUser()"><i class="bi bi-x"></i></div>
+    </div>
+    <div class="modal-body">
+
+      <!-- Tab switcher (hidden when EM inactive) -->
+      <div class="add-tabs" id="addUserTabs">
+        <button class="add-tab-btn active" id="tabBtnEM" onclick="switchAddTab('em')">
+          <i class="bi bi-building" style="font-size:12px"></i>From EM Directory
+        </button>
+        <button class="add-tab-btn" id="tabBtnManual" onclick="switchAddTab('manual')">
+          <i class="bi bi-person-fill" style="font-size:12px"></i>Create Manually
+        </button>
+      </div>
+
+      <!-- ── EM Directory tab ── -->
+      <div id="tabEMDir">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;font-size:11px;font-family:var(--mono);color:var(--text3)">
+          <i class="bi bi-info-circle" style="flex-shrink:0"></i>
+          Only EM users not yet in TS are listed. Roles can be assigned after adding.
+        </div>
+        <div class="search-wrap" style="max-width:100%;margin-bottom:10px">
+          <i class="bi bi-search"></i>
+          <input class="search-input" id="emDirSearch" placeholder="Search name, email, or department…" oninput="filterEMDir(this.value)">
+        </div>
+        <div class="em-dir-list">
+          <div class="em-dir-scroll" id="emDirList">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Manual tab ── -->
+      <div id="tabManual" style="display:none">
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="form-label">First Name *</label>
+            <input class="form-input" id="newFirstName" placeholder="e.g. Carlos">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Last Name *</label>
+            <input class="form-input" id="newLastName" placeholder="e.g. Mendez">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email Address *</label>
+          <input class="form-input" id="newEmail" type="email" placeholder="user@venue.com">
+          <div class="form-hint">Used for login and notifications</div>
+        </div>
+        <div class="form-field" style="margin-bottom:6px">
+          <label class="form-label">Initial TS Roles</label>
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Roles can be assigned or changed later</div>
+          <div class="role-grid" id="addUserRoleGrid">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer: EM directory -->
+    <div class="modal-footer" id="footerEM">
+      <div style="font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-right:auto" id="emDirSelCount">0 users selected</div>
+      <button class="btn btn-ghost" onclick="closeAddUser()">Cancel</button>
+      <button class="btn btn-primary" id="addFromEMBtn" onclick="addFromEMDirectory()" disabled>
+        <i class="bi bi-person-check-fill" style="font-size:13px"></i>Add Selected Users
+      </button>
+    </div>
+    <!-- Footer: Manual -->
+    <div class="modal-footer" id="footerManual" style="display:none">
+      <button class="btn btn-ghost" onclick="closeAddUser()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewUser()">
+        <i class="bi bi-person-check" style="font-size:13px"></i>Create User
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     DEACTIVATE CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="deactivateModal" onclick="if(event.target===this)closeDeactivate()">
+  <div class="modal-card confirm-card">
+    <div class="modal-body" style="text-align:center;padding-top:28px">
+      <div class="confirm-icon" style="margin:0 auto 14px;background:var(--red-dim);border:1px solid var(--red-border);color:var(--red)">
+        <i class="bi bi-person-x"></i>
+      </div>
+      <div class="confirm-title" id="deactivateTitle">Deactivate User?</div>
+      <div class="confirm-msg" id="deactivateMsg" style="margin-bottom:20px">
+        This user will lose access to Evinra TS immediately. Their roles and data are preserved and can be restored by reactivating.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-ghost" onclick="closeDeactivate()">Cancel</button>
+        <button class="btn btn-danger" id="deactivateConfirmBtn" onclick="confirmDeactivate()">
+          <i class="bi bi-person-x" style="font-size:12px"></i>Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+'use strict';
+
+/* ──────────────────────────────────────────────────────
+   GLOBAL CONFIG — READ-ONLY on this page.
+   EM_ACTIVE is injected from General Settings.
+   Users page reflects the state; it never toggles it.
+────────────────────────────────────────────────────── */
+var EM_ACTIVE = true;   // injected from global config
+
+var editingUserId     = null;
+var deactivatingUserId = null;
+var selectedRoles     = [];
+var addUserSelectedRoles = [];
+var emDirSelected     = [];
+var emDirQuery        = '';
+
+var searchQuery  = '';
+var filterStatus = 'all';
+var filterRole   = 'all';
+var nextId       = 100;
+
+/* ──────────────────────────────────────────────────────
+   ROLES
+────────────────────────────────────────────────────── */
+var TS_ROLES = [
+  { id:1,  name:'Organization Owner',    icon:'bi-shield-fill-check',  color:'teal',   desc:'Full system access — all modules' },
+  { id:2,  name:'Executive',             icon:'bi-briefcase-fill',      color:'blue',   desc:'View-only across all modules' },
+  { id:3,  name:'Operations Manager',    icon:'bi-gear-fill',           color:'amber',  desc:'Manage events, entry & mobile ops' },
+  { id:4,  name:'Finance Manager',       icon:'bi-cash-stack',          color:'violet', desc:'Financial reports & settlement' },
+  { id:5,  name:'Ticketing Manager',     icon:'bi-ticket-fill',         color:'teal',   desc:'Manage tickets, promos & seating' },
+  { id:6,  name:'Event Manager',         icon:'bi-calendar-event-fill', color:'blue',   desc:'Full event creation & control' },
+  { id:7,  name:'Box Office Supervisor', icon:'bi-building',            color:'amber',  desc:'Orders, refunds & box office' },
+  { id:8,  name:'Scan Only Operator',    icon:'bi-upc-scan',            color:'muted',  desc:'Entry scan access only' },
+  { id:9,  name:'Hybrid Operator',       icon:'bi-person-gear',         color:'teal',   desc:'Scan + limited order creation' },
+  { id:10, name:'Concessions Operator',  icon:'bi-cup-hot-fill',        color:'amber',  desc:'Food & beverage sales' },
+  { id:11, name:'Vendor Operator',       icon:'bi-shop',                color:'violet', desc:'Limited vendor module access' },
+];
+
+var AVATAR_COLORS = ['#2DB89C','#6BA3E0','#E0A361','#9C82E0','#5AC8A0','#EAB044'];
+
+/* ──────────────────────────────────────────────────────
+   USERS — only users the Admin has explicitly added
+   source:'em'     = added by picking from EM directory
+   source:'manual' = created manually
+────────────────────────────────────────────────────── */
+var USERS = [
+  { id:1, firstName:'Carlos',  lastName:'Mendez',  email:'carlos@venue.com',  source:'em',     status:'active',   roles:[1,3], lastActive:'2 min ago' },
+  { id:2, firstName:'Sofia',   lastName:'Torres',  email:'sofia@venue.com',   source:'em',     status:'active',   roles:[4],   lastActive:'1 hr ago' },
+  { id:3, firstName:'Priya',   lastName:'Nair',    email:'priya@venue.com',   source:'em',     status:'inactive', roles:[],    lastActive:'5 days ago' },
+  { id:4, firstName:'Marcus',  lastName:'Johnson', email:'marcus@venue.com',  source:'manual', status:'active',   roles:[5,6], lastActive:'3 hrs ago' },
+  { id:5, firstName:'Yoaldis', lastName:'P.',      email:'yp@venue.com',      source:'manual', status:'active',   roles:[1],   lastActive:'Just now' },
+];
+
+/* ──────────────────────────────────────────────────────
+   EM DIRECTORY — users in EM not yet added to TS
+────────────────────────────────────────────────────── */
+var EM_DIRECTORY = [
+  { id:'em-1', firstName:'Ana',    lastName:'Rivera',   email:'ana@venue.com',    dept:'Operations' },
+  { id:'em-2', firstName:'David',  lastName:'Kim',      email:'david@venue.com',  dept:'Finance' },
+  { id:'em-3', firstName:'Jordan', lastName:'Wells',    email:'jordan@venue.com', dept:'Box Office' },
+  { id:'em-4', firstName:'Elena',  lastName:'Vasquez',  email:'elena@venue.com',  dept:'Events' },
+  { id:'em-5', firstName:'Tomás',  lastName:'Bravo',    email:'tomas@venue.com',  dept:'Vendor Ops' },
+  { id:'em-6', firstName:'Kira',   lastName:'Thompson', email:'kira@venue.com',   dept:'Marketing' },
+  { id:'em-7', firstName:'Noel',   lastName:'Baptiste', email:'noel@venue.com',   dept:'Production' },
+  { id:'em-8', firstName:'Jada',   lastName:'Collins',  email:'jada@venue.com',   dept:'Operations' },
+];
+
+/* ──────────────────────────────────────────────────────
+   HELPERS
+────────────────────────────────────────────────────── */
+function getInitials(u){ return (u.firstName[0]+(u.lastName[0]||'')).toUpperCase(); }
+
+function avatarColor(u){
+  var idx = (u.firstName.charCodeAt(0) + u.lastName.charCodeAt(0)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
+}
+
+var ROLE_COLOR_MAP = {
+  teal:   { cls:'c-teal',   iconBg:'rgba(45,184,156,.18)',   iconColor:'#2DB89C' },
+  blue:   { cls:'c-blue',   iconBg:'rgba(107,163,224,.18)',  iconColor:'#6BA3E0' },
+  amber:  { cls:'c-amber',  iconBg:'rgba(224,163,97,.18)',   iconColor:'#E0A361' },
+  violet: { cls:'c-violet', iconBg:'rgba(156,130,224,.18)',  iconColor:'#9C82E0' },
+  muted:  { cls:'c-muted',  iconBg:'rgba(110,130,126,.12)',  iconColor:'#6E827E' },
+  gold:   { cls:'c-gold',   iconBg:'rgba(234,176,68,.18)',   iconColor:'#EAB044' },
+};
+
+function roleColorOf(r){ return ROLE_COLOR_MAP[r.color] || ROLE_COLOR_MAP.muted; }
+function getRoleById(id){ return TS_ROLES.find(function(r){ return r.id===id; }); }
+
+/* ──────────────────────────────────────────────────────
+   RENDER STATS
+────────────────────────────────────────────────────── */
+function renderStats(){
+  var total   = USERS.length;
+  var active  = USERS.filter(function(u){ return u.status==='active'; }).length;
+  var withR   = USERS.filter(function(u){ return u.roles.length>0; }).length;
+  var fromEM  = USERS.filter(function(u){ return u.source==='em'; }).length;
+  var pending = total - withR;
+
+  document.getElementById('statTotal').textContent     = total;
+  document.getElementById('statActive').textContent    = active;
+  document.getElementById('statActiveDelta').textContent = '↑ '+Math.round(active/Math.max(total,1)*100)+'% of total';
+  document.getElementById('statWithRoles').textContent = withR;
+  document.getElementById('statNoRoles').textContent   = pending + ' pending assignment';
+  document.getElementById('statSynced').textContent    = fromEM;
+
+  if(EM_ACTIVE){
+    document.getElementById('statSyncedLbl').textContent   = 'Added via EM directory';
+    document.getElementById('statSyncedDelta').textContent = total > 0 ? '↑ '+Math.round(fromEM/total*100)+'% of total' : '—';
+    document.getElementById('statSyncedDelta').className   = 'kpi-delta up';
+  } else {
+    document.getElementById('statSyncedLbl').textContent   = 'EM not connected';
+    document.getElementById('statSyncedDelta').textContent = '— All users manual';
+    document.getElementById('statSyncedDelta').className   = 'kpi-delta neutral';
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   RENDER TABLE
+────────────────────────────────────────────────────── */
+function renderTable(){
+  var tbody = document.getElementById('usersTbody');
+  var filtered = USERS.filter(function(u){
+    if(filterStatus !== 'all' && u.status !== filterStatus) return false;
+    if(filterRole   !== 'all' && !u.roles.includes(parseInt(filterRole))) return false;
+    var q = searchQuery.toLowerCase();
+    if(q && !(u.firstName+' '+u.lastName).toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('pagiInfo').textContent = 'Showing 1–'+filtered.length+' of '+filtered.length;
+
+  if(filtered.length === 0){
+    tbody.innerHTML =
+      '<tr><td colspan="7" class="tbl-empty">'+
+        '<div class="tbl-empty-icon"><i class="bi bi-person-slash"></i></div>'+
+        '<div class="tbl-empty-msg">No users match your filters</div>'+
+        '<div class="tbl-empty-sub">Try adjusting your search or filter</div>'+
+      '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(function(u){
+    var initials = getInitials(u);
+    var avColor  = avatarColor(u);
+
+    // role chips (max 2 + overflow)
+    var rolesHtml;
+    if(u.roles.length === 0){
+      rolesHtml = '<span class="roles-empty">No roles assigned</span>';
+    } else {
+      var shown    = u.roles.slice(0,2);
+      var overflow = u.roles.length - shown.length;
+      rolesHtml = shown.map(function(rid){
+        var r = getRoleById(rid);
+        if(!r) return '';
+        var c = roleColorOf(r);
+        return '<span class="role-chip '+c.cls+'"><i class="bi '+r.icon+'" style="font-size:9px"></i>'+r.name+'</span>';
+      }).join('');
+      if(overflow > 0){
+        rolesHtml += '<span class="roles-overflow">+'+overflow+'</span>';
+      }
+    }
+
+    // source badge — EM means "added via EM directory"
+    var srcHtml = u.source==='em'
+      ? '<span class="src-badge src-em"><i class="bi bi-building" style="font-size:9px"></i>EM</span>'
+      : '<span class="src-badge src-manual"><i class="bi bi-person" style="font-size:9px"></i>Manual</span>';
+
+    // status
+    var statusHtml = '<span class="status-pill status-'+u.status+'">'
+      +'<span class="status-dot"></span>'
+      +(u.status==='active'?'Active':'Inactive')
+      +'</span>';
+
+    // row actions
+    var removeBtn = '<div class="act-btn danger" onclick="removeUser('+u.id+')" title="Remove from TS"><i class="bi bi-trash3"></i></div>';
+    var toggleBtn = u.status==='active'
+      ? '<div class="act-btn warn" onclick="openDeactivate('+u.id+')" title="Deactivate"><i class="bi bi-person-dash"></i></div>'
+      : '<div class="act-btn" onclick="activateUser('+u.id+')" title="Reactivate" style="color:var(--p)"><i class="bi bi-person-check"></i></div>';
+
+    return '<tr>'+
+      '<td style="padding-left:20px"><input type="checkbox" class="row-check" data-id="'+u.id+'" style="accent-color:var(--p);cursor:pointer"></td>'+
+      '<td><div class="user-cell">'+
+        '<div class="u-avatar" style="background:'+avColor+'">'+initials+'</div>'+
+        '<div><div class="u-name">'+u.firstName+' '+u.lastName+'</div>'+
+          '<div class="u-email">'+u.email+'</div></div>'+
+      '</div></td>'+
+      '<td>'+srcHtml+'</td>'+
+      '<td><div class="roles-cell">'+rolesHtml+'</div></td>'+
+      '<td>'+statusHtml+'</td>'+
+      '<td style="font-size:11px;font-family:var(--mono);color:var(--text3)">'+u.lastActive+'</td>'+
+      '<td style="text-align:right;padding-right:20px">'+
+        '<div class="row-actions">'+
+          '<div class="act-btn" onclick="openRoleModal('+u.id+')" title="Assign Roles"><i class="bi bi-shield-plus"></i></div>'+
+          toggleBtn+
+          removeBtn+
+        '</div>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderAll(){ renderStats(); renderTable(); }
+
+/* ──────────────────────────────────────────────────────
+   FILTERS
+────────────────────────────────────────────────────── */
+function onSearch(v){ searchQuery = v; renderTable(); }
+
+function setStatusFilter(v){
+  filterStatus = v;
+  document.getElementById('fpAll').className      = 'fp' + (v==='all'?' on':'');
+  document.getElementById('fpActive').className   = 'fp' + (v==='active'?' on':'');
+  document.getElementById('fpInactive').className = 'fp' + (v==='inactive'?' on':'');
+  renderTable();
+}
+
+function setRoleFilter(v){
+  filterRole = v;
+  var r = v==='all' ? null : getRoleById(parseInt(v));
+  document.getElementById('roleFilterLabel').textContent = r ? r.name : 'All Roles';
+  document.getElementById('fpRoleAll').className = 'fp' + (v!=='all'?' on':'');
+  renderTable();
+}
+
+/* ──────────────────────────────────────────────────────
+   SELECT ALL
+────────────────────────────────────────────────────── */
+function toggleSelectAll(el){
+  document.querySelectorAll('.row-check').forEach(function(cb){ cb.checked = el.checked; });
+}
+
+/* ──────────────────────────────────────────────────────
+   EM MODULE — read-only on this page.
+   The EM_ACTIVE global is set externally (General Settings).
+   Users page only REFLECTS the state; it never changes it.
+────────────────────────────────────────────────────── */
+function updateEMUI(){
+  var banner   = document.getElementById('emBanner');
+  var badge    = document.getElementById('emStatusBadge');
+  var subtitle = document.getElementById('emSubtitle');
+  var meta     = document.getElementById('emMeta');
+  var pill     = document.getElementById('emStatusPill');
+  var dirCount = document.getElementById('emDirCount');
+
+  // "Add User" is always visible — the flow adapts based on EM_ACTIVE
+  document.getElementById('addUserBtn').style.display = '';
+
+  if(EM_ACTIVE){
+    banner.className   = 'em-banner em-on card';
+    badge.textContent  = 'Connected';
+    subtitle.textContent = 'EM connected — browse the directory to add users to TS';
+    meta.style.display = '';
+    // Show how many EM users are still available to add
+    var alreadyEmails = USERS.map(function(u){ return u.email; });
+    var available = EM_DIRECTORY.filter(function(d){ return alreadyEmails.indexOf(d.email) === -1; }).length;
+    if(dirCount) dirCount.textContent = available + (available===1?' user':' users');
+    pill.innerHTML =
+      '<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--p)">'
+      +'<span style="width:7px;height:7px;border-radius:50%;background:var(--p);flex-shrink:0"></span>'
+      +'Directory active</span>';
+  } else {
+    banner.className   = 'em-banner em-off card';
+    badge.textContent  = 'Disconnected';
+    subtitle.textContent = 'EM is off — users added and managed manually in TS';
+    meta.style.display = 'none';
+    pill.innerHTML =
+      '<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text3)">'
+      +'<span style="width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0"></span>'
+      +'Disconnected</span>';
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   ROLE ASSIGNMENT MODAL
+────────────────────────────────────────────────────── */
+function openRoleModal(userId){
+  var u = USERS.find(function(x){ return x.id===userId; });
+  if(!u) return;
+  editingUserId = userId;
+  selectedRoles = u.roles.slice();
+
+  document.getElementById('roleModalAvatar').textContent      = getInitials(u);
+  document.getElementById('roleModalAvatar').style.background = avatarColor(u);
+  document.getElementById('roleModalName').textContent        = u.firstName+' '+u.lastName;
+  document.getElementById('roleModalEmail').textContent       = u.email;
+  document.getElementById('roleModalSubtitle').textContent    = 'Select one or more Ticket System roles for this user';
+
+  renderRoleGrid('roleGrid', selectedRoles, function(roles){ selectedRoles = roles; updateRoleSelCount(); });
+  updateRoleSelCount();
+  document.getElementById('roleModal').classList.add('open');
+}
+
+function closeRoleModal(){
+  document.getElementById('roleModal').classList.remove('open');
+  editingUserId = null;
+}
+
+function saveRoles(){
+  if(editingUserId === null) return;
+  var u = USERS.find(function(x){ return x.id===editingUserId; });
+  if(u){ u.roles = selectedRoles.slice(); }
+  closeRoleModal();
+  renderAll();
+}
+
+function updateRoleSelCount(){
+  var n = selectedRoles.length;
+  document.getElementById('roleSelCount').textContent = n + ' role'+(n!==1?'s':'')+' selected';
+}
+
+/* ──────────────────────────────────────────────────────
+   ROLE GRID RENDERER (reusable)
+────────────────────────────────────────────────────── */
+function renderRoleGrid(containerId, currentRoles, onChangeFn){
+  var container = document.getElementById(containerId);
+  container.innerHTML = TS_ROLES.map(function(r){
+    var c   = roleColorOf(r);
+    var sel = currentRoles.indexOf(r.id) !== -1;
+    return '<div class="role-option'+(sel?' selected':'')+'" data-rid="'+r.id+'" onclick="toggleRoleOption(this,'+r.id+',\''+containerId+'\')">' +
+      '<div class="role-option-icon" style="background:'+c.iconBg+';color:'+c.iconColor+'"><i class="bi '+r.icon+'"></i></div>'+
+      '<div class="role-option-body">'+
+        '<div class="role-option-name">'+r.name+'</div>'+
+        '<div class="role-option-desc">'+r.desc+'</div>'+
+      '</div>'+
+      '<div class="role-check"><i class="bi bi-check2" style="font-size:9px"></i></div>'+
+    '</div>';
+  }).join('');
+}
+
+function toggleRoleOption(el, rid, containerId){
+  var isSel = el.classList.contains('selected');
+  el.classList.toggle('selected', !isSel);
+
+  if(containerId === 'roleGrid'){
+    if(isSel){ selectedRoles = selectedRoles.filter(function(x){ return x!==rid; }); }
+    else      { if(selectedRoles.indexOf(rid)===-1) selectedRoles.push(rid); }
+    updateRoleSelCount();
+  } else {
+    if(isSel){ addUserSelectedRoles = addUserSelectedRoles.filter(function(x){ return x!==rid; }); }
+    else      { if(addUserSelectedRoles.indexOf(rid)===-1) addUserSelectedRoles.push(rid); }
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   ADD USER MODAL
+────────────────────────────────────────────────────── */
+function openAddUser(){
+  addUserSelectedRoles = [];
+  emDirSelected = [];
+  emDirQuery    = '';
+
+  document.getElementById('newFirstName').value = '';
+  document.getElementById('newLastName').value  = '';
+  document.getElementById('newEmail').value     = '';
+  document.getElementById('emDirSearch').value  = '';
+
+  var subtitle = document.getElementById('addUserModalSubtitle');
+
+  if(EM_ACTIVE){
+    document.getElementById('addUserTabs').style.display = '';
+    subtitle.textContent = 'Pick from EM directory or create manually';
+    switchAddTab('em');
+    renderEMDirectory('');
+  } else {
+    document.getElementById('addUserTabs').style.display = 'none';
+    subtitle.textContent = 'Create a new TS user manually';
+    switchAddTab('manual');
+  }
+
+  renderRoleGrid('addUserRoleGrid', [], null);
+  document.getElementById('addUserModal').classList.add('open');
+}
+
+function closeAddUser(){
+  document.getElementById('addUserModal').classList.remove('open');
+}
+
+function switchAddTab(tab){
+  var isEM = tab === 'em';
+  document.getElementById('tabEMDir').style.display     = isEM ? '' : 'none';
+  document.getElementById('tabManual').style.display    = isEM ? 'none' : '';
+  document.getElementById('footerEM').style.display     = isEM ? '' : 'none';
+  document.getElementById('footerManual').style.display = isEM ? 'none' : '';
+  document.getElementById('tabBtnEM').className     = 'add-tab-btn' + (isEM ? ' active' : '');
+  document.getElementById('tabBtnManual').className = 'add-tab-btn' + (!isEM ? ' active' : '');
+}
+
+/* ──────────────────────────────────────────────────────
+   EM DIRECTORY
+────────────────────────────────────────────────────── */
+function renderEMDirectory(query){
+  var container = document.getElementById('emDirList');
+  var alreadyEmails = USERS.map(function(u){ return u.email; });
+  var available = EM_DIRECTORY.filter(function(d){
+    return alreadyEmails.indexOf(d.email) === -1;
+  });
+
+  var filtered = available.filter(function(d){
+    if(!query) return true;
+    var q = query.toLowerCase();
+    return (d.firstName+' '+d.lastName).toLowerCase().indexOf(q) !== -1
+      || d.email.toLowerCase().indexOf(q) !== -1
+      || d.dept.toLowerCase().indexOf(q) !== -1;
+  });
+
+  if(filtered.length === 0){
+    var msg = available.length === 0
+      ? '<i class="bi bi-check-circle" style="display:block;font-size:28px;margin-bottom:8px;color:var(--p)"></i>All EM users have already been added to TS'
+      : 'No users match your search';
+    container.innerHTML = '<div style="text-align:center;padding:28px 16px;color:var(--text3);font-size:12px;font-family:var(--mono)">'+msg+'</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(function(d){
+    var sel      = emDirSelected.indexOf(d.id) !== -1;
+    var avColor  = AVATAR_COLORS[(d.firstName.charCodeAt(0) + d.lastName.charCodeAt(0)) % AVATAR_COLORS.length];
+    var initials = (d.firstName[0] + (d.lastName[0]||'')).toUpperCase();
+    return '<div class="em-dir-item'+(sel?' selected':'')+'" data-emid="'+d.id+'" onclick="toggleEMDirItem(this)">'
+      +'<div class="em-dir-check">'+(sel?'<i class="bi bi-check2"></i>':'')+'</div>'
+      +'<div class="em-dir-avatar" style="background:'+avColor+'">'+initials+'</div>'
+      +'<div class="em-dir-info">'
+        +'<div class="em-dir-name">'+d.firstName+' '+d.lastName+'</div>'
+        +'<div class="em-dir-email">'+d.email+'</div>'
+      +'</div>'
+      +'<div class="em-dir-dept">'+d.dept+'</div>'
+    +'</div>';
+  }).join('');
+
+  updateEMDirCount();
+}
+
+function toggleEMDirItem(el){
+  var emId = el.getAttribute('data-emid');
+  var sel  = emDirSelected.indexOf(emId) !== -1;
+  if(sel){
+    emDirSelected = emDirSelected.filter(function(x){ return x !== emId; });
+    el.classList.remove('selected');
+    el.querySelector('.em-dir-check').innerHTML = '';
+  } else {
+    emDirSelected.push(emId);
+    el.classList.add('selected');
+    el.querySelector('.em-dir-check').innerHTML = '<i class="bi bi-check2"></i>';
+  }
+  updateEMDirCount();
+}
+
+function updateEMDirCount(){
+  var n   = emDirSelected.length;
+  var el  = document.getElementById('emDirSelCount');
+  var btn = document.getElementById('addFromEMBtn');
+  if(el) el.textContent = n + ' user'+(n!==1?'s':'')+' selected';
+  if(btn){
+    btn.disabled = (n === 0);
+    btn.innerHTML = n > 0
+      ? '<i class="bi bi-person-check-fill" style="font-size:13px"></i>Add '+n+' User'+(n!==1?'s to TS':' to TS')
+      : '<i class="bi bi-person-check-fill" style="font-size:13px"></i>Add Selected Users';
+  }
+}
+
+function filterEMDir(q){
+  emDirQuery = q;
+  renderEMDirectory(q);
+}
+
+function addFromEMDirectory(){
+  if(emDirSelected.length === 0) return;
+  emDirSelected.forEach(function(emId){
+    var d = EM_DIRECTORY.find(function(x){ return x.id === emId; });
+    if(!d) return;
+    if(USERS.find(function(u){ return u.email === d.email; })) return; // already added
+    USERS.push({
+      id:        nextId++,
+      firstName: d.firstName,
+      lastName:  d.lastName,
+      email:     d.email,
+      source:    'em',
+      status:    'active',
+      roles:     [],
+      lastActive:'Just now'
+    });
+  });
+  closeAddUser();
+  renderAll();
+  updateEMUI(); // refresh directory count in banner
+}
+
+function saveNewUser(){
+  var first = document.getElementById('newFirstName').value.trim();
+  var last  = document.getElementById('newLastName').value.trim();
+  var email = document.getElementById('newEmail').value.trim();
+  if(!first || !last){ alert('First and last name are required.'); return; }
+  if(!email){ alert('Email address is required.'); return; }
+
+  USERS.push({
+    id:        nextId++,
+    firstName: first,
+    lastName:  last,
+    email:     email,
+    source:    'manual',
+    status:    'active',
+    roles:     addUserSelectedRoles.slice(),
+    lastActive:'Just now'
+  });
+
+  closeAddUser();
+  renderAll();
+}
+
+/* ──────────────────────────────────────────────────────
+   USER ACTIONS
+────────────────────────────────────────────────────── */
+function openDeactivate(userId){
+  var u = USERS.find(function(x){ return x.id===userId; });
+  if(!u) return;
+  deactivatingUserId = userId;
+  document.getElementById('deactivateTitle').textContent = 'Deactivate '+u.firstName+' '+u.lastName+'?';
+  document.getElementById('deactivateModal').classList.add('open');
+}
+
+function closeDeactivate(){
+  document.getElementById('deactivateModal').classList.remove('open');
+  deactivatingUserId = null;
+}
+
+function confirmDeactivate(){
+  var u = USERS.find(function(x){ return x.id===deactivatingUserId; });
+  if(u){ u.status='inactive'; }
+  closeDeactivate();
+  renderAll();
+}
+
+function activateUser(userId){
+  var u = USERS.find(function(x){ return x.id===userId; });
+  if(u){ u.status='active'; renderAll(); }
+}
+
+function removeUser(userId){
+  var idx = USERS.findIndex(function(x){ return x.id===userId; });
+  if(idx !== -1){
+    USERS.splice(idx, 1);
+    renderAll();
+    updateEMUI(); // refresh directory count — the removed user may now reappear
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   INIT
+────────────────────────────────────────────────────── */
+updateEMUI();
+renderAll();
+</script>
+</body>
+</html>
