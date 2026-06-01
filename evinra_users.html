@@ -399,7 +399,7 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
         </button>
       </div>
       <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
-        <select id="tenantSelect" onchange="onTenantChange(this.value)" style="height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px;padding:0 10px;cursor:pointer;font-family:inherit" title="Tenant"></select>
+        <span style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text)" title="Signed-in company"><i class="bi bi-building" style="font-size:12px;color:var(--text3)"></i><span id="companyLabel" style="font-weight:600">—</span></span>
         <button class="btn btn-primary" id="addUserBtn" onclick="openAddUser()">
           <i class="bi bi-person-plus" style="font-size:13px"></i>Add User
         </button>
@@ -683,7 +683,7 @@ var EM_ACTIVE = true;   // derived per-tenant from its active modules (see loadU
 
 // ── Shared DB wiring (users are per-tenant; managed here in the Ticket System) ──
 var DB = (window.EvinraDB ? EvinraDB.createClient() : null);
-var TENANTS = [];
+var currentTenant = null;
 var currentTenantId = null;
 var _localId = 1; // local int id for UI handlers (DB _id kept separately on each row)
 var EM_MODULE_NAME = 'Event Operations'; // tenant module that gates the EM directory flow
@@ -1243,27 +1243,33 @@ function dbRowToUser(r){
     pin: r.pin||'', lastActive:'Synced'
   };
 }
-async function loadTenants(){
-  if(!DB) return;
-  var res = await DB.from('tenants').select().order('name',{ascending:true});
-  TENANTS = res.data||[];
-  var sel=document.getElementById('tenantSelect');
-  if(sel) sel.innerHTML = TENANTS.map(function(t){ return '<option value="'+(t.id||t._id)+'">'+(t.name||'Tenant')+'</option>'; }).join('');
-  if(TENANTS.length){ currentTenantId = TENANTS[0].id||TENANTS[0]._id; if(sel) sel.value=currentTenantId; }
+// Resolve the signed-in company (tenant) — chosen at login, stored in localStorage.
+// The Ticket System operates as ONE company; this page never manages other tenants.
+async function resolveCurrentTenant(){
+  currentTenantId = localStorage.getItem('evinra-tenant-id') || null;
+  if(currentTenantId){
+    var r = await DB.from('tenants').select().eq('_id', currentTenantId);
+    currentTenant = (r.data||[])[0] || null;
+  }
+  if(!currentTenant){ // no login selection (e.g. direct open) — fall back to the first tenant
+    var all = await DB.from('tenants').select().order('name',{ascending:true});
+    currentTenant = (all.data||[])[0] || null;
+    currentTenantId = currentTenant ? (currentTenant.id||currentTenant._id) : null;
+  }
+  var lbl=document.getElementById('companyLabel');
+  if(lbl) lbl.textContent = currentTenant ? (currentTenant.name||'Company') : 'No company';
 }
 async function loadUsers(){
   if(!DB || !currentTenantId){ USERS=[]; renderAll(); return; }
   var res = await DB.from('users').select().eq('tenant_id', currentTenantId);
   USERS = (res.data||[]).map(dbRowToUser);
-  var t = TENANTS.find(function(x){ return (x.id||x._id)===currentTenantId; });
-  EM_ACTIVE = !!(t && Array.isArray(t.modules) && t.modules.indexOf(EM_MODULE_NAME)>=0);
+  EM_ACTIVE = !!(currentTenant && Array.isArray(currentTenant.modules) && currentTenant.modules.indexOf(EM_MODULE_NAME)>=0);
   updateEMUI();
   renderAll();
 }
-function onTenantChange(v){ currentTenantId=v; loadUsers(); }
 async function init(){
   if(!DB){ updateEMUI(); renderAll(); return; }
-  try{ await loadTenants(); await loadUsers(); }
+  try{ await resolveCurrentTenant(); await loadUsers(); }
   catch(e){ console.warn('Users: shared-DB load failed', e); updateEMUI(); renderAll(); }
 }
 init();

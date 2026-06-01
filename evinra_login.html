@@ -522,6 +522,17 @@
       <!-- Form -->
       <form class="fields" onsubmit="handleSignIn(event)" novalidate>
 
+        <!-- Company / tenant -->
+        <div class="field-group">
+          <label class="field-label" for="company">Company</label>
+          <div class="field-wrap">
+            <i class="ti ti-building field-icon"></i>
+            <select class="field-input" id="company" required style="appearance:auto;cursor:pointer">
+              <option value="">Loading companies…</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Email -->
         <div class="field-group">
           <label class="field-label" for="email">Email address</label>
@@ -589,8 +600,26 @@
 
 </div><!-- /login-wrap -->
 
+<script src="evinra-db.js"></script>
 <script>
 (function(){
+  /* ── Populate company (tenant) selector from the shared DB ── */
+  var TENANTS = [];
+  async function loadCompanies(){
+    var sel = document.getElementById('company');
+    if(!window.EvinraDB){ sel.innerHTML = '<option value="">(offline)</option>'; return; }
+    try{
+      var res = await EvinraDB.createClient().from('tenants').select().order('name',{ascending:true});
+      TENANTS = res.data || [];
+      var saved = localStorage.getItem('evinra-tenant-id') || '';
+      sel.innerHTML = TENANTS.map(function(t){
+        var id = t.id||t._id;
+        return '<option value="'+id+'"'+(id===saved?' selected':'')+'>'+(t.name||'Company')+'</option>';
+      }).join('') || '<option value="">No companies</option>';
+    }catch(err){ sel.innerHTML = '<option value="">(could not load)</option>'; }
+  }
+  document.addEventListener('DOMContentLoaded', loadCompanies);
+
   /* ── Password toggle ── */
   function togglePwd(){
     var inp = document.getElementById('password');
@@ -607,6 +636,15 @@
     var btn  = document.getElementById('signinBtn');
     var txt  = btn.querySelector('.btn-signin-text');
     var ico  = btn.querySelector('.btn-signin-icon');
+
+    // Persist the chosen company (tenant) for the session — every page scopes to it.
+    var sel = document.getElementById('company');
+    var tid = sel && sel.value;
+    if(tid){
+      var t = TENANTS.find(function(x){ return (x.id||x._id)===tid; });
+      localStorage.setItem('evinra-tenant-id', tid);
+      localStorage.setItem('evinra-tenant-name', (t && t.name) || '');
+    }
 
     btn.disabled = true;
     txt.textContent = 'Signing in…';
