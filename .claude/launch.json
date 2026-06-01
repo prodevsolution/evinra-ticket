@@ -35,6 +35,13 @@
       "runtimeArgs": ["-m", "http.server", "5540", "--directory", "C:\\Users\\ypena\\Evinra_MobileScan"],
       "port": 5540,
       "autoPort": false
+    },
+    {
+      "name": "b2b",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5550", "--directory", "C:\\Users\\ypena\\evinra_b2B"],
+      "port": 5550,
+      "autoPort": false
     }
   ]
 }
