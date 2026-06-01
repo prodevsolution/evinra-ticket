@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<!-- Deprecated mock dashboard → use the tenant-scoped MVP dashboard (login if not signed in). -->
+<script>(function(){var t=null;try{t=localStorage.getItem('evinra-tenant-id');}catch(e){}window.location.replace(t?'/evinra_dashboard_mvp.html':'/evinra_login.html');})();</script>
 <meta name="color-scheme" content="dark light"/>
 <link rel="icon" type="image/x-icon" href="favicon.ico"/>
 <title>Evinra | Ticket System — Dashboard v2</title>

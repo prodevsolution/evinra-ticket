@@ -61,6 +61,17 @@
   var CURRENT_TENANT = (typeof localStorage !== 'undefined' ? localStorage.getItem('evinra-tenant-id') : null);
   var CURRENT_TENANT_NAME = (typeof localStorage !== 'undefined' ? (localStorage.getItem('evinra-tenant-name') || '') : '');
 
+  // Logout = clear the company and return to login.
+  global.evinraLogout = function () {
+    try { localStorage.removeItem('evinra-tenant-id'); localStorage.removeItem('evinra-tenant-name'); } catch (e) {}
+    if (global.location) global.location.replace('evinra_login.html');
+  };
+  // Auth gate: every page that loads data.js requires a signed-in company.
+  if (!CURRENT_TENANT) {
+    if (global.location) global.location.replace('evinra_login.html');
+    return; // skip building EVINRA — we're navigating to login
+  }
+
   function dbGet(table) {
     try {
       var xhr = new XMLHttpRequest();
@@ -492,4 +503,32 @@
   var base = dbBase() || seedBase();
   global.EVINRA = build(base);
   if (global.console && console.info) console.info('EVINRA dataset source:', global.EVINRA.source);
+
+  // ── Mount a company chip + Logout into the page header (all admin pages
+  //    share .header-actions). Lets you sign out and switch tenant. ──
+  (function mountAuthBar() {
+    function inject() {
+      if (document.getElementById('evinra-auth-bar')) return;
+      var actions = document.querySelector('.header-actions');
+      var name = CURRENT_TENANT_NAME || (global.EVINRA && global.EVINRA.tenantName) || 'Company';
+      var frag = document.createElement('span');
+      frag.id = 'evinra-auth-bar';
+      if (actions) {
+        frag.style.cssText = 'display:inline-flex;align-items:center;gap:8px;margin-right:4px';
+        frag.innerHTML =
+          '<span title="Signed-in company" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3,rgba(0,0,0,.04));color:var(--text);font-size:11px;font-weight:600"><i class="bi bi-building" style="font-size:11px;opacity:.7"></i>' + name + '</span>' +
+          '<button onclick="evinraLogout()" title="Sign out / switch company" style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3,rgba(0,0,0,.04));color:var(--text);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit"><i class="bi bi-box-arrow-right" style="font-size:12px"></i>Logout</button>';
+        actions.insertBefore(frag, actions.firstChild);
+      } else {
+        // Fallback: floating top-right (pages without a standard header).
+        frag.style.cssText = 'position:fixed;top:10px;right:14px;z-index:99999;display:flex;align-items:center;gap:8px';
+        frag.innerHTML =
+          '<span style="height:30px;padding:0 10px;border-radius:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center">' + name + '</span>' +
+          '<button onclick="evinraLogout()" style="height:30px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">Logout</button>';
+        document.body.appendChild(frag);
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
+    else inject();
+  })();
 })(window);
