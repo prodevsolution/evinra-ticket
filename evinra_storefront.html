@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/tokens.css">
+  <script src="evinra-db.js"></script>
   <style>
 /* ─────────────────────────────────────────────────────
    Evinra Storefront — Navy Consumer Theme
@@ -654,6 +655,19 @@ a { color: inherit; }
 </head>
 <body>
 
+<!-- ─── Storefront Branding editor (Ticket System chrome; per-tenant) ─── -->
+<div id="brandBar" style="position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:9px 16px;background:#0b0f0e;border-bottom:1px solid rgba(255,255,255,.12);font-family:'Outfit',sans-serif;color:#e8eff7;font-size:12px">
+  <strong style="font-weight:700">Storefront branding</strong>
+  <span id="brandTenant" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#86efac;border:1px solid rgba(45,184,156,.4);border-radius:6px;padding:2px 8px">—</span>
+  <label style="display:flex;align-items:center;gap:6px">Primary <input type="color" id="brandPrimary" value="#209991" style="width:34px;height:26px;border:none;background:none;cursor:pointer"></label>
+  <label style="display:flex;align-items:center;gap:6px">Secondary <input type="color" id="brandSecondary" value="#3A4B70" style="width:34px;height:26px;border:none;background:none;cursor:pointer"></label>
+  <label style="display:flex;align-items:center;gap:6px">Logo URL <input type="text" id="brandLogoUrl" placeholder="https://…/logo.svg or .png" style="width:230px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:#132450;color:#e8eff7;padding:0 8px;font-size:11px;font-family:inherit"></label>
+  <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:4px 9px">Upload<input type="file" id="brandLogoFile" accept="image/*" style="display:none"></label>
+  <button id="brandSave" style="margin-left:auto;height:28px;padding:0 14px;border-radius:7px;border:none;background:#209991;color:#06231f;font-weight:600;cursor:pointer;font-family:inherit;font-size:12px">Save branding</button>
+  <button id="brandReset" style="height:28px;padding:0 12px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:none;color:#e8eff7;cursor:pointer;font-family:inherit;font-size:12px">Reset</button>
+  <span id="brandStatus" style="font-size:11px;color:#8fa3c8"></span>
+</div>
+
 <a href="#main" class="skip-link">Skip to main content</a>
 
 <!-- ─── Sticky Navigation ──────────────────────────── -->
@@ -1261,5 +1275,69 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 
+<script>
+/* ── Storefront branding editor (per-tenant) ──────────────────────────── */
+(function(){
+  var DB = (window.EvinraDB ? EvinraDB.createClient() : null);
+  var CUR_LOGO = '';
+  function hexA(hex, a){
+    var h=String(hex||'').replace('#',''); if(h.length!==6) return hex;
+    var r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+    return 'rgba('+r+','+g+','+b+','+a+')';
+  }
+  function applyColors(primary, secondary){
+    var r=document.documentElement.style;
+    if(primary){ r.setProperty('--sf-teal',primary); r.setProperty('--sf-teal-dim',hexA(primary,.14)); r.setProperty('--sf-teal-bdr',hexA(primary,.32)); }
+    if(secondary){ r.setProperty('--sf-navy',secondary); }
+  }
+  function applyLogo(url){
+    ['.sf-nav-logo','.sf-hero-logo'].forEach(function(sel){
+      document.querySelectorAll(sel).forEach(function(el){
+        var svg=el.querySelector('svg'); var img=el.querySelector('img.brand-logo-img');
+        if(url){
+          if(!img){ img=document.createElement('img'); img.className='brand-logo-img'; img.alt='Logo'; img.style.cssText='height:'+(sel.indexOf('hero')>=0?'40px':'30px')+';width:auto'; el.appendChild(img); }
+          img.src=url; img.style.display=''; if(svg) svg.style.display='none';
+        } else { if(img) img.style.display='none'; if(svg) svg.style.display=''; }
+      });
+    });
+  }
+  function status(m){ var e=document.getElementById('brandStatus'); if(e) e.textContent=m||''; }
+  async function load(){
+    var tid=null; try{ tid=localStorage.getItem('evinra-tenant-id'); }catch(e){}
+    if(!DB || !tid){ document.getElementById('brandTenant').textContent='(no company)'; return; }
+    var res=await DB.from('tenants').select().eq('_id',tid); var t=(res.data||[])[0];
+    if(!t){ document.getElementById('brandTenant').textContent='(company not found)'; return; }
+    document.getElementById('brandTenant').textContent=t.name||'Company';
+    var p=t.storefront_primary||'#209991', s=t.storefront_secondary||'#3A4B70'; CUR_LOGO=t.storefront_logo||'';
+    document.getElementById('brandPrimary').value=p;
+    document.getElementById('brandSecondary').value=s;
+    document.getElementById('brandLogoUrl').value=(CUR_LOGO && CUR_LOGO.slice(0,5)!=='data:')?CUR_LOGO:'';
+    applyColors(p,s); applyLogo(CUR_LOGO);
+  }
+  function bind(){
+    var p=document.getElementById('brandPrimary'), s=document.getElementById('brandSecondary'),
+        u=document.getElementById('brandLogoUrl'), f=document.getElementById('brandLogoFile');
+    p.addEventListener('input',function(){ applyColors(p.value,null); });
+    s.addEventListener('input',function(){ applyColors(null,s.value); });
+    u.addEventListener('input',function(){ CUR_LOGO=u.value.trim(); applyLogo(CUR_LOGO); });
+    f.addEventListener('change',function(){ var file=f.files&&f.files[0]; if(!file) return; var rd=new FileReader(); rd.onload=function(){ CUR_LOGO=rd.result; u.value=''; applyLogo(CUR_LOGO); status('Logo loaded — Save to apply'); }; rd.readAsDataURL(file); });
+    document.getElementById('brandSave').addEventListener('click',async function(){
+      var tid=null; try{ tid=localStorage.getItem('evinra-tenant-id'); }catch(e){}
+      if(!DB || !tid){ status('No company / offline'); return; }
+      status('Saving…');
+      try{
+        var r=await DB.from('tenants').update({ storefront_primary:p.value, storefront_secondary:s.value, storefront_logo:CUR_LOGO }).eq('_id',tid);
+        status(r && r.error ? ('Error: '+r.error.message) : 'Saved ✓');
+      }catch(e){ status('Error: '+e.message); }
+    });
+    document.getElementById('brandReset').addEventListener('click',function(){
+      p.value='#209991'; s.value='#3A4B70'; u.value=''; CUR_LOGO='';
+      applyColors('#209991','#3A4B70'); applyLogo(''); status('Reset (not saved)');
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ bind(); load(); });
+  else { bind(); load(); }
+})();
+</script>
 </body>
 </html>
