@@ -665,6 +665,7 @@ a { color: inherit; }
   <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:4px 9px">Upload<input type="file" id="brandLogoFile" accept="image/*" style="display:none"></label>
   <button id="brandSave" style="margin-left:auto;height:28px;padding:0 14px;border-radius:7px;border:none;background:#209991;color:#06231f;font-weight:600;cursor:pointer;font-family:inherit;font-size:12px">Save branding</button>
   <button id="brandReset" style="height:28px;padding:0 12px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:none;color:#e8eff7;cursor:pointer;font-family:inherit;font-size:12px">Reset</button>
+  <button id="brandOpen" style="height:28px;padding:0 12px;border-radius:7px;border:1px solid rgba(45,184,156,.5);background:rgba(45,184,156,.12);color:#86efac;cursor:pointer;font-family:inherit;font-size:12px">↗ Open live storefront</button>
   <span id="brandStatus" style="font-size:11px;color:#8fa3c8"></span>
 </div>
 
@@ -1333,6 +1334,12 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('brandReset').addEventListener('click',function(){
       p.value='#209991'; s.value='#3A4B70'; u.value=''; CUR_LOGO='';
       applyColors('#209991','#3A4B70'); applyLogo(''); status('Reset (not saved)');
+    });
+    document.getElementById('brandOpen').addEventListener('click',function(){
+      var tid=null; try{ tid=localStorage.getItem('evinra-tenant-id'); }catch(e){}
+      var loc=location.hostname==='localhost'||location.hostname==='127.0.0.1'||location.hostname==='';
+      var base=loc?'http://localhost:5501':'https://evinra-storefront.netlify.app';
+      window.open(base+'/index.html'+(tid?('?tenant='+encodeURIComponent(tid)):''),'_blank','noopener');
     });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ bind(); load(); });
