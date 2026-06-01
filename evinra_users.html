@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <script src="assets/theme.js"></script>
+<script src="evinra-db.js"></script>
 <style>
 /* ── Dark default tokens (inline fallback) ──────────── */
 html[data-theme="dark"],html:not([data-theme]){
@@ -397,7 +398,8 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
           <span id="roleFilterLabel">All Roles</span>
         </button>
       </div>
-      <div class="topbar-right">
+      <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
+        <select id="tenantSelect" onchange="onTenantChange(this.value)" style="height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px;padding:0 10px;cursor:pointer;font-family:inherit" title="Tenant"></select>
         <button class="btn btn-primary" id="addUserBtn" onclick="openAddUser()">
           <i class="bi bi-person-plus" style="font-size:13px"></i>Add User
         </button>
@@ -532,6 +534,11 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
       <div class="role-grid" id="roleGrid">
         <!-- rendered by JS -->
       </div>
+      <div class="form-field" style="margin-top:14px;max-width:220px">
+        <label class="form-label">PIN (4 digits)</label>
+        <input class="form-input" id="editPin" inputmode="numeric" maxlength="6" placeholder="e.g. 1234">
+        <div class="form-hint">For Scanner / Wristband sign-in (Mobile Scan)</div>
+      </div>
     </div>
     <div class="modal-footer">
       <div style="font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-right:auto" id="roleSelCount">0 roles selected</div>
@@ -605,6 +612,11 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
           <input class="form-input" id="newEmail" type="email" placeholder="user@venue.com">
           <div class="form-hint">Used for login and notifications</div>
         </div>
+        <div class="form-field">
+          <label class="form-label">PIN (4 digits)</label>
+          <input class="form-input" id="newPin" inputmode="numeric" maxlength="6" placeholder="e.g. 1234">
+          <div class="form-hint">Required for Scanner / Wristband sign-in (Mobile Scan)</div>
+        </div>
         <div class="form-field" style="margin-bottom:6px">
           <label class="form-label">Initial TS Roles</label>
           <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Roles can be assigned or changed later</div>
@@ -667,7 +679,14 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
    EM_ACTIVE is injected from General Settings.
    Users page reflects the state; it never toggles it.
 ────────────────────────────────────────────────────── */
-var EM_ACTIVE = true;   // injected from global config
+var EM_ACTIVE = true;   // derived per-tenant from its active modules (see loadUsers)
+
+// ── Shared DB wiring (users are per-tenant; managed here in the Ticket System) ──
+var DB = (window.EvinraDB ? EvinraDB.createClient() : null);
+var TENANTS = [];
+var currentTenantId = null;
+var _localId = 1; // local int id for UI handlers (DB _id kept separately on each row)
+var EM_MODULE_NAME = 'Event Operations'; // tenant module that gates the EM directory flow
 
 var editingUserId     = null;
 var deactivatingUserId = null;
@@ -696,7 +715,17 @@ var TS_ROLES = [
   { id:9,  name:'Hybrid Operator',       icon:'bi-person-gear',         color:'teal',   desc:'Scan + limited order creation' },
   { id:10, name:'Concessions Operator',  icon:'bi-cup-hot-fill',        color:'amber',  desc:'Food & beverage sales' },
   { id:11, name:'Vendor Operator',       icon:'bi-shop',                color:'violet', desc:'Limited vendor module access' },
+  { id:12, name:'Wristband Operator',    icon:'bi-person-badge',        color:'gold',   desc:'Wristband pairing at the gate' },
 ];
+// Map TS permission roles → the auth role stored on the shared `users` record
+// (drives Mobile Scan sign-in). Scan/wristband take priority, then admin, else staff.
+function deriveAuthRole(appRoleIds){
+  var ids = appRoleIds||[];
+  if(ids.indexOf(12)>=0) return 'wristband';
+  if(ids.indexOf(8)>=0 || ids.indexOf(9)>=0) return 'scanner'; // Scan Only / Hybrid Operator
+  if(ids.indexOf(1)>=0 || ids.indexOf(3)>=0 || ids.indexOf(6)>=0) return 'admin'; // Org Owner / Ops / Event Mgr
+  return 'staff';
+}
 
 var AVATAR_COLORS = ['#2DB89C','#6BA3E0','#E0A361','#9C82E0','#5AC8A0','#EAB044'];
 
@@ -705,13 +734,7 @@ var AVATAR_COLORS = ['#2DB89C','#6BA3E0','#E0A361','#9C82E0','#5AC8A0','#EAB044'
    source:'em'     = added by picking from EM directory
    source:'manual' = created manually
 ────────────────────────────────────────────────────── */
-var USERS = [
-  { id:1, firstName:'Carlos',  lastName:'Mendez',  email:'carlos@venue.com',  source:'em',     status:'active',   roles:[1,3], lastActive:'2 min ago' },
-  { id:2, firstName:'Sofia',   lastName:'Torres',  email:'sofia@venue.com',   source:'em',     status:'active',   roles:[4],   lastActive:'1 hr ago' },
-  { id:3, firstName:'Priya',   lastName:'Nair',    email:'priya@venue.com',   source:'em',     status:'inactive', roles:[],    lastActive:'5 days ago' },
-  { id:4, firstName:'Marcus',  lastName:'Johnson', email:'marcus@venue.com',  source:'manual', status:'active',   roles:[5,6], lastActive:'3 hrs ago' },
-  { id:5, firstName:'Yoaldis', lastName:'P.',      email:'yp@venue.com',      source:'manual', status:'active',   roles:[1],   lastActive:'Just now' },
-];
+var USERS = []; // loaded from the shared DB per selected tenant (see loadUsers)
 
 /* ──────────────────────────────────────────────────────
    EM DIRECTORY — users in EM not yet added to TS
@@ -951,6 +974,7 @@ function openRoleModal(userId){
 
   renderRoleGrid('roleGrid', selectedRoles, function(roles){ selectedRoles = roles; updateRoleSelCount(); });
   updateRoleSelCount();
+  var pinEl=document.getElementById('editPin'); if(pinEl) pinEl.value = u.pin||'';
   document.getElementById('roleModal').classList.add('open');
 }
 
@@ -959,10 +983,14 @@ function closeRoleModal(){
   editingUserId = null;
 }
 
-function saveRoles(){
+async function saveRoles(){
   if(editingUserId === null) return;
   var u = USERS.find(function(x){ return x.id===editingUserId; });
-  if(u){ u.roles = selectedRoles.slice(); }
+  if(u){
+    u.roles = selectedRoles.slice();
+    u.pin = (document.getElementById('editPin').value||'').trim();
+    if(DB && u._id) await DB.from('users').update({ app_roles:u.roles, role:deriveAuthRole(u.roles), pin:u.pin }).eq('_id',u._id);
+  }
   closeRoleModal();
   renderAll();
 }
@@ -1126,46 +1154,38 @@ function filterEMDir(q){
   renderEMDirectory(q);
 }
 
-function addFromEMDirectory(){
+async function addFromEMDirectory(){
   if(emDirSelected.length === 0) return;
-  emDirSelected.forEach(function(emId){
-    var d = EM_DIRECTORY.find(function(x){ return x.id === emId; });
-    if(!d) return;
-    if(USERS.find(function(u){ return u.email === d.email; })) return; // already added
-    USERS.push({
-      id:        nextId++,
-      firstName: d.firstName,
-      lastName:  d.lastName,
-      email:     d.email,
-      source:    'em',
-      status:    'active',
-      roles:     [],
-      lastActive:'Just now'
-    });
-  });
+  if(!currentTenantId){ alert('Select a tenant first.'); return; }
+  for(var i=0;i<emDirSelected.length;i++){
+    var d = EM_DIRECTORY.find(function(x){ return x.id === emDirSelected[i]; });
+    if(!d) continue;
+    if(USERS.find(function(u){ return u.email === d.email; })) continue; // already added
+    var row = { tenant_id: currentTenantId, name:(d.firstName+' '+d.lastName).trim(), email:d.email, source:'em', app_roles:[], role:'staff', active:1, pin:'' };
+    if(DB){ var res = await DB.from('users').insert(row); var rec = res.data && res.data[0]; USERS.push(dbRowToUser(rec||row)); }
+    else USERS.push(dbRowToUser(row));
+  }
   closeAddUser();
   renderAll();
   updateEMUI(); // refresh directory count in banner
 }
 
-function saveNewUser(){
+async function saveNewUser(){
   var first = document.getElementById('newFirstName').value.trim();
   var last  = document.getElementById('newLastName').value.trim();
   var email = document.getElementById('newEmail').value.trim();
+  var pin   = (document.getElementById('newPin').value||'').trim();
   if(!first || !last){ alert('First and last name are required.'); return; }
   if(!email){ alert('Email address is required.'); return; }
-
-  USERS.push({
-    id:        nextId++,
-    firstName: first,
-    lastName:  last,
-    email:     email,
-    source:    'manual',
-    status:    'active',
-    roles:     addUserSelectedRoles.slice(),
-    lastActive:'Just now'
-  });
-
+  if(!currentTenantId){ alert('Select a tenant first.'); return; }
+  var appRoles = addUserSelectedRoles.slice();
+  var row = { tenant_id: currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin };
+  if(DB){
+    var res = await DB.from('users').insert(row);
+    if(res.error){ alert('Could not create user (the email may already be in use).'); return; }
+    var rec = res.data && res.data[0];
+    USERS.push(dbRowToUser(rec||row));
+  } else USERS.push(dbRowToUser(row));
   closeAddUser();
   renderAll();
 }
@@ -1186,21 +1206,23 @@ function closeDeactivate(){
   deactivatingUserId = null;
 }
 
-function confirmDeactivate(){
+async function confirmDeactivate(){
   var u = USERS.find(function(x){ return x.id===deactivatingUserId; });
-  if(u){ u.status='inactive'; }
+  if(u){ u.status='inactive'; if(DB && u._id) await DB.from('users').update({active:0}).eq('_id',u._id); }
   closeDeactivate();
   renderAll();
 }
 
-function activateUser(userId){
+async function activateUser(userId){
   var u = USERS.find(function(x){ return x.id===userId; });
-  if(u){ u.status='active'; renderAll(); }
+  if(u){ u.status='active'; if(DB && u._id) await DB.from('users').update({active:1}).eq('_id',u._id); renderAll(); }
 }
 
-function removeUser(userId){
+async function removeUser(userId){
   var idx = USERS.findIndex(function(x){ return x.id===userId; });
   if(idx !== -1){
+    var u = USERS[idx];
+    if(DB && u._id) await DB.from('users').delete().eq('_id',u._id);
     USERS.splice(idx, 1);
     renderAll();
     updateEMUI(); // refresh directory count — the removed user may now reappear
@@ -1208,10 +1230,43 @@ function removeUser(userId){
 }
 
 /* ──────────────────────────────────────────────────────
-   INIT
+   DB LOAD (per-tenant) + INIT
 ────────────────────────────────────────────────────── */
-updateEMUI();
-renderAll();
+function dbRowToUser(r){
+  var name=(r.name||'').trim(); var sp=name.indexOf(' ');
+  return {
+    id: _localId++, _id: r.id||r._id,
+    firstName: sp>=0?name.slice(0,sp):name, lastName: sp>=0?name.slice(sp+1):'',
+    email: r.email||'', source: r.source||'manual',
+    status: (r.active!=0)?'active':'inactive',
+    roles: Array.isArray(r.app_roles)?r.app_roles.slice():[],
+    pin: r.pin||'', lastActive:'Synced'
+  };
+}
+async function loadTenants(){
+  if(!DB) return;
+  var res = await DB.from('tenants').select().order('name',{ascending:true});
+  TENANTS = res.data||[];
+  var sel=document.getElementById('tenantSelect');
+  if(sel) sel.innerHTML = TENANTS.map(function(t){ return '<option value="'+(t.id||t._id)+'">'+(t.name||'Tenant')+'</option>'; }).join('');
+  if(TENANTS.length){ currentTenantId = TENANTS[0].id||TENANTS[0]._id; if(sel) sel.value=currentTenantId; }
+}
+async function loadUsers(){
+  if(!DB || !currentTenantId){ USERS=[]; renderAll(); return; }
+  var res = await DB.from('users').select().eq('tenant_id', currentTenantId);
+  USERS = (res.data||[]).map(dbRowToUser);
+  var t = TENANTS.find(function(x){ return (x.id||x._id)===currentTenantId; });
+  EM_ACTIVE = !!(t && Array.isArray(t.modules) && t.modules.indexOf(EM_MODULE_NAME)>=0);
+  updateEMUI();
+  renderAll();
+}
+function onTenantChange(v){ currentTenantId=v; loadUsers(); }
+async function init(){
+  if(!DB){ updateEMUI(); renderAll(); return; }
+  try{ await loadTenants(); await loadUsers(); }
+  catch(e){ console.warn('Users: shared-DB load failed', e); updateEMUI(); renderAll(); }
+}
+init();
 </script>
 </body>
 </html>
