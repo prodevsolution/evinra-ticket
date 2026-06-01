@@ -55,6 +55,12 @@
   var DB_BASE = (global.EVINRA_DB_URL ? String(global.EVINRA_DB_URL).replace(/\/+$/, '')
                 : (isLocal ? 'http://localhost:4000' : RAILWAY_URL)) + '/api/db';
 
+  // The Ticket System runs as ONE company: scope everything to the signed-in
+  // tenant (chosen at login, stored by evinra_login.html). Null → no scoping
+  // (e.g. opened without logging in) keeps the legacy aggregated behaviour.
+  var CURRENT_TENANT = (typeof localStorage !== 'undefined' ? localStorage.getItem('evinra-tenant-id') : null);
+  var CURRENT_TENANT_NAME = (typeof localStorage !== 'undefined' ? (localStorage.getItem('evinra-tenant-name') || '') : '');
+
   function dbGet(table) {
     try {
       var xhr = new XMLHttpRequest();
@@ -101,6 +107,19 @@
     var tenants = dbGet('tenants'), prods = dbGet('productions'), shows = dbGet('shows'), evs = dbGet('events'), ords = dbGet('orders');
     if (!tenants || !prods || !shows || !evs) return null;
     if (!tenants.length || !prods.length || !shows.length) return null;
+
+    // Scope to the signed-in company (tenant). Filters the whole hierarchy
+    // tenant→production→show→event→order so every page sees only this company.
+    if (CURRENT_TENANT) {
+      tenants = tenants.filter(function (t) { return String(t.id || t._id) === CURRENT_TENANT; });
+      prods   = prods.filter(function (p) { return String(p.tenant_id) === CURRENT_TENANT; });
+      var prodIds = {}; prods.forEach(function (p) { prodIds[p.id] = 1; });
+      shows   = shows.filter(function (s) { return prodIds[s.production_id]; });
+      var showIds = {}; shows.forEach(function (s) { showIds[s.id] = 1; });
+      evs     = evs.filter(function (e) { return showIds[e.show_id]; });
+      var evIds = {}; evs.forEach(function (e) { evIds[e.id] = 1; });
+      ords    = (ords || []).filter(function (o) { return evIds[o.event_id]; });
+    }
 
     // EVINRA.production ← shared tenant (operator org)
     var productions = tenants.map(function (t) {
@@ -463,6 +482,7 @@
       orders:orders, refunds:refunds, salesRows:salesRows, scans:scans, payouts:payouts,
       showsList:showsList, eventsList:eventsList, productionsList:productionsList,
       totals:totals, source: usingDB ? 'shared-db' : 'demo',
+      tenantId: CURRENT_TENANT || null, tenantName: CURRENT_TENANT_NAME || '',
       getShow:getShow, getProduction:getProduction,
       eventsForShow:eventsForShow, showsForProduction:showsForProduction,
       fmtMoney:fmtMoney
