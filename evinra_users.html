@@ -534,10 +534,17 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
       <div class="role-grid" id="roleGrid">
         <!-- rendered by JS -->
       </div>
-      <div class="form-field" style="margin-top:14px;max-width:220px">
-        <label class="form-label">PIN (4 digits)</label>
-        <input class="form-input" id="editPin" inputmode="numeric" maxlength="6" placeholder="e.g. 1234">
-        <div class="form-hint">For Scanner / Wristband sign-in (Mobile Scan)</div>
+      <div class="g2" style="margin-top:14px">
+        <div class="form-field">
+          <label class="form-label">PIN (4 digits)</label>
+          <input class="form-input" id="editPin" inputmode="numeric" maxlength="6" placeholder="e.g. 1234">
+          <div class="form-hint">Scanner / Wristband (Mobile Scan)</div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="editPassword" type="text" placeholder="Console password">
+          <div class="form-hint">Admin / Staff (Ticket System)</div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -616,6 +623,11 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
           <label class="form-label">PIN (4 digits)</label>
           <input class="form-input" id="newPin" inputmode="numeric" maxlength="6" placeholder="e.g. 1234">
           <div class="form-hint">Required for Scanner / Wristband sign-in (Mobile Scan)</div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="newPassword" type="text" placeholder="Console password">
+          <div class="form-hint">Required for Admin / Staff sign-in to the Ticket System</div>
         </div>
         <div class="form-field" style="margin-bottom:6px">
           <label class="form-label">Initial TS Roles</label>
@@ -975,6 +987,7 @@ function openRoleModal(userId){
   renderRoleGrid('roleGrid', selectedRoles, function(roles){ selectedRoles = roles; updateRoleSelCount(); });
   updateRoleSelCount();
   var pinEl=document.getElementById('editPin'); if(pinEl) pinEl.value = u.pin||'';
+  var pwEl=document.getElementById('editPassword'); if(pwEl) pwEl.value = u.password||'';
   document.getElementById('roleModal').classList.add('open');
 }
 
@@ -989,7 +1002,8 @@ async function saveRoles(){
   if(u){
     u.roles = selectedRoles.slice();
     u.pin = (document.getElementById('editPin').value||'').trim();
-    if(DB && u._id) await DB.from('users').update({ app_roles:u.roles, role:deriveAuthRole(u.roles), pin:u.pin }).eq('_id',u._id);
+    u.password = (document.getElementById('editPassword').value||'').trim();
+    if(DB && u._id) await DB.from('users').update({ app_roles:u.roles, role:deriveAuthRole(u.roles), pin:u.pin, password:u.password }).eq('_id',u._id);
   }
   closeRoleModal();
   renderAll();
@@ -1179,7 +1193,8 @@ async function saveNewUser(){
   if(!email){ alert('Email address is required.'); return; }
   if(!currentTenantId){ alert('Select a tenant first.'); return; }
   var appRoles = addUserSelectedRoles.slice();
-  var row = { tenant_id: currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin };
+  var pwd = (document.getElementById('newPassword').value||'').trim();
+  var row = { tenant_id: currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin, password:pwd };
   if(DB){
     var res = await DB.from('users').insert(row);
     if(res.error){ alert('Could not create user (the email may already be in use).'); return; }
@@ -1240,7 +1255,7 @@ function dbRowToUser(r){
     email: r.email||'', source: r.source||'manual',
     status: (r.active!=0)?'active':'inactive',
     roles: Array.isArray(r.app_roles)?r.app_roles.slice():[],
-    pin: r.pin||'', lastActive:'Synced'
+    pin: r.pin||'', password: r.password||'', lastActive:'Synced'
   };
 }
 // Resolve the signed-in company (tenant) — chosen at login, stored in localStorage.

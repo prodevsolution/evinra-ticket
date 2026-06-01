@@ -630,38 +630,50 @@
   }
   window.togglePwd = togglePwd;
 
-  /* ── Sign in ── */
-  function handleSignIn(e){
-    e.preventDefault();
-    var btn  = document.getElementById('signinBtn');
-    var txt  = btn.querySelector('.btn-signin-text');
-    var ico  = btn.querySelector('.btn-signin-icon');
+  /* ── Error helper ── */
+  function showErr(msg){
+    var el = document.getElementById('loginErr');
+    if(!el){
+      el = document.createElement('div'); el.id='loginErr';
+      el.style.cssText='margin:0 0 4px;padding:9px 12px;border-radius:8px;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.4);color:#fca5a5;font-size:12px';
+      var form=document.querySelector('form.fields'); form.insertBefore(el, form.firstChild);
+    }
+    el.textContent = msg; el.style.display='';
+  }
+  function clearErr(){ var el=document.getElementById('loginErr'); if(el) el.style.display='none'; }
+  function setBusy(b){
+    var btn=document.getElementById('signinBtn'); var txt=btn.querySelector('.btn-signin-text'); var ico=btn.querySelector('.btn-signin-icon');
+    btn.disabled=b; txt.textContent=b?'Signing in…':'Sign In';
+    ico.className=(b?'ti ti-loader-2':'ti ti-arrow-right')+' btn-signin-icon';
+    ico.style.animation=b?'spin .8s linear infinite':'';
+    if(b && !document.getElementById('_spin')){ var s=document.createElement('style'); s.id='_spin'; s.textContent='@keyframes spin{to{transform:rotate(360deg)}}'; document.head.appendChild(s); }
+  }
 
-    // Persist the chosen company (tenant) for the session — every page scopes to it.
+  /* ── Sign in: validate against the shared DB (admin user of the chosen company) ── */
+  async function handleSignIn(e){
+    e.preventDefault();
+    clearErr();
     var sel = document.getElementById('company');
     var tid = sel && sel.value;
-    if(tid){
-      var t = TENANTS.find(function(x){ return (x.id||x._id)===tid; });
-      localStorage.setItem('evinra-tenant-id', tid);
-      localStorage.setItem('evinra-tenant-name', (t && t.name) || '');
-    }
-
-    btn.disabled = true;
-    txt.textContent = 'Signing in…';
-    ico.className = 'ti ti-loader-2 btn-signin-icon';
-    ico.style.animation = 'spin .8s linear infinite';
-
-    // inject keyframe once
-    if(!document.getElementById('_spin')){
-      var s = document.createElement('style');
-      s.id = '_spin';
-      s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
-      document.head.appendChild(s);
-    }
-
-    setTimeout(function(){
+    var email = (document.getElementById('email').value||'').trim();
+    var pwd = document.getElementById('password').value||'';
+    if(!tid){ showErr('Select your company.'); return; }
+    if(!email || !pwd){ showErr('Enter your email and password.'); return; }
+    if(!window.EvinraDB){ showErr('Cannot reach the server. Try again.'); return; }
+    setBusy(true);
+    try{
+      var base = (EvinraDB.SERVICE || '');
+      var res = await fetch(base + '/api/auth/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email:email, password:pwd, tenant_id:tid })
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      if(!res.ok) throw new Error(data.error || 'Sign in failed');
+      localStorage.setItem('evinra-tenant-id', data.tenant.id);
+      localStorage.setItem('evinra-tenant-name', data.tenant.name || '');
+      localStorage.setItem('evinra-user-name', (data.user && data.user.name) || '');
       window.location.href = 'evinra_dashboard_mvp.html';
-    }, 1400);
+    }catch(err){ setBusy(false); showErr(err.message || 'Sign in failed'); }
   }
   window.handleSignIn = handleSignIn;
 })();
