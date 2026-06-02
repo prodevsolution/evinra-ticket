@@ -904,6 +904,11 @@ async function smGet(path){ try{ var r=await fetch(smDbBase()+path); return awai
 async function smPost(table, body){ var r=await fetch(smDbBase()+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); var d=await r.json().catch(function(){return {};}); if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }
 async function smPatch(id, body){ var r=await fetch(smDbBase()+'/layouts?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'PATCH failed'); } return true; }
 async function smDelete(id){ var r=await fetch(smDbBase()+'/layouts?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'DELETE failed'); } return true; }
+/* seats.io management (server-side; secret never reaches the browser) */
+function smSeatsioBase(){ return smDbBase().replace('/api/db','/api/seatsio'); }
+async function smCreateChart(name){ var r=await fetch(smSeatsioBase()+'/charts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name||'Untitled layout'})}); var d=await r.json().catch(function(){return {};}); if(!r.ok) throw new Error((d&&d.error)||'chart create failed'); return d.chartKey||''; }
+async function smCopyChart(srcKey){ var r=await fetch(smSeatsioBase()+'/charts/'+encodeURIComponent(srcKey)+'/copy',{method:'POST'}); var d=await r.json().catch(function(){return {};}); if(!r.ok) throw new Error((d&&d.error)||'chart copy failed'); return d.chartKey||''; }
+function _isRealChart(k){ return !!k && !/^layout-/.test(k); }
 
 /* First-run seed: one layout per show from the dataset, so the catalog isn't empty */
 function _seedLayoutDocs(){
@@ -1276,11 +1281,13 @@ function initDesigner(chartKey) {
       chartKey: chartKey,
       onChartUpdated: (key) => {
         showToast('Layout saved', key, 'success');
+        if (activeLayout) { activeLayout.key = key; smPatch(activeLayout._dbId, { key: key }).catch(function(){}); }
         const l = layouts.find(x => x.key === key);
         if (l) { l.createdAt = fmtNow(); renderTable(); }
       },
       onChartPublished: (key) => {
         showToast('Layout published', 'Available for event assignment', 'success');
+        if (activeLayout) { activeLayout.key = key; activeLayout.status = 'published'; smPatch(activeLayout._dbId, { key: key, status: 'published' }).catch(function(){}); }
         const l = layouts.find(x => x.key === key);
         if (l) { l.status = 'published'; l.createdAt = fmtNow(); renderTable(); }
         if (activeLayout && activeLayout.key === key) {
@@ -1420,22 +1427,28 @@ function submitNewLayout() {
   btn.disabled = true;
   btn.innerHTML = '<span class="btn-spinner"></span>Creating…';
 
-  smPost('layouts', {
-    tenant_id: SM_TENANT, name: name,
-    description: document.getElementById('nlDesc').value.trim(),
-    type: document.getElementById('nlType').value || 'Custom',
-    production: prod, seats: 0, status: 'draft', key: ''
-  }).then(async () => {
-    await loadLayouts();
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-plus-lg" style="font-size:12px"></i>Create';
-    closeNewLayout();
-    showToast(`"${name}" created`, 'Draft — open in Designer to configure and publish', 'success');
-  }).catch(err => {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-plus-lg" style="font-size:12px"></i>Create';
-    showToast('Could not create layout', err.message, 'error');
-  });
+  (async () => {
+    let chartKey = '';
+    try { chartKey = await smCreateChart(name); }
+    catch (e) { /* seats.io unavailable — save without a chart; designer can create one later */ }
+    try {
+      await smPost('layouts', {
+        tenant_id: SM_TENANT, name: name,
+        description: document.getElementById('nlDesc').value.trim(),
+        type: document.getElementById('nlType').value || 'Custom',
+        production: prod, seats: 0, status: 'draft', key: chartKey
+      });
+      await loadLayouts();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-plus-lg" style="font-size:12px"></i>Create';
+      closeNewLayout();
+      showToast(`"${name}" created`, chartKey ? 'seats.io chart created — open in Designer to configure' : 'Draft — open in Designer to configure', 'success');
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-plus-lg" style="font-size:12px"></i>Create';
+      showToast('Could not create layout', err.message, 'error');
+    }
+  })();
 }
 
 /* ── Clone Layout ───────────────────────────────────────── */
@@ -1471,23 +1484,35 @@ function submitCloneLayout() {
   btn.disabled = true;
   btn.innerHTML = '<span class="btn-spinner"></span>Cloning…';
 
-  smPost('layouts', {
-    tenant_id: SM_TENANT, name: name,
-    description: document.getElementById('clDesc').value.trim(),
-    type: document.getElementById('clType').value,
-    production: document.getElementById('clProduction').value,
-    seats: 0, status: 'draft', key: ''
-  }).then(async () => {
-    await loadLayouts();
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-copy" style="font-size:12px"></i>Create Clone';
-    closeCloneLayout();
-    showToast(`"${name}" cloned`, 'Draft copy ready — open in Designer to configure', 'success');
-  }).catch(err => {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="bi bi-copy" style="font-size:12px"></i>Create Clone';
-    showToast('Could not clone layout', err.message, 'error');
-  });
+  const srcKey  = cloneTarget.key;
+  const srcSeats= cloneTarget.seats || 0;
+  (async () => {
+    // Duplicate the chart in seats.io so the clone is independent (edits don't touch the original).
+    let chartKey = '';
+    let copied = false;
+    try {
+      if (_isRealChart(srcKey)) { chartKey = await smCopyChart(srcKey); copied = true; }
+      else                      { chartKey = await smCreateChart(name); }
+    } catch (e) { /* seats.io unavailable — save the clone without a chart */ }
+    try {
+      await smPost('layouts', {
+        tenant_id: SM_TENANT, name: name,
+        description: document.getElementById('clDesc').value.trim(),
+        type: document.getElementById('clType').value,
+        production: document.getElementById('clProduction').value,
+        seats: copied ? srcSeats : 0, status: 'draft', key: chartKey
+      });
+      await loadLayouts();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-copy" style="font-size:12px"></i>Create Clone';
+      closeCloneLayout();
+      showToast(`"${name}" cloned`, copied ? 'Independent seats.io chart copied — edits won’t affect the original' : 'Draft copy ready — open in Designer to configure', 'success');
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-copy" style="font-size:12px"></i>Create Clone';
+      showToast('Could not clone layout', err.message, 'error');
+    }
+  })();
 }
 
 /* ── Event List ─────────────────────────────────────────── */
