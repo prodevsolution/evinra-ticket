@@ -155,6 +155,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14
 .form-input:focus,.form-select:focus{border-color:var(--p-border)}
 .form-input::placeholder{color:var(--text3)}
 .form-hint{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.venue-ac{position:absolute;left:0;right:0;top:calc(100% - 16px);z-index:50;background:var(--bg3);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-height:240px;overflow-y:auto;margin-top:2px}
+.venue-ac-item{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--border);padding:9px 11px;cursor:pointer;font-family:var(--body);color:var(--text)}
+.venue-ac-item:last-child{border-bottom:none}
+.venue-ac-item:hover,.venue-ac-item.active{background:var(--bg4)}
+.venue-ac-item .vac-name{font-size:12px;font-weight:600;color:var(--text);display:block}
+.venue-ac-item .vac-addr{font-size:10.5px;color:var(--text3);display:block;margin-top:1px}
+.venue-ac-empty{padding:10px 11px;font-size:11px;color:var(--text3)}
 .form-section{font-size:10px;font-family:var(--mono);color:var(--p);text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-top:4px}
 .modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg2)}
 .toggle{width:36px;height:20px;border-radius:10px;cursor:pointer;position:relative;transition:background .2s;border:none;outline:none;flex-shrink:0}
@@ -677,16 +684,24 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
           <input class="form-input" id="nem-show" placeholder="e.g. Week 23 – Texas">
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Layout</label><select class="form-select" id="nem-layout"><option>General Admission</option><option>Reserved Seating</option><option>Festival</option></select></div>
-        <div class="form-field"><label class="form-label">Total Seats</label><input type="number" class="form-input" id="nem-seats" placeholder="2500"></div>
+      <!-- Venue: place autocomplete (Google Places if a key is set, else OpenStreetMap) → fills name + address + city -->
+      <div class="form-row full">
+        <div class="form-field" style="position:relative">
+          <label class="form-label">Venue / Place Name *</label>
+          <input class="form-input" id="nem-venue" placeholder="Search a place… e.g. AmericanAirlines Arena" autocomplete="off" oninput="nemVenueSearch(this.value)" onfocus="nemVenueSearch(this.value)">
+          <div id="nem-venue-ac" class="venue-ac" style="display:none"></div>
+          <span class="form-hint" id="nem-venue-hint" style="display:block;margin-top:4px;font-size:10px;color:var(--text3)">Pick a result to auto-fill the address &amp; city.</span>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label class="form-label">Address</label><input class="form-input" id="nem-address" placeholder="Auto-filled from the place — editable"></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">City *</label><input class="form-input" id="nem-city" placeholder="e.g. Miami"></div>
-        <div class="form-field"><label class="form-label">Venue / Place Name *</label><input class="form-input" id="nem-venue" placeholder="e.g. AmericanAirlines Arena"></div>
+        <div class="form-field"><label class="form-label">Total Seats</label><input type="number" class="form-input" id="nem-seats" placeholder="2500"></div>
       </div>
       <div class="form-row full">
-        <div class="form-field"><label class="form-label">Address</label><input class="form-input" id="nem-address" placeholder="Full venue address"></div>
+        <div class="form-field"><label class="form-label">Layout</label><select class="form-select" id="nem-layout"><option>General Admission</option><option>Reserved Seating</option><option>Festival</option></select></div>
       </div>
 
       <!-- ── PLAY DATES ────────────────────────────── -->
@@ -1716,6 +1731,7 @@ function openNewEvent() {
     if (el) el.value = '';
   });
   var ly = document.getElementById('nem-layout'); if (ly) ly.selectedIndex = 0;
+  var vac = document.getElementById('nem-venue-ac'); if (vac) { vac.style.display = 'none'; vac.innerHTML = ''; }
   // Production → Show cascade (from the configuration: Productions / Shows)
   nemFillProductions();
   // Reset play dates
@@ -1817,6 +1833,70 @@ function nemFillShows() {
 // Expose for inline onchange handlers (and any caller).
 window.nemFillProductions = nemFillProductions;
 window.nemFillShows = nemFillShows;
+
+// ── Venue place autocomplete (fills name + address + city) ──
+// Set GMAPS_KEY to a Google Maps JS API key (with Places enabled) to use Google
+// Places; with no key it uses free OpenStreetMap (Nominatim) — same UX.
+var GMAPS_KEY = '';
+var _venueACt = null, _gAutoSvc = null;
+function nemVenueSearch(q){
+  q = (q || '').trim();
+  var box = document.getElementById('nem-venue-ac'); if (!box) return;
+  if (q.length < 3) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  clearTimeout(_venueACt);
+  _venueACt = setTimeout(function(){
+    if (GMAPS_KEY && window.google && google.maps && google.maps.places) nemVenueSearchGoogle(q);
+    else nemVenueSearchOSM(q);
+  }, 280);
+}
+function nemVenueRender(items){
+  var box = document.getElementById('nem-venue-ac'); if (!box) return;
+  if (!items || !items.length) { box.innerHTML = '<div class="venue-ac-empty">No places found</div>'; box.style.display = 'block'; return; }
+  box.innerHTML = items.map(function(it){
+    var d = encodeURIComponent(JSON.stringify({ n: it.name || '', a: it.address || '', c: it.city || '' }));
+    return '<button type="button" class="venue-ac-item" onclick="nemPickPlace(\''+d+'\')"><span class="vac-name">'+(it.name||'')+'</span><span class="vac-addr">'+(it.address||'')+'</span></button>';
+  }).join('');
+  box.style.display = 'block';
+}
+function nemPickPlace(enc){
+  var o = {}; try { o = JSON.parse(decodeURIComponent(enc)); } catch(e) {}
+  document.getElementById('nem-venue').value = o.n || '';
+  if (o.a) document.getElementById('nem-address').value = o.a;
+  if (o.c && !document.getElementById('nem-city').value.trim()) document.getElementById('nem-city').value = o.c;
+  var box = document.getElementById('nem-venue-ac'); if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+}
+function nemVenueSearchOSM(q){
+  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      var items = (rows || []).map(function(r){
+        var a = r.address || {};
+        var city = a.city || a.town || a.village || a.hamlet || a.county || '';
+        var name = (r.name && r.name.trim()) ? r.name : String(r.display_name || '').split(',')[0];
+        return { name: name, address: r.display_name || '', city: city };
+      });
+      nemVenueRender(items);
+    })
+    .catch(function(){ nemVenueRender([]); });
+}
+function nemVenueSearchGoogle(q){
+  try {
+    if (!_gAutoSvc) _gAutoSvc = new google.maps.places.AutocompleteService();
+    _gAutoSvc.getPlacePredictions({ input: q, types: ['establishment', 'geocode'] }, function(preds){
+      if (!preds) { nemVenueRender([]); return; }
+      nemVenueRender(preds.slice(0, 6).map(function(p){
+        return { name: (p.structured_formatting && p.structured_formatting.main_text) || p.description, address: p.description, city: '' };
+      }));
+    });
+  } catch(e) { nemVenueSearchOSM(q); }
+}
+window.nemVenueSearch = nemVenueSearch;
+window.nemPickPlace = nemPickPlace;
+// Hide the suggestions when clicking elsewhere.
+document.addEventListener('click', function(e){
+  var box = document.getElementById('nem-venue-ac'), inp = document.getElementById('nem-venue');
+  if (box && box.style.display !== 'none' && !box.contains(e.target) && e.target !== inp) box.style.display = 'none';
+});
 
 function saveManualEvent() {
   var prodSel    = document.getElementById('nem-production');
