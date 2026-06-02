@@ -168,6 +168,9 @@
         city:(manualKid && manualKid.city) || cm.city,
         state:cm.state,
         venue:(manualKid && manualKid.venue) || cm.venue,
+        address:(manualKid && manualKid.address) || '',
+        description:(manualKid && manualKid.description) || '',
+        image:(manualKid && manualKid.image) || '',
         year:year, month:month, days:days,
         seats:(manualKid && manualKid.seats) || SEATSET[i % SEATSET.length],
         soldPct:0, status:'On Sale',
@@ -226,7 +229,8 @@
       if (usingDB) status = (revenue > 0 ? 'On Sale' : 'Coming Soon');
       return {
         id:e.id, idx:idx, showId:e.showId, showName:show.name, productionId:show.productionId,
-        city:e.city, state:e.state, cityState:e.city + ', ' + e.state, venue:e.venue,
+        city:e.city, state:e.state, cityState:e.city + ', ' + e.state, venue:e.venue, address:e.address||'',
+        description:e.description||'', image:e.image||'',
         year:e.year, month:e.month, monthName:MONTHS[e.month], monthShort:MONTHS_SHORT[e.month],
         dates:dates, firstDate:dates[0], lastDate:dates[dates.length-1],
         dateRangeUS: dates[0].us + ' – ' + dates[dates.length-1].us,
@@ -256,7 +260,8 @@
           var fn = k.function_name || k.name || (us(y,mo,dd));
           playDates.push({
             eventId:e.id, idx:e.idx, show:e.showName, production:e.productionId,
-            city:k.city || e.city, state:e.state, place:k.venue, venue:k.venue,
+            city:k.city || e.city, state:e.state, place:k.venue, venue:k.venue, address:k.address || e.address || '',
+            _kidId:k._id || k.id || '', description:k.description || e.description || '', image:k.image || e.image || '',
             date:us(y,mo,dd), iso:iso(y,mo,dd), day:dd, weekday:weekday(y,mo,dd),
             start:startT, end:endT, event:fn, label:fn,
             seats:k.seats || e.seats, sale:(String(k.status||'').toLowerCase().indexOf('sale')>=0 || String(k.status||'').toLowerCase()==='on sale'), status:(k.status||e.status)
@@ -269,7 +274,8 @@
           var label = e.city + ' — ' + d.short + ' · ' + s.start;
           playDates.push({
             eventId:e.id, idx:e.idx, show:e.showName, production:e.productionId,
-            city:e.city, state:e.state, place:e.venue, venue:e.venue,
+            city:e.city, state:e.state, place:e.venue, venue:e.venue, address:e.address || '',
+            _kidId:'', description:e.description || '', image:e.image || '',
             date:d.us, iso:d.iso, day:d.day, weekday:d.weekday,
             start:s.start, end:s.end, event:label, label:label,
             seats:e.seats, sale:(e.status === 'On Sale'), status:e.status
@@ -489,7 +495,10 @@
       };
     });
     var eventsList = events.map(function (e) {
-      return { city:e.city, place:e.venue, show:e.showName, dates:e.dateRangeUS, seats:e.seats, idx:e.idx, status:e.status };
+      var k0 = (e._kids || [])[0] || {};
+      return { city:e.city, place:e.venue, address:e.address||'', description:e.description||'', image:e.image||'', show:e.showName, dates:e.dateRangeUS, seats:e.seats, idx:e.idx, status:e.status, _kids:e._kids||null,
+        tickets:(k0.tickets&&k0.tickets.length)?k0.tickets:null, addons:(k0.addons&&k0.addons.length)?k0.addons:null,
+        fees:(k0.fees&&k0.fees.length)?k0.fees:null, taxes:(k0.taxes&&k0.taxes.length)?k0.taxes:null, layout:k0.layout||null };
     });
     var productionsList = productions.map(function (p, i) {
       var ps = shows.filter(function (s) { return s.productionId === p.id; });

@@ -234,7 +234,7 @@ i[class*="hgi-"]{display:inline-flex;align-items:center;justify-content:center;l
 .addon-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:9px 10px;background:var(--bg3)}
 
 /* Event list row */
-.event-row{display:grid;grid-template-columns:150px 1.5fr 1.1fr 72px 90px 138px 104px;gap:0;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.event-row{display:grid;grid-template-columns:170px 1.4fr 110px 1.5fr 70px 84px 112px 92px;gap:0;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
 .event-row:hover{background:rgba(255,255,255,.03)}
 .event-cell{padding:12px;font-size:12px;color:var(--text2);min-width:0}
 .event-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 12px;background:var(--bg3);cursor:default;position:sticky;top:0;z-index:2}
@@ -411,8 +411,9 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
 
     <!-- ══ VIEW 1: EVENTS LIST ══════════════════════════════════════════ -->
     <div id="view-events-list">
-      <div class="ev-topbar" style="padding:12px 28px;height:auto;gap:10px;flex-wrap:wrap;background:var(--bg);border:none">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1">
+      <div class="ev-topbar" style="padding:12px 28px;height:auto;gap:12px;flex-direction:column;align-items:stretch;background:var(--bg);border:none;border-bottom:1px solid var(--border)">
+        <!-- Row 1 · date range + search + primary action -->
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
           <div class="date-filter-group">
   <button class="date-pill" data-dp="range">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -431,6 +432,13 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
     <input type="date" id="dateTo" class="date-input">
   </div>
 </div>
+          <div style="flex:1"></div>
+          <div class="search-wrap"><span class="ev-icon si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><input class="search-input" id="fSearch" placeholder="Search date, venue, show…" oninput="filterPlayDates()"></div>
+          <button class="btn btn-primary" onclick="openNewEvent()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>New Event</button>
+        </div>
+        <!-- Row 2 · attribute filters -->
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-top:11px;border-top:1px solid var(--border)">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);padding-bottom:6px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter</span>
           <div class="flt"><label>Production</label>
             <select id="fProd" onchange="filterPlayDates()"><option value="">All Productions</option></select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
           <div class="flt"><label>Show</label>
@@ -443,8 +451,8 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
               <option value="on">On Sale</option>
               <option value="off">Off Sale</option>
             </select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
-          <div class="search-wrap"><span class="ev-icon si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><input class="search-input" id="fSearch" placeholder="Search date, venue, show…" oninput="filterPlayDates()"></div>
-          <button class="btn btn-primary" onclick="openNewEvent()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>New Event</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost" id="clearFiltersBtn" onclick="clearEventFilters()" style="height:30px;font-size:11px"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span>Clear filters</button>
         </div>
       </div>
 
@@ -454,6 +462,7 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
           <div class="event-row" style="cursor:default;flex-shrink:0">
             <div class="event-cell hdr">When</div>
             <div class="event-cell hdr">Event</div>
+            <div class="event-cell hdr">City</div>
             <div class="event-cell hdr">Venue</div>
             <div class="event-cell hdr" style="text-align:right">Seats</div>
             <div class="event-cell hdr">Source</div>
@@ -890,17 +899,20 @@ function renderPlayDateList(){
       : evStatus==='open'     ? `<span class="badge" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)">Open</span>`
       : `<span class="badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">Waiting</span>`;
     return `<div class="event-row" onclick="openEvent(${p.idx},{date:'${p.date}',start:'${p.start}',end:'${p.end}',emId:'${p.emId||''}'})">
-      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px">
-        <span style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:600">${p.date}</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${p.start}${p.end?(' – '+p.end):''}</span>
+      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:3px">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text3);font-weight:600">${p.date}</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11.5px;color:var(--text);font-weight:600;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:2px 7px;width:fit-content">
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--p)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${p.start||'—'}${p.end?(' – '+p.end):''}
+        </span>
       </div></div>
-      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">
-        <span style="font-size:12px;color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.show||''}</span>
-        <span style="font-size:10.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.event||''}</span>
+      <div class="event-cell"><div style="min-width:0">
+        <span style="font-size:12px;color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${p.show||'—'}</span>
       </div></div>
+      <div class="event-cell"><span style="font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${p.city||'—'}</span></div>
       <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">
-        <span style="font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.place||'—'}</span>
-        <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">${p.city||''}</span>
+        <span style="font-size:11.5px;color:var(--text2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.place||'—'}</span>
+        ${p.address?`<span style="font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.address}</span>`:''}
       </div></div>
       <div class="event-cell" style="text-align:right"><span style="font-family:var(--mono);font-size:12px;color:var(--text)">${(p.seats||0).toLocaleString()}</span></div>
       <div class="event-cell">${p.emId
@@ -930,6 +942,17 @@ function renderPlayDateList(){
 }
 
 function gopdPage(p){const pages=Math.ceil(filteredDates.length/PD_PER_PAGE);if(p<1||p>pages)return;pdPage=p;renderPlayDateList();}
+
+function clearEventFilters(){
+  ['fProd','fShow','fEvent','fSale','fSearch'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var from=document.getElementById('dateFrom'), to=document.getElementById('dateTo');
+  if(from) from.value=''; if(to) to.value='';
+  dateMode='';
+  document.querySelectorAll('.date-pill').forEach(function(b){ b.classList.remove('on'); });
+  var rw=document.getElementById('dateRangeWrap'); if(rw) rw.classList.remove('show');
+  filterPlayDates();
+}
+window.clearEventFilters = clearEventFilters;
 
 function parseMMDDYYYY(str){ const [m,d,y]=str.split('/'); return new Date(+y,+m-1,+d); }
 let dateMode = '';   // '' = show all dates (events run Aug/Oct, beyond "current week")
@@ -1009,6 +1032,13 @@ function openEvent(idx, playDate){
   const e = EVENTS[idx] || EVENTS[0];
   currentEvent    = e;
   currentEventIdx = idx;
+  // Seed the live editing buffer from the opened instance (so image/description reflect what's stored)
+  if (playDate) {
+    if (playDate.image != null && playDate.image !== '') currentEvent.image = playDate.image;
+    if (playDate.description != null && playDate.description !== '') currentEvent.description = playDate.description;
+  }
+  // Seed all tab working copies (Tickets / Add-Ons / Fees / Taxes / Layout) for this event
+  _evSeedTabs();
   document.getElementById('evDetailTitle').textContent = e.show + ' — ' + e.city;
   document.getElementById('evBreadcrumb').textContent  = 'Event Settings';
   // Update show inheritance banner names
@@ -1080,11 +1110,11 @@ function renderSegContent(tab){
         </div>`;
       })()}
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Event / Place Name *</label><input class="form-input" id="evPlace" value="${(currentEvent&&currentEvent.place)||''}" placeholder="Venue or place name"></div>
-        <div class="form-field"><label class="form-label">City *</label><input class="form-input" id="evCity" value="${(currentEvent&&currentEvent.city)||''}" placeholder="e.g. Miami"></div>
+        <div class="form-field"><label class="form-label">Event / Place Name *</label><input class="form-input" id="evPlace" value="${_evField('place')}" placeholder="Venue or place name"></div>
+        <div class="form-field"><label class="form-label">City *</label><input class="form-input" id="evCity" value="${_evField('city')}" placeholder="e.g. Miami"></div>
       </div>
       <div class="form-row full">
-        <div class="form-field"><label class="form-label">Full Address</label><input class="form-input" id="evAddress" value="${(currentEvent&&currentEvent.address)||''}" placeholder="Full venue address"></div>
+        <div class="form-field"><label class="form-label">Full Address</label><input class="form-input" id="evAddress" value="${_evField('address')}" placeholder="Full venue address"></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Start Date</label><input type="date" class="form-input" id="evStart" value="${_evInstISO(0)}"></div>
@@ -1094,7 +1124,7 @@ function renderSegContent(tab){
         <div class="form-field"><label class="form-label">Total Seats</label>
           <div style="display:flex">
             <span style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3);display:flex;align-items:center"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span>
-            <input type="number" class="form-input" id="evSeats" placeholder="e.g. 2500" min="0" value="${(currentEvent&&currentEvent.seats)||''}" style="border-radius:0 7px 7px 0;border-left:none">
+            <input type="number" class="form-input" id="evSeats" placeholder="e.g. 2500" min="0" value="${_evField('seats')}" style="border-radius:0 7px 7px 0;border-left:none">
           </div>
           <div class="form-hint">Total capacity for this event venue</div>
         </div>
@@ -1103,7 +1133,7 @@ function renderSegContent(tab){
       <div class="form-row full">
         <div class="form-field">
           <label class="form-label">Description</label>
-          <textarea class="rich-area" rows="5">${(currentEvent&&currentEvent.description)||''}</textarea>
+          <textarea class="rich-area" id="evDescription" rows="5">${_evField('description')}</textarea>
         </div>
       </div>
       <div class="form-row full">
@@ -1408,7 +1438,7 @@ function renderSegContent(tab){
           <p style="font-size:13px;font-weight:600;color:var(--text)">On Sale</p>
           <p style="font-size:11px;color:var(--text3);margin-top:2px">Make this event visible and purchasable on the event list page</p>
         </div>
-        <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        <button class="toggle ${(currentPlayDate&&currentPlayDate.sale)?'on':'off'}" id="evVisOnSale" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
       </div>
       <div class="info-box" style="display:flex;gap:10px;align-items:flex-start">
         <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 12l10 10 10-10L12 2z"/><path d="M12 8v5M12 16v.5"/></svg></span>
@@ -1419,7 +1449,7 @@ function renderSegContent(tab){
 }
 
 /* ── TICKET DRAWER ─────────────────────────────── */
-const TICKETS=[
+const DEFAULT_TICKETS=[
   {id:0, name:'Adult General Admission', ticketType:'General Admission', price:29.99, qty:500, color:'#2A9B85', sale:true},
   {id:1, name:'Child General Admission', ticketType:'General Admission', price:14.99, qty:200, color:'#2A9B85', sale:true},
   {id:2, name:'VIP Front Row',           ticketType:'VIP',               price:89.99, qty:100, color:'#8B6BD4', sale:true},
@@ -1427,6 +1457,7 @@ const TICKETS=[
   {id:4, name:'Student ID',              ticketType:'Student',           price:19.99, qty:150, color:'#4A8BD4', sale:true},
   {id:5, name:'Senior 65+',             ticketType:'Senior',            price:24.99, qty:100, color:'#E8A020', sale:true},
 ];
+let TICKETS = _evCloneCfg(DEFAULT_TICKETS);
 let ticketNextId=6, ticketEditId=null;
 
 const TICKET_TYPES = ['General Admission','VIP','Family Pack','Student','Senior','Group','Press','Complimentary'];
@@ -1925,10 +1956,37 @@ function evImgInner(){
 function evImgPick(){ if(!(currentEvent && currentEvent.image)){ var i=document.getElementById('evImg'); if(i) i.click(); } }
 // Start/End for the Info tab = the opened instance (single-day play date); fall back to the event-level range.
 function _mdyToISO(s){ var t=String(s||'').trim(); if(!t) return ''; var p=t.split('/'); return p.length===3 ? p[2]+'-'+p[0]+'-'+p[1] : ''; }
+// Prefer the opened instance's value (play date) over the event-level fallback.
+function _evField(name){
+  if (currentPlayDate && currentPlayDate[name] != null && currentPlayDate[name] !== '') return currentPlayDate[name];
+  return (currentEvent && currentEvent[name] != null) ? currentEvent[name] : '';
+}
 function _evInstISO(which){
   if (currentPlayDate && currentPlayDate.date) return _mdyToISO(currentPlayDate.date);
   var parts = String((currentEvent && currentEvent.dates) || '').split('–');
   return _mdyToISO(parts[which] || parts[0] || '');
+}
+// ── Per-event tab config helpers (Tickets / Add-Ons / Fees / Taxes / Layout) ──
+function _evCloneCfg(arr){ return (arr||[]).map(function(o){ return Object.assign({}, o); }); }
+function _evNextId(arr){ var m=0; (arr||[]).forEach(function(o){ if(+o.id>m) m=+o.id; }); return m+1; }
+function _evApplyLayout(cfg){
+  currentLayout = (cfg && cfg.selected) || '';
+  if (currentLayout && LAYOUTS[currentLayout] && cfg && cfg.zones){
+    LAYOUTS[currentLayout].zones.forEach(function(z){ if (cfg.zones[z.id] != null) z.visible = !!cfg.zones[z.id]; });
+  }
+}
+function _evCollectLayout(){
+  if (!currentLayout || !LAYOUTS[currentLayout]) return null;
+  var zones = {}; LAYOUTS[currentLayout].zones.forEach(function(z){ zones[z.id] = !!z.visible; });
+  return { selected: currentLayout, zones: zones };
+}
+// Seed every tab's working copy from the opened event's saved config (or template defaults)
+function _evSeedTabs(){
+  TICKETS   = _evCloneCfg((currentEvent && currentEvent.tickets && currentEvent.tickets.length) ? currentEvent.tickets : DEFAULT_TICKETS);   ticketNextId = _evNextId(TICKETS);
+  RIDES_EXP = _evCloneCfg((currentEvent && currentEvent.addons  && currentEvent.addons.length)  ? currentEvent.addons  : DEFAULT_RIDES_EXP); rideNextId   = _evNextId(RIDES_EXP);
+  FEES      = _evCloneCfg((currentEvent && currentEvent.fees    && currentEvent.fees.length)    ? currentEvent.fees    : DEFAULT_FEES);      feeNextId    = _evNextId(FEES);
+  TAXES     = _evCloneCfg((currentEvent && currentEvent.taxes   && currentEvent.taxes.length)   ? currentEvent.taxes   : DEFAULT_TAXES);     taxNextId    = _evNextId(TAXES);
+  _evApplyLayout(currentEvent && currentEvent.layout);
 }
 function _evImgPaint(){ var z=document.getElementById('evImgZone'); if(z) z.innerHTML=evImgInner(); }
 function _evImgRead(file){
@@ -2045,7 +2103,7 @@ async function persistManualEvent(o){
         start_at: _isoDateTime(pd.date, pd.start), end_at: _isoDateTime(pd.date, pd.end),
         status: pd.sale ? 'on sale' : 'draft',
         venue: o.venue, city: o.city, address: o.address, seats: o.seats,
-        function_name: pd.name || '', description: o.image ? 'has-image' : ''
+        function_name: pd.name || '', description: o.description || '', image: o.image || ''
       });
     }
     if (typeof showToast === 'function') showToast('Event saved to the database', 'success');
@@ -2141,18 +2199,53 @@ async function saveEvent(){
   var city    = ((document.getElementById('evCity')    || {}).value || '').trim();
   var address = ((document.getElementById('evAddress') || {}).value || '').trim();
   var seats   = parseInt((document.getElementById('evSeats') || {}).value) || 0;
+  var descrip = ((document.getElementById('evDescription') || {}).value || '').trim();
+  var image   = (currentEvent && currentEvent.image) || '';
+  var startD  = ((document.getElementById('evStart') || {}).value || '').trim(); // YYYY-MM-DD
+  var endD    = ((document.getElementById('evEnd')   || {}).value || '').trim();
   // Reflect locally so the open detail stays in sync
-  if (currentEvent) { currentEvent.place = venue; currentEvent.city = city; currentEvent.address = address; if (seats) currentEvent.seats = seats; }
+  if (currentEvent) { currentEvent.place = venue; currentEvent.city = city; currentEvent.address = address; if (seats) currentEvent.seats = seats; currentEvent.description = descrip; }
   var kids = (currentEvent && currentEvent._kids) || [];
   if (!kids.length) { evNotify('Saved locally — this demo event has no database rows yet', true); return; }
   evNotify('Saving…', true);
   try {
-    var patch = { venue: venue, city: city, address: address };
+    // Event-level fields → applied to every instance of this event
+    var patch = { venue: venue, city: city, address: address, description: descrip, image: image };
     if (seats) patch.seats = seats;
+    // Per-event tab configuration (Tickets / Add-Ons / Fees / Taxes / Layout)
+    patch.tickets = TICKETS;
+    patch.addons  = RIDES_EXP;
+    patch.fees    = FEES;
+    patch.taxes   = TAXES;
+    patch.layout  = _evCollectLayout();
+    // Visibility "On Sale" toggle → per-instance status
+    var visBtn = document.getElementById('evVisOnSale');
+    var instStatus = visBtn ? (visBtn.classList.contains('on') ? 'on sale' : 'draft') : null;
+    // The opened instance's row (for the per-instance start/end date + visibility)
+    var instId = (currentPlayDate && currentPlayDate._kidId) || '';
     var n = 0;
     for (var i = 0; i < kids.length; i++) {
       var kid_id = kids[i]._id || kids[i].id;
-      if (kid_id) { await evDbPatch('events', kid_id, patch); n++; }
+      if (!kid_id) continue;
+      var body = Object.assign({}, patch);
+      if (String(kid_id) === String(instId)) {
+        // Combine the edited date with the instance's existing time of day
+        if (startD) body.start_at = startD + (currentPlayDate.start ? ('T' + _to24(currentPlayDate.start)) : '');
+        if (endD)   body.end_at   = endD   + (currentPlayDate.end   ? ('T' + _to24(currentPlayDate.end))   : '');
+        if (instStatus) body.status = instStatus;
+      }
+      await evDbPatch('events', kid_id, body); n++;
+    }
+    // Reflect saved values locally so re-renders / re-opens stay correct
+    if (currentEvent) {
+      currentEvent.tickets = _evCloneCfg(TICKETS); currentEvent.addons = _evCloneCfg(RIDES_EXP);
+      currentEvent.fees = _evCloneCfg(FEES); currentEvent.taxes = _evCloneCfg(TAXES); currentEvent.layout = _evCollectLayout();
+    }
+    if (currentPlayDate) {
+      if (startD) currentPlayDate.date = startD.split('-')[1] + '/' + startD.split('-')[2] + '/' + startD.split('-')[0];
+      currentPlayDate.image = image; currentPlayDate.description = descrip;
+      currentPlayDate.place = venue; currentPlayDate.city = city; currentPlayDate.address = address; if (seats) currentPlayDate.seats = seats;
+      if (instStatus) currentPlayDate.sale = (instStatus === 'on sale');
     }
     if (typeof filteredDates !== 'undefined') { renderPlayDateList && renderPlayDateList(); }
     evNotify('Event saved (' + n + ' instance' + (n === 1 ? '' : 's') + ')', true);
@@ -2177,7 +2270,7 @@ document.addEventListener('keydown',e=>{
 
 /* ── EXPOSE ────────────────────────────────────── */
 /* ── RIDES & EXPERIENCES CRUD ──────────────────── */
-const RIDES_EXP = [
+const DEFAULT_RIDES_EXP = [
   {id:1, name:'Roller Coaster',    type:'Ride',       color:'#D4884A', price:5.00,  credits:3,  inshow:true,  pos:true},
   {id:2, name:'Ferris Wheel',      type:'Ride',       color:'#D4884A', price:4.00,  credits:2,  inshow:true,  pos:true},
   {id:3, name:'Carousel',          type:'Ride',       color:'#D4884A', price:2.00,  credits:1,  inshow:true,  pos:true},
@@ -2185,6 +2278,7 @@ const RIDES_EXP = [
   {id:5, name:'Cast Photo Package',type:'Experience', color:'#8B6BD4', price:24.99, credits:5,  inshow:true,  pos:true},
   {id:6, name:'Meet & Greet',      type:'Experience', color:'#8B6BD4', price:49.99, credits:8,  inshow:false, pos:true},
 ];
+let RIDES_EXP = _evCloneCfg(DEFAULT_RIDES_EXP);
 let rideNextId = 7, rideEditId = null, rideDeleteId = null;
 
 function renderRidesTable(){
@@ -2284,14 +2378,16 @@ function confirmRideDelete(){
 
 /* ── FEES & TAXES CRUD ─────────────────────────── */
 // Simulates data pulled from Settings → Fees & Taxes
-const FEES = [
+const DEFAULT_FEES = [
   {id:1, name:'Service Fee',    type:'Percentage', value:5,   applied:'Per Ticket', active:true,  override:null},
   {id:2, name:'Facility Fee',   type:'Fixed',      value:2,   applied:'Per Order',  active:true,  override:null},
   {id:3, name:'Processing Fee', type:'Percentage', value:2.5, applied:'Per Ticket', active:false, override:null},
 ];
-const TAXES = [
+const DEFAULT_TAXES = [
   {id:1, name:'Florida Sales Tax', type:'Percentage', value:7, applied:'Subtotal', active:true, override:null},
 ];
+let FEES = _evCloneCfg(DEFAULT_FEES);
+let TAXES = _evCloneCfg(DEFAULT_TAXES);
 let feeNextId=4, taxNextId=2, feeEditId=null, taxEditId=null;
 
 function fmtFeeVal(type, val){
