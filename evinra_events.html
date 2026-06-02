@@ -661,21 +661,25 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
 
     <!-- ── MANUAL PANE ── -->
     <div id="nem-pane-manual" class="modal-body" style="display:none;flex-direction:column;gap:14px">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Production *</label>
+          <select class="form-select" id="nem-production" onchange="nemFillShows()"><option value="">Select production…</option></select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Show *</label>
+          <select class="form-select" id="nem-showsel" disabled><option value="">Select production first</option></select>
+        </div>
+      </div>
       <div class="form-row full">
         <div class="form-field">
-          <label class="form-label">Show / Event Name *</label>
-          <input class="form-input" id="nem-show" placeholder="e.g. Flying Lions Circus 2026">
+          <label class="form-label">Event Name *</label>
+          <input class="form-input" id="nem-show" placeholder="e.g. Week 23 – Texas">
         </div>
       </div>
       <div class="form-row">
-        <div class="form-field">
-          <label class="form-label">Production</label>
-          <input class="form-input" id="nem-production" placeholder="e.g. Flying Lions Circus">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Layout</label>
-          <select class="form-select" id="nem-layout"><option>General Admission</option><option>Reserved Seating</option><option>Festival</option></select>
-        </div>
+        <div class="form-field"><label class="form-label">Layout</label><select class="form-select" id="nem-layout"><option>General Admission</option><option>Reserved Seating</option><option>Festival</option></select></div>
+        <div class="form-field"><label class="form-label">Total Seats</label><input type="number" class="form-input" id="nem-seats" placeholder="2500"></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">City *</label><input class="form-input" id="nem-city" placeholder="e.g. Miami"></div>
@@ -683,10 +687,6 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
       </div>
       <div class="form-row full">
         <div class="form-field"><label class="form-label">Address</label><input class="form-input" id="nem-address" placeholder="Full venue address"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-field"><label class="form-label">Total Seats</label><input type="number" class="form-input" id="nem-seats" placeholder="2500"></div>
-        <div class="form-field"></div>
       </div>
 
       <!-- ── PLAY DATES ────────────────────────────── -->
@@ -1711,11 +1711,13 @@ const _EM_EVENTS_LEGACY = [
 /* ── NEW EVENT MODAL ───────────────────────────── */
 function openNewEvent() {
   // Clear manual form fields
-  ['nem-show','nem-production','nem-city','nem-venue','nem-address','nem-seats'].forEach(function(id){
+  ['nem-show','nem-city','nem-venue','nem-address','nem-seats'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
   var ly = document.getElementById('nem-layout'); if (ly) ly.selectedIndex = 0;
+  // Production → Show cascade (from the configuration: Productions / Shows)
+  nemFillProductions();
   // Reset play dates
   _manualPDs = [];
   _renderManualPDs();
@@ -1789,16 +1791,50 @@ function _renderManualPDs() {
   }).join('');
 }
 
+// Populate the Production dropdown from the configuration (Productions).
+function nemFillProductions() {
+  var prodSel = document.getElementById('nem-production');
+  if (prodSel) {
+    var prods = (window.EVINRA ? EVINRA.productions : []) || [];
+    prodSel.innerHTML = '<option value="">Select production…</option>' +
+      prods.map(function(p){ return '<option value="'+p.id+'">'+p.name+'</option>'; }).join('');
+  }
+  nemFillShows();
+}
+// Cascade: fill the Show dropdown with shows belonging to the chosen production.
+function nemFillShows() {
+  var prodSel = document.getElementById('nem-production');
+  var showSel = document.getElementById('nem-showsel');
+  if (!showSel) return;
+  var pid = prodSel ? prodSel.value : '';
+  if (!pid) { showSel.innerHTML = '<option value="">Select production first</option>'; showSel.disabled = true; return; }
+  var shows = ((window.EVINRA ? EVINRA.shows : []) || []).filter(function(s){ return s.productionId === pid; });
+  showSel.disabled = false;
+  showSel.innerHTML = shows.length
+    ? '<option value="">Select show…</option>' + shows.map(function(s){ return '<option value="'+s.id+'">'+s.name+'</option>'; }).join('')
+    : '<option value="">No shows in this production yet</option>';
+}
+// Expose for inline onchange handlers (and any caller).
+window.nemFillProductions = nemFillProductions;
+window.nemFillShows = nemFillShows;
+
 function saveManualEvent() {
-  var production = document.getElementById('nem-production').value.trim();
-  var show       = document.getElementById('nem-show').value.trim();
+  var prodSel    = document.getElementById('nem-production');
+  var showSel    = document.getElementById('nem-showsel');
+  var productionId = prodSel ? prodSel.value : '';
+  var production = (prodSel && prodSel.selectedIndex > 0) ? prodSel.options[prodSel.selectedIndex].text : '';
+  var showId     = showSel ? showSel.value : '';
+  var showName   = (showSel && showSel.value) ? showSel.options[showSel.selectedIndex].text : '';
+  var show       = document.getElementById('nem-show').value.trim(); // event name
   var city       = document.getElementById('nem-city').value.trim();
   var venue      = document.getElementById('nem-venue').value.trim();
   var address    = document.getElementById('nem-address').value.trim();
   var seats      = parseInt(document.getElementById('nem-seats').value) || 0;
 
-  // Validate required fields
-  if (!show)  { alert('Show name is required.'); document.getElementById('nem-show').focus(); return; }
+  // Validate required fields — Production → Show → Event
+  if (!productionId) { alert('Select a production.'); if (prodSel) prodSel.focus(); return; }
+  if (!showId)       { alert('Select a show for this production.'); if (showSel) showSel.focus(); return; }
+  if (!show)  { alert('Event name is required.'); document.getElementById('nem-show').focus(); return; }
   if (!city)  { alert('City is required.'); document.getElementById('nem-city').focus(); return; }
   if (!venue) { alert('Venue is required.'); document.getElementById('nem-venue').focus(); return; }
   if (!_manualPDs.length) {
@@ -1814,13 +1850,13 @@ function saveManualEvent() {
   });
   var datesStr = sorted[0] === sorted[sorted.length-1] ? sorted[0] : sorted[0] + ' – ' + sorted[sorted.length-1];
 
-  // Push new event record
+  // Push new event record (linked to the chosen Production → Show)
   var newIdx = EVENTS.length;
-  EVENTS.push({ city:city, place:venue, show:show, dates:datesStr, seats:seats, production:production, address:address });
+  EVENTS.push({ city:city, place:venue, show:show, dates:datesStr, seats:seats, production:production, production_id:productionId, show_id:showId, showName:showName, address:address });
 
   // Push all play dates
   _manualPDs.forEach(function(pd){
-    PLAY_DATES.push({ date:pd.date, start:pd.start, end:pd.end, place:venue, event:pd.name, show:show, seats:seats, sale:pd.sale||false, idx:newIdx });
+    PLAY_DATES.push({ date:pd.date, start:pd.start, end:pd.end, place:venue, event:pd.name, show:show, showName:showName, production:production, production_id:productionId, show_id:showId, seats:seats, sale:pd.sale||false, idx:newIdx });
   });
 
   filteredDates = [...PLAY_DATES];
