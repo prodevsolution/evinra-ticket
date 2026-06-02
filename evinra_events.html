@@ -2111,14 +2111,45 @@ function importSelectedEMEvents() {
   closeNewEvent();
 }
 
-function saveEvent(){
-  if (currentEventIsEM || currentEventIsComplete) return; /* read-only */
-  const toast=document.getElementById('toast');
-  if(toast){
-    document.getElementById('toastMsg').textContent='Event saved successfully';
-    toast.classList.add('show');
-    clearTimeout(toast._t);
-    toast._t=setTimeout(()=>toast.classList.remove('show'),2200);
+function evNotify(text, ok){
+  var t=document.getElementById('toast'), m=document.getElementById('toastMsg');
+  if(!t||!m) return;
+  m.textContent=text;
+  t.classList.toggle('err', ok===false);
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(function(){ t.classList.remove('show'); t.classList.remove('err'); }, ok===false?3800:2400);
+}
+async function evDbPatch(table, id, body){
+  var r = await fetch(evDbBase() + '/' + table + '?_id=eq.' + encodeURIComponent(id), { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if(!r.ok){ var d = await r.json().catch(function(){ return {}; }); throw new Error((d && d.error) || ('PATCH ' + table + ' failed')); }
+  return true;
+}
+async function saveEvent(){
+  if (currentEventIsEM)       { evNotify('Imported (Evinra EM) events are read-only', false); return; }
+  if (currentEventIsComplete) { evNotify('Completed events are read-only', false); return; }
+  // Read edited Info fields
+  var venue   = ((document.getElementById('evPlace')   || {}).value || '').trim();
+  var city    = ((document.getElementById('evCity')    || {}).value || '').trim();
+  var address = ((document.getElementById('evAddress') || {}).value || '').trim();
+  var seats   = parseInt((document.getElementById('evSeats') || {}).value) || 0;
+  // Reflect locally so the open detail stays in sync
+  if (currentEvent) { currentEvent.place = venue; currentEvent.city = city; currentEvent.address = address; if (seats) currentEvent.seats = seats; }
+  var kids = (currentEvent && currentEvent._kids) || [];
+  if (!kids.length) { evNotify('Saved locally — this demo event has no database rows yet', true); return; }
+  evNotify('Saving…', true);
+  try {
+    var patch = { venue: venue, city: city, address: address };
+    if (seats) patch.seats = seats;
+    var n = 0;
+    for (var i = 0; i < kids.length; i++) {
+      var kid_id = kids[i]._id || kids[i].id;
+      if (kid_id) { await evDbPatch('events', kid_id, patch); n++; }
+    }
+    if (typeof filteredDates !== 'undefined') { renderPlayDateList && renderPlayDateList(); }
+    evNotify('Event saved (' + n + ' instance' + (n === 1 ? '' : 's') + ')', true);
+  } catch (err) {
+    evNotify("Couldn't save — " + err.message, false);
   }
 }
 
@@ -2529,7 +2560,7 @@ filterPlayDates();
   <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
   <span id="toastMsg">Saved</span>
 </div>
-<style>#toast.show{opacity:1;transform:translateY(0)}</style>
+<style>#toast.show{opacity:1;transform:translateY(0)}#toast.err{color:var(--red);border-color:var(--red-border)}</style>
 <!-- ══ RIDE / EXPERIENCE MODAL ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="rideModal" onclick="if(event.target===this)closeRideModal()">
   <div class="modal-card" style="width:520px">
