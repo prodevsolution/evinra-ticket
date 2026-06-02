@@ -1109,12 +1109,8 @@ function renderSegContent(tab){
       <div class="form-row full">
         <div class="form-field">
           <label class="form-label">Event Image</label>
-          <div class="upload-zone" onclick="document.getElementById('evImg').click()" style="border:1.5px dashed var(--border2);border-radius:8px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:var(--bg3)">
-            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span>
-            <p style="font-size:11px;color:var(--text3);font-family:var(--mono)">Drag files here or click to upload event banner</p>
-            <span style="font-size:10px;color:var(--p);text-decoration:underline">browse for files</span>
-          </div>
-          <input type="file" id="evImg" accept="image/*" style="display:none">
+          <div class="upload-zone" id="evImgZone" ondragover="evImgDragOver(event)" ondragleave="evImgDragLeave(event)" ondrop="evImgDrop(event)" onclick="if(!(currentEvent&&currentEvent.image))document.getElementById('evImg').click()" style="border:1.5px dashed var(--border2);border-radius:8px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:var(--bg3)">${evImgInner()}</div>
+          <input type="file" id="evImg" accept="image/*" style="display:none" onchange="evImgUpload(event)">
         </div>
       </div>`;
     if (currentEventIsEM || currentEventIsComplete) {
@@ -1912,6 +1908,36 @@ function nemPickGooglePlace(placeId){
   } catch(e) {}
 }
 window.nemPickGooglePlace = nemPickGooglePlace;
+
+// ── Event image upload (preview + store on the event) ──
+function evImgInner(){
+  if (currentEvent && currentEvent.image) {
+    return '<img src="'+currentEvent.image+'" alt="Event image" style="max-width:100%;max-height:170px;border-radius:6px;display:block">'
+      + '<div style="display:flex;gap:8px;margin-top:4px">'
+      + '<button type="button" class="btn btn-sm" onclick="event.stopPropagation();document.getElementById(\'evImg\').click()">Replace</button>'
+      + '<button type="button" class="btn btn-sm btn-red" onclick="event.stopPropagation();evImgRemove()">Remove</button>'
+      + '</div>';
+  }
+  return '<span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span>'
+    + '<p style="font-size:11px;color:var(--text3);font-family:var(--mono)">Drag an image here or click to upload event banner</p>'
+    + '<span style="font-size:10px;color:var(--p);text-decoration:underline">browse for files</span>';
+}
+function _evImgPaint(){ var z=document.getElementById('evImgZone'); if(z) z.innerHTML=evImgInner(); }
+function _evImgRead(file){
+  if (!file) return;
+  if (!/^image\//.test(file.type)) { alert('Please choose an image file (PNG, JPG, …).'); return; }
+  if (file.size > 5 * 1024 * 1024) { alert('Image is too large — max 5 MB.'); return; }
+  var rd = new FileReader();
+  rd.onload = function(){ if (currentEvent) currentEvent.image = rd.result; _evImgPaint(); };
+  rd.readAsDataURL(file);
+}
+function evImgUpload(e){ var f = e.target.files && e.target.files[0]; _evImgRead(f); e.target.value = ''; }
+function evImgRemove(){ if (currentEvent) currentEvent.image = null; var i=document.getElementById('evImg'); if(i) i.value=''; _evImgPaint(); }
+function evImgDragOver(e){ e.preventDefault(); var z=document.getElementById('evImgZone'); if(z) z.style.borderColor='var(--p)'; }
+function evImgDragLeave(e){ var z=document.getElementById('evImgZone'); if(z) z.style.borderColor='var(--border2)'; }
+function evImgDrop(e){ e.preventDefault(); evImgDragLeave(e); var f=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; _evImgRead(f); }
+window.evImgUpload = evImgUpload; window.evImgRemove = evImgRemove;
+window.evImgDragOver = evImgDragOver; window.evImgDragLeave = evImgDragLeave; window.evImgDrop = evImgDrop;
 window.nemVenueSearch = nemVenueSearch;
 window.nemPickPlace = nemPickPlace;
 // Hide the suggestions when clicking elsewhere.
