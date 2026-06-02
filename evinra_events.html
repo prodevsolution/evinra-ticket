@@ -2023,13 +2023,13 @@ function _isoDateTime(usDate, time){ // "MM/DD/YYYY","7:00 PM" → "YYYY-MM-DDT1
 }
 async function persistManualEvent(o){
   try {
-    // 1) Create the Show (the EVINRA "event") under the production.
     var pds = _manualPDs.slice();
-    var startAll = pds.map(function(p){ return _isoDateTime(p.date, p.start); }).filter(Boolean).sort();
-    var show = await evDbPost('shows', { production_id: o.productionId, name: o.eventName, status: 'active', start_at: startAll[0] || '', end_at: startAll[startAll.length-1] || '' });
-    var showId = show && (show._id || show.id);
-    if (!showId) throw new Error('No show id returned');
-    // 2) Create one event row per play date.
+    // Attach to the EXISTING show of the selected production (don't create a show).
+    var shows = await fetch(evDbBase() + '/shows').then(function(r){ return r.json(); }).catch(function(){ return []; });
+    var match = (shows || []).filter(function(s){ return String(s.production_id) === String(o.productionId); });
+    var showId = match[0] && (match[0].id || match[0]._id);
+    if (!showId) throw new Error('No show exists for that production — create it in Shows first.');
+    // Create one event instance per play date, under the existing show.
     for (var i = 0; i < pds.length; i++) {
       var pd = pds[i];
       await evDbPost('events', {
