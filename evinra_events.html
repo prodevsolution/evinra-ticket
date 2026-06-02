@@ -234,10 +234,10 @@ i[class*="hgi-"]{display:inline-flex;align-items:center;justify-content:center;l
 .addon-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:9px 10px;background:var(--bg3)}
 
 /* Event list row */
-.event-row{display:grid;grid-template-columns:100px 72px 72px 1fr 120px 65px 82px 72px 82px 90px;gap:0;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
-.event-row:hover{background:rgba(255,255,255,.02)}
-.event-cell{padding:14px 12px;font-size:12px;color:var(--text2)}
-.event-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 12px;background:var(--bg3);cursor:default}
+.event-row{display:grid;grid-template-columns:150px 1.5fr 1.1fr 72px 90px 138px 104px;gap:0;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.event-row:hover{background:rgba(255,255,255,.03)}
+.event-cell{padding:12px;font-size:12px;color:var(--text2);min-width:0}
+.event-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 12px;background:var(--bg3);cursor:default;position:sticky;top:0;z-index:2}
 
 /* Drawer (Edit Ticket) */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:500;display:none;justify-content:flex-end}
@@ -452,16 +452,13 @@ svg[stroke="currentColor"]{stroke:currentColor!important}
         <div class="card" style="border-radius:0;border:none;flex:1;display:flex;flex-direction:column;overflow-x:auto">
           <!-- header row -->
           <div class="event-row" style="cursor:default;flex-shrink:0">
-            <div class="event-cell hdr">Date</div>
-            <div class="event-cell hdr">Start Time</div>
-            <div class="event-cell hdr">End Time</div>
+            <div class="event-cell hdr">When</div>
             <div class="event-cell hdr">Event</div>
-            <div class="event-cell hdr">Show</div>
-            <div class="event-cell hdr">Seats</div>
+            <div class="event-cell hdr">Venue</div>
+            <div class="event-cell hdr" style="text-align:right">Seats</div>
             <div class="event-cell hdr">Source</div>
-            <div class="event-cell hdr">On Sale</div>
             <div class="event-cell hdr">Status</div>
-            <div class="event-cell hdr">Actions</div>
+            <div class="event-cell hdr" style="text-align:right">Actions</div>
           </div>
           <div id="playDateListBody"></div>
         </div>
@@ -893,22 +890,25 @@ function renderPlayDateList(){
       : evStatus==='open'     ? `<span class="badge" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)">Open</span>`
       : `<span class="badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">Waiting</span>`;
     return `<div class="event-row" onclick="openEvent(${p.idx},{date:'${p.date}',start:'${p.start}',end:'${p.end}',emId:'${p.emId||''}'})">
-      <div class="event-cell"><span style="font-family:var(--mono);font-size:11px;color:var(--text)">${p.date}</span></div>
-      <div class="event-cell"><span style="font-family:var(--mono);font-size:11px;color:var(--p);font-weight:600">${p.start}</span></div>
-      <div class="event-cell"><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${p.end}</span></div>
       <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px">
-        <span style="font-size:12px;color:var(--text);font-weight:500">${p.event}</span>
-        <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">${p.place}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:600">${p.date}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${p.start}${p.end?(' – '+p.end):''}</span>
       </div></div>
-      <div class="event-cell"><span style="font-size:11px;color:var(--text2)">${p.show}</span></div>
-      <div class="event-cell"><span style="font-family:var(--mono);font-size:12px;color:var(--text)">${p.seats.toLocaleString()}</span></div>
+      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+        <span style="font-size:12px;color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.show||''}</span>
+        <span style="font-size:10.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.event||''}</span>
+      </div></div>
+      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+        <span style="font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.place||'—'}</span>
+        <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">${p.city||''}</span>
+      </div></div>
+      <div class="event-cell" style="text-align:right"><span style="font-family:var(--mono);font-size:12px;color:var(--text)">${(p.seats||0).toLocaleString()}</span></div>
       <div class="event-cell">${p.emId
         ? `<span class="badge badge-teal" style="display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Evinra EM</span>`
         : `<span class="badge badge-muted">Manual</span>`
       }</div>
-      <div class="event-cell">${sw}</div>
-      <div class="event-cell">${stBadge}</div>
-      <div class="event-cell"><div class="act-wrap">
+      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">${sw}${stBadge}</div></div>
+      <div class="event-cell"><div class="act-wrap" style="justify-content:flex-end">
         <div class="act-btn" onclick="event.stopPropagation();openEvent(${p.idx},{date:'${p.date}',start:'${p.start}',end:'${p.end}',emId:'${p.emId||''}'})" title="Configure"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span></div>
         <div class="act-btn amber" onclick="event.stopPropagation()" title="Toggle On Sale"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
         <div class="act-btn red" onclick="event.stopPropagation();deletePlayDate(${PLAY_DATES.indexOf(p)})" title="Delete function"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span></div>
