@@ -1087,8 +1087,8 @@ function renderSegContent(tab){
         <div class="form-field"><label class="form-label">Full Address</label><input class="form-input" id="evAddress" value="${(currentEvent&&currentEvent.address)||''}" placeholder="Full venue address"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label class="form-label">Start Date</label><input type="date" class="form-input" id="evStart" value="${(()=>{ const d=(currentEvent&&currentEvent.dates||'').split('–')[0].trim(); if(!d) return ''; const p=d.split('/'); return p.length===3?p[2]+'-'+p[0]+'-'+p[1]:''; })()}"></div>
-        <div class="form-field"><label class="form-label">End Date</label><input type="date" class="form-input" id="evEnd" value="${(()=>{ const d=(currentEvent&&currentEvent.dates||'').split('–')[1]||''; const t=d.trim(); if(!t) return ''; const p=t.split('/'); return p.length===3?p[2]+'-'+p[0]+'-'+p[1]:''; })()}"></div>
+        <div class="form-field"><label class="form-label">Start Date</label><input type="date" class="form-input" id="evStart" value="${_evInstISO(0)}"></div>
+        <div class="form-field"><label class="form-label">End Date</label><input type="date" class="form-input" id="evEnd" value="${_evInstISO(1)}"></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label class="form-label">Total Seats</label>
@@ -1109,7 +1109,7 @@ function renderSegContent(tab){
       <div class="form-row full">
         <div class="form-field">
           <label class="form-label">Event Image</label>
-          <div class="upload-zone" id="evImgZone" ondragover="evImgDragOver(event)" ondragleave="evImgDragLeave(event)" ondrop="evImgDrop(event)" onclick="if(!(currentEvent&&currentEvent.image))document.getElementById('evImg').click()" style="border:1.5px dashed var(--border2);border-radius:8px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:var(--bg3)">${evImgInner()}</div>
+          <div class="upload-zone" id="evImgZone" ondragover="evImgDragOver(event)" ondragleave="evImgDragLeave(event)" ondrop="evImgDrop(event)" onclick="evImgPick()" style="border:1.5px dashed var(--border2);border-radius:8px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:var(--bg3)">${evImgInner()}</div>
           <input type="file" id="evImg" accept="image/*" style="display:none" onchange="evImgUpload(event)">
         </div>
       </div>`;
@@ -1922,6 +1922,14 @@ function evImgInner(){
     + '<p style="font-size:11px;color:var(--text3);font-family:var(--mono)">Drag an image here or click to upload event banner</p>'
     + '<span style="font-size:10px;color:var(--p);text-decoration:underline">browse for files</span>';
 }
+function evImgPick(){ if(!(currentEvent && currentEvent.image)){ var i=document.getElementById('evImg'); if(i) i.click(); } }
+// Start/End for the Info tab = the opened instance (single-day play date); fall back to the event-level range.
+function _mdyToISO(s){ var t=String(s||'').trim(); if(!t) return ''; var p=t.split('/'); return p.length===3 ? p[2]+'-'+p[0]+'-'+p[1] : ''; }
+function _evInstISO(which){
+  if (currentPlayDate && currentPlayDate.date) return _mdyToISO(currentPlayDate.date);
+  var parts = String((currentEvent && currentEvent.dates) || '').split('–');
+  return _mdyToISO(parts[which] || parts[0] || '');
+}
 function _evImgPaint(){ var z=document.getElementById('evImgZone'); if(z) z.innerHTML=evImgInner(); }
 function _evImgRead(file){
   if (!file) return;
@@ -1936,7 +1944,7 @@ function evImgRemove(){ if (currentEvent) currentEvent.image = null; var i=docum
 function evImgDragOver(e){ e.preventDefault(); var z=document.getElementById('evImgZone'); if(z) z.style.borderColor='var(--p)'; }
 function evImgDragLeave(e){ var z=document.getElementById('evImgZone'); if(z) z.style.borderColor='var(--border2)'; }
 function evImgDrop(e){ e.preventDefault(); evImgDragLeave(e); var f=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; _evImgRead(f); }
-window.evImgUpload = evImgUpload; window.evImgRemove = evImgRemove;
+window.evImgUpload = evImgUpload; window.evImgRemove = evImgRemove; window.evImgPick = evImgPick;
 window.evImgDragOver = evImgDragOver; window.evImgDragLeave = evImgDragLeave; window.evImgDrop = evImgDrop;
 window.nemVenueSearch = nemVenueSearch;
 window.nemPickPlace = nemPickPlace;
