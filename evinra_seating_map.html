@@ -1018,6 +1018,11 @@ document.addEventListener('DOMContentLoaded', () => {
   var pf=document.getElementById('filterProduction');
   if(pf && window.EVINRA){ pf.innerHTML='<option value="">All Productions</option>'+EVINRA.productions.map(function(p){return '<option>'+p.name+'</option>';}).join(''); }
   loadLayouts();
+  // Prefill the seats.io region from the backend env config so the designer targets
+  // the right workspace (the secret key is still entered in-page, never served by the API).
+  fetch(smDbBase().replace('/api/db','/api/seatsio/status')).then(function(r){return r.json();}).then(function(c){
+    if(c && c.region){ seatsRegion=c.region; try{ localStorage.setItem('seatsio_region', c.region); }catch(e){} }
+  }).catch(function(){});
   // Show API banner if no key configured
   if (!seatsKey) document.getElementById('apiBanner').style.display = 'flex';
 });
