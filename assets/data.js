@@ -26,6 +26,7 @@
   function us(y,m,d){ return pad(m+1) + '/' + pad(d) + '/' + y; }
   function shortDate(m,d){ return MONTHS_SHORT[m] + ' ' + d; }       // "Aug 25"
   function weekday(y,m,d){ return DAYS_SHORT[new Date(y,m,d).getDay()]; }
+  function fmtTime(hh,mm){ var h=+hh, ap=h>=12?'PM':'AM', h12=(h%12)||12; return h12 + ':' + (mm||'00') + ' ' + ap; } // "19","00" → "7:00 PM"
   function oid(n){ return (('00000' + n.toString(16)).slice(-6) + 'a1b2c3d4e5f60718293a4b5c').slice(0,24); }
 
   /* ── Synthesis palettes (for fields the shared DB doesn't carry) ── */
@@ -160,10 +161,18 @@
         days = parsed.slice(0, 3).map(function (x) { return x.d; });
         if (!days.length) days = [15,17,19];
       }
+      // Manual events (created from the Ticket System) carry real venue/city/seats.
+      var manualKid = kids.filter(function (k) { return k.venue; })[0];
       return {
-        id:sh.id, showId:sh.production_id, city:cm.city, state:cm.state, venue:cm.venue,
-        year:year, month:month, days:days, seats:SEATSET[i % SEATSET.length],
-        soldPct:0, status:'On Sale', _eventIds:kids.map(function (e) { return e.id; })
+        id:sh.id, showId:sh.production_id,
+        city:(manualKid && manualKid.city) || cm.city,
+        state:cm.state,
+        venue:(manualKid && manualKid.venue) || cm.venue,
+        year:year, month:month, days:days,
+        seats:(manualKid && manualKid.seats) || SEATSET[i % SEATSET.length],
+        soldPct:0, status:'On Sale',
+        _eventIds:kids.map(function (e) { return e.id; }),
+        _kids:kids
       };
     });
 
@@ -225,7 +234,8 @@
         seats:e.seats, soldPct:soldPct, status:status,
         sessionsCount:sessionsCount, capacityTotal:capacityTotal,
         ticketsSold:ticketsSold, avgPrice:avgPrice, revenue:revenue,
-        priceFrom:show.priceFrom, color:show.color, token:show.token, type:show.type
+        priceFrom:show.priceFrom, color:show.color, token:show.token, type:show.type,
+        _kids:e._kids || null
       };
     });
     var eventById = {}; events.forEach(function (e) { eventById[e.id] = e; });
@@ -233,6 +243,27 @@
     /* play dates (flattened) */
     var playDates = [];
     events.forEach(function (e) {
+      // Manual events: use the REAL DB event rows (date/time/function name/venue).
+      var realKids = (e._kids || []).filter(function (k) { return k.venue && k.start_at; });
+      if (realKids.length) {
+        realKids.forEach(function (k) {
+          var m = String(k.start_at).match(/(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+          if (!m) return;
+          var y=+m[1], mo=+m[2]-1, dd=+m[3];
+          var startT = (m[4] != null) ? fmtTime(m[4], m[5]) : '7:00 PM';
+          var em = String(k.end_at || '').match(/[T ](\d{2}):(\d{2})/);
+          var endT = em ? fmtTime(em[1], em[2]) : '';
+          var fn = k.function_name || k.name || (us(y,mo,dd));
+          playDates.push({
+            eventId:e.id, idx:e.idx, show:e.showName, production:e.productionId,
+            city:k.city || e.city, state:e.state, place:k.venue, venue:k.venue,
+            date:us(y,mo,dd), iso:iso(y,mo,dd), day:dd, weekday:weekday(y,mo,dd),
+            start:startT, end:endT, event:fn, label:fn,
+            seats:k.seats || e.seats, sale:(String(k.status||'').toLowerCase().indexOf('sale')>=0 || String(k.status||'').toLowerCase()==='on sale'), status:(k.status||e.status)
+          });
+        });
+        return;
+      }
       e.dates.forEach(function (d) {
         d.sessions.forEach(function (s) {
           var label = e.city + ' — ' + d.short + ' · ' + s.start;

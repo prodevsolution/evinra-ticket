@@ -1989,8 +1989,63 @@ function saveManualEvent() {
 
   filteredDates = [...PLAY_DATES];
   renderPlayDateList();
+
+  // ── Persist to the shared DB: a new Show under the production + its events ──
+  // (showId from the cascade is the DB production id; the new event = a DB show.)
+  persistManualEvent({ productionId: showId, eventName: show, venue: venue, city: city, address: address, seats: seats, image: (currentEvent && currentEvent.image) || '' });
+
   closeNewEvent();
   openEvent(newIdx, _manualPDs[0]);
+}
+
+// DB base + POST helper (mirrors data.js host logic).
+function evDbBase(){
+  var h = location.hostname, local = (h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:');
+  return (window.EVINRA_DB_URL ? String(window.EVINRA_DB_URL).replace(/\/+$/, '') : (local ? 'http://localhost:4000' : 'https://web-production-93df6.up.railway.app')) + '/api/db';
+}
+async function evDbPost(table, body){
+  var r = await fetch(evDbBase() + '/' + table, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  var d = await r.json().catch(function(){ return {}; });
+  if (!r.ok) throw new Error((d && d.error) || ('POST ' + table + ' failed'));
+  return Array.isArray(d) ? d[0] : d; // the CRUD API returns the created doc(s) as an array
+}
+function _to24(t){ // "7:00 PM" / "19:00" → "19:00"
+  t = String(t || '').trim(); if (!t) return '';
+  var m = t.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])?$/); if (!m) return t;
+  var h = +m[1], ap = (m[3] || '').toUpperCase();
+  if (ap === 'PM' && h < 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
+  return (h < 10 ? '0' + h : h) + ':' + m[2];
+}
+function _isoDateTime(usDate, time){ // "MM/DD/YYYY","7:00 PM" → "YYYY-MM-DDT19:00"
+  var p = String(usDate).split('/'); if (p.length !== 3) return '';
+  var t = _to24(time);
+  return p[2] + '-' + p[0] + '-' + p[1] + (t ? ('T' + t) : '');
+}
+async function persistManualEvent(o){
+  try {
+    // 1) Create the Show (the EVINRA "event") under the production.
+    var pds = _manualPDs.slice();
+    var startAll = pds.map(function(p){ return _isoDateTime(p.date, p.start); }).filter(Boolean).sort();
+    var show = await evDbPost('shows', { production_id: o.productionId, name: o.eventName, status: 'active', start_at: startAll[0] || '', end_at: startAll[startAll.length-1] || '' });
+    var showId = show && (show._id || show.id);
+    if (!showId) throw new Error('No show id returned');
+    // 2) Create one event row per play date.
+    for (var i = 0; i < pds.length; i++) {
+      var pd = pds[i];
+      await evDbPost('events', {
+        name: o.eventName, show_id: showId,
+        start_at: _isoDateTime(pd.date, pd.start), end_at: _isoDateTime(pd.date, pd.end),
+        status: pd.sale ? 'on sale' : 'draft',
+        venue: o.venue, city: o.city, address: o.address, seats: o.seats,
+        function_name: pd.name || '', description: o.image ? 'has-image' : ''
+      });
+    }
+    if (typeof showToast === 'function') showToast('Event saved to the database', 'success');
+    else { var t=document.getElementById('toast'); if(t){ document.getElementById('toastMsg').textContent='Event saved'; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},2200);} }
+  } catch (err) {
+    console.warn('persistManualEvent failed:', err);
+    var t=document.getElementById('toast'); if(t){ document.getElementById('toastMsg').textContent='Saved locally — DB save failed: '+err.message; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},3500);}
+  }
 }
 
 function switchNewEventTab(tab) {
