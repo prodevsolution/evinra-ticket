@@ -891,16 +891,47 @@ let activeLayout = null;
 let deleteTarget = null;
 let cloneTarget  = null;
 
-/* ── Layout data ────────────────────────────────────────── */
-/* Layouts derive from the canonical dataset (assets/data.js) — one per show */
-const layouts = EVINRA.shows.map(function(s,i){
-  var prod = EVINRA.getProduction(s.productionId);
-  var evs  = EVINRA.eventsForShow(s.id);
-  return { id:i+1, key:s.id, name:s.name+' — Main Layout', layoutId:'layout-'+(i+1),
-    description:s.type+' seating layout for '+s.name, type:s.type+' – Reserved Seating',
-    seats:(evs[0]?evs[0].seats:5000), createdAt:'01/05/2026 10:00', events:evs.length,
-    status:'published', production:prod.name };
-});
+/* ── Layout data — persisted per tenant (Settings → Layout Management) ───── */
+let layouts = [];
+
+/* DB helpers (mirror the generic CRUD client used elsewhere) */
+function smDbBase(){
+  var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:');
+  return (window.EVINRA_DB_URL ? String(window.EVINRA_DB_URL).replace(/\/+$/,'') : (local ? 'http://localhost:4000' : 'https://web-production-93df6.up.railway.app')) + '/api/db';
+}
+var SM_TENANT = (window.EVINRA && EVINRA.tenantId) || (typeof localStorage!=='undefined' ? localStorage.getItem('evinra-tenant-id') : '') || '';
+async function smGet(path){ try{ var r=await fetch(smDbBase()+path); return await r.json(); }catch(e){ return []; } }
+async function smPost(table, body){ var r=await fetch(smDbBase()+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); var d=await r.json().catch(function(){return {};}); if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }
+async function smPatch(id, body){ var r=await fetch(smDbBase()+'/layouts?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'PATCH failed'); } return true; }
+async function smDelete(id){ var r=await fetch(smDbBase()+'/layouts?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'DELETE failed'); } return true; }
+
+/* First-run seed: one layout per show from the dataset, so the catalog isn't empty */
+function _seedLayoutDocs(){
+  return (EVINRA.shows||[]).map(function(s){
+    var prod = EVINRA.getProduction(s.productionId);
+    var evs  = EVINRA.eventsForShow(s.id);
+    return { tenant_id:SM_TENANT, name:s.name+' — Main Layout', description:s.type+' seating layout for '+s.name,
+      type:s.type+' – Reserved Seating', production:prod?prod.name:'', seats:(evs[0]?evs[0].seats:5000),
+      status:'published', key:'layout-'+s.id };
+  });
+}
+function _smFmtDate(v){ if(!v) return fmtNow(); try{ var d=new Date(v); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }catch(e){ return fmtNow(); } }
+function mapLayoutDoc(doc,i){ return { id:i+1, _dbId:doc.id||doc._id, key:doc.key||'', name:doc.name, layoutId:doc.key||null,
+  description:doc.description||'', type:doc.type||'', seats:doc.seats||0, createdAt:_smFmtDate(doc.created_at),
+  events:0, status:doc.status||'draft', production:doc.production||'' }; }
+
+async function loadLayouts(){
+  var docs = await smGet('/layouts?tenant_id=eq.'+encodeURIComponent(SM_TENANT));
+  if(!Array.isArray(docs)) docs=[];
+  if(!docs.length && SM_TENANT){
+    var seeds=_seedLayoutDocs();
+    for(var i=0;i<seeds.length;i++){ try{ await smPost('layouts', seeds[i]); }catch(e){} }
+    docs = await smGet('/layouts?tenant_id=eq.'+encodeURIComponent(SM_TENANT));
+    if(!Array.isArray(docs)) docs=[];
+  }
+  layouts = docs.map(mapLayoutDoc);
+  renderTable();
+}
 const _layouts_legacy = [
   {
     id: 1,
@@ -986,7 +1017,7 @@ let nextId = 4; // next available id after id:3
 document.addEventListener('DOMContentLoaded', () => {
   var pf=document.getElementById('filterProduction');
   if(pf && window.EVINRA){ pf.innerHTML='<option value="">All Productions</option>'+EVINRA.productions.map(function(p){return '<option>'+p.name+'</option>';}).join(''); }
-  renderTable();
+  loadLayouts();
   // Show API banner if no key configured
   if (!seatsKey) document.getElementById('apiBanner').style.display = 'flex';
 });
@@ -1163,7 +1194,7 @@ function changeLayoutStatus(status) {
   fb.textContent = 'Saving…';
   fb.style.opacity = '1';
 
-  setTimeout(() => {
+  smPatch(activeLayout._dbId, { status: status }).then(async () => {
     activeLayout.status = status;
 
     /* Sync header + side badges */
@@ -1175,13 +1206,19 @@ function changeLayoutStatus(status) {
     /* Show/hide publish hint */
     document.getElementById('dpPublishHint').style.display = status === 'draft' ? 'block' : 'none';
 
-    renderTable();
+    await loadLayouts();
 
     document.getElementById('dpStatusDraft').disabled     = false;
     document.getElementById('dpStatusPublished').disabled = false;
     fb.textContent = status === 'published' ? '✓ Set to Published' : '✓ Set to Draft';
     setTimeout(() => { fb.style.opacity = '0'; setTimeout(() => { fb.textContent = ''; }, 200); }, 1800);
-  }, 350);
+  }).catch(err => {
+    document.getElementById('dpStatusDraft').disabled     = false;
+    document.getElementById('dpStatusPublished').disabled = false;
+    fb.textContent = '';
+    setLayoutStatus(activeLayout.status);
+    showToast('Could not update status', err.message, 'error');
+  });
 }
 
 /* ── Save layout details ────────────────────────────────── */
@@ -1199,20 +1236,24 @@ function saveLayoutDetails() {
   btn.disabled = true;
   btn.innerHTML = '<span class="btn-spinner"></span>Saving…';
 
-  setTimeout(() => {
-    activeLayout.name        = name;
-    activeLayout.description = document.getElementById('dpDescInput').value.trim();
-    activeLayout.production  = document.getElementById('dpProdInput').value;
-    activeLayout.type        = document.getElementById('dpTypeInput').value;
-
-    // Sync header name
+  const patch = {
+    name: name,
+    description: document.getElementById('dpDescInput').value.trim(),
+    production:  document.getElementById('dpProdInput').value,
+    type:        document.getElementById('dpTypeInput').value,
+  };
+  smPatch(activeLayout._dbId, patch).then(async () => {
+    Object.assign(activeLayout, patch);
     document.getElementById('doChartName').textContent = name;
-    renderTable();
-
+    await loadLayouts();
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-check2"></i>Save Changes';
     showToast('Layout updated', `"${name}" saved successfully`, 'success');
-  }, 500);
+  }).catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check2"></i>Save Changes';
+    showToast('Could not save layout', err.message, 'error');
+  });
 }
 
 function initDesigner(chartKey) {
@@ -1374,28 +1415,22 @@ function submitNewLayout() {
   btn.disabled = true;
   btn.innerHTML = '<span class="btn-spinner"></span>Creating…';
 
-  // Simulate async (replace with real API call)
-  setTimeout(() => {
-    const layout = {
-      id: nextId++,
-      key: 'SIO-NEW-' + Date.now().toString(36).toUpperCase(),
-      name,
-      layoutId: null,
-      description: document.getElementById('nlDesc').value.trim(),
-      type: document.getElementById('nlType').value || 'Custom',
-      seats: 0,
-      createdAt: fmtNow(),
-      events: 0,
-      status: 'draft',
-      production: prod,
-    };
-    layouts.unshift(layout);
+  smPost('layouts', {
+    tenant_id: SM_TENANT, name: name,
+    description: document.getElementById('nlDesc').value.trim(),
+    type: document.getElementById('nlType').value || 'Custom',
+    production: prod, seats: 0, status: 'draft', key: ''
+  }).then(async () => {
+    await loadLayouts();
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-plus-lg" style="font-size:12px"></i>Create';
     closeNewLayout();
-    renderTable();
     showToast(`"${name}" created`, 'Draft — open in Designer to configure and publish', 'success');
-  }, 600);
+  }).catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-plus-lg" style="font-size:12px"></i>Create';
+    showToast('Could not create layout', err.message, 'error');
+  });
 }
 
 /* ── Clone Layout ───────────────────────────────────────── */
@@ -1431,28 +1466,23 @@ function submitCloneLayout() {
   btn.disabled = true;
   btn.innerHTML = '<span class="btn-spinner"></span>Cloning…';
 
-  setTimeout(() => {
-    const clone = {
-      ...cloneTarget,
-      id: nextId++,
-      key: 'SIO-CLN-' + Date.now().toString(36).toUpperCase(),
-      name,
-      description: document.getElementById('clDesc').value.trim(),
-      type: document.getElementById('clType').value,
-      production: document.getElementById('clProduction').value,
-      createdAt: fmtNow(),
-      events: 0,
-      status: 'draft',
-      layoutId: null,
-    };
-    const idx = layouts.findIndex(l => l.id === cloneTarget.id);
-    layouts.splice(idx + 1, 0, clone);
+  smPost('layouts', {
+    tenant_id: SM_TENANT, name: name,
+    description: document.getElementById('clDesc').value.trim(),
+    type: document.getElementById('clType').value,
+    production: document.getElementById('clProduction').value,
+    seats: 0, status: 'draft', key: ''
+  }).then(async () => {
+    await loadLayouts();
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-copy" style="font-size:12px"></i>Create Clone';
     closeCloneLayout();
-    renderTable();
     showToast(`"${name}" cloned`, 'Draft copy ready — open in Designer to configure', 'success');
-  }, 600);
+  }).catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-copy" style="font-size:12px"></i>Create Clone';
+    showToast('Could not clone layout', err.message, 'error');
+  });
 }
 
 /* ── Event List ─────────────────────────────────────────── */
@@ -1491,11 +1521,12 @@ function closeDelete() { document.getElementById('delModal').classList.remove('o
 function executeDelete() {
   if (!deleteTarget) return;
   const name = deleteTarget.name;
-  const idx = layouts.findIndex(l => l.id === deleteTarget.id);
-  if (idx !== -1) layouts.splice(idx, 1);
+  const dbId = deleteTarget._dbId;
   closeDelete();
-  renderTable();
-  showToast(`"${name}" deleted`, 'Layout removed permanently', 'warn');
+  smDelete(dbId).then(async () => {
+    await loadLayouts();
+    showToast(`"${name}" deleted`, 'Layout removed permanently', 'warn');
+  }).catch(err => showToast('Could not delete layout', err.message, 'error'));
 }
 
 /* ── Assign to Event ────────────────────────────────────── */

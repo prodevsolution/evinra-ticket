@@ -1332,10 +1332,6 @@ function renderSegContent(tab){
             <div style="position:relative">
               <select id="layoutSelect" onchange="onLayoutChange()" style="width:100%;appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:8px 32px 8px 12px;outline:none;cursor:pointer">
                 <option value="">-- Select a layout --</option>
-                <option value="ga">General Admission — 2,500 capacity</option>
-                <option value="reserved">Reserved Seating — 1,800 seats</option>
-                <option value="festival">Festival Layout — 5,000 capacity</option>
-                <option value="theatre">Theatre Style — 1,200 seats</option>
               </select>
               <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
             </div>
@@ -1422,9 +1418,12 @@ function renderSegContent(tab){
           <div id="zonesTableBody"></div>
         </div>
       </div>`;
-    // Pre-select if already chosen
-    const sel = document.getElementById('layoutSelect');
-    if(sel && currentLayout) { sel.value = currentLayout; onLayoutChange(); }
+    // Populate the dropdown from Settings → Layout Management (persisted, tenant-scoped),
+    // then pre-select the event's saved layout.
+    evFillLayoutSelect().then(function(){
+      const sel = document.getElementById('layoutSelect');
+      if(sel && currentLayout){ sel.value = currentLayout; onLayoutChange(); }
+    });
   }
 
   else if(tab==='visibility'){
@@ -1969,17 +1968,8 @@ function _evInstISO(which){
 // ── Per-event tab config helpers (Tickets / Add-Ons / Fees / Taxes / Layout) ──
 function _evCloneCfg(arr){ return (arr||[]).map(function(o){ return Object.assign({}, o); }); }
 function _evNextId(arr){ var m=0; (arr||[]).forEach(function(o){ if(+o.id>m) m=+o.id; }); return m+1; }
-function _evApplyLayout(cfg){
-  currentLayout = (cfg && cfg.selected) || '';
-  if (currentLayout && LAYOUTS[currentLayout] && cfg && cfg.zones){
-    LAYOUTS[currentLayout].zones.forEach(function(z){ if (cfg.zones[z.id] != null) z.visible = !!cfg.zones[z.id]; });
-  }
-}
-function _evCollectLayout(){
-  if (!currentLayout || !LAYOUTS[currentLayout]) return null;
-  var zones = {}; LAYOUTS[currentLayout].zones.forEach(function(z){ zones[z.id] = !!z.visible; });
-  return { selected: currentLayout, zones: zones };
-}
+function _evApplyLayout(cfg){ currentLayout = (cfg && cfg.selected) || ''; }
+function _evCollectLayout(){ return currentLayout ? { selected: currentLayout } : null; }
 // Seed every tab's working copy from the opened event's saved config (or template defaults)
 function _evSeedTabs(){
   TICKETS   = _evCloneCfg((currentEvent && currentEvent.tickets && currentEvent.tickets.length) ? currentEvent.tickets : DEFAULT_TICKETS);   ticketNextId = _evNextId(TICKETS);
@@ -2560,24 +2550,30 @@ const LAYOUTS = {
 };
 const ZONE_COLOR={'GA':'var(--p)','Reserved':'var(--blue)','VIP':'var(--violet)','ADA':'var(--amber)','Staff':'var(--text3)'};
 
+/* Layouts come from Settings → Layout Management (persisted, tenant-scoped, published only) */
+let EV_LAYOUTS = [];
+async function evFillLayoutSelect(){
+  const sel=document.getElementById('layoutSelect'); if(!sel) return;
+  try{
+    const tid=(window.EVINRA&&EVINRA.tenantId)||(localStorage.getItem('evinra-tenant-id'))||'';
+    const r=await fetch(evDbBase()+'/layouts?tenant_id=eq.'+encodeURIComponent(tid)+'&status=eq.published');
+    EV_LAYOUTS=await r.json(); if(!Array.isArray(EV_LAYOUTS)) EV_LAYOUTS=[];
+  }catch(e){ EV_LAYOUTS=[]; }
+  sel.innerHTML='<option value="">-- Select a layout --</option>'+EV_LAYOUTS.map(function(l){
+    var cap=(l.seats>0)?(' — '+(l.seats).toLocaleString()+' seats'):'';
+    return '<option value="'+(l.id||l._id)+'">'+(l.name||'Layout')+cap+'</option>';
+  }).join('');
+}
 function onLayoutChange(){
   const sel=document.getElementById('layoutSelect'); if(!sel)return;
   currentLayout=sel.value;
-  const layout=LAYOUTS[currentLayout];
+  const L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
   const zc=document.getElementById('layoutZoneCount');
-  const placeholder=document.getElementById('seatsioPlaceholder');
-  const frame=document.getElementById('seatsioFrame');
   const sec=document.getElementById('layoutZonesSection');
-  if(!layout){
-    if(zc)zc.textContent='Select a layout to see zones';
-    if(frame){frame.src='';frame.style.display='none';}
-    if(placeholder)placeholder.style.display='flex';
-    if(sec)sec.style.display='none'; return;
-  }
-  if(zc)zc.textContent=`${layout.zones.length} zones · ${layout.capacity.toLocaleString()} total capacity`;
-  // Don't reload iframe if already showing a chart — just update zones table
-  if(sec)sec.style.display='flex';
-  renderZonesTable();
+  if(!L){ if(zc)zc.textContent='Select a layout to see details'; if(sec)sec.style.display='none'; return; }
+  if(zc)zc.textContent=(L.seats>0?(L.seats.toLocaleString()+' seats'):'Capacity set in designer')+' · '+(L.type||'Layout')+(L.status?(' · '+L.status):'');
+  // DB layouts use the seats.io designer; the inline EVINRA zone list no longer applies
+  if(sec)sec.style.display='none';
 }
 
 function renderZonesTable(){
@@ -2625,7 +2621,7 @@ function closeSeatsioDesigner(){
 window.loadSeatsioDesigner = loadSeatsioDesigner;
 window.closeSeatsioDesigner = closeSeatsioDesigner;
 
-window.onLayoutChange=onLayoutChange; window.toggleZone=toggleZone;
+window.onLayoutChange=onLayoutChange; window.toggleZone=toggleZone; window.evFillLayoutSelect=evFillLayoutSelect;
 
 window.openRideModal=openRideModal; window.saveRide=saveRide; window.closeRideModal=closeRideModal;
 window.rideToggle=rideToggle; window.deleteRide=deleteRide;
