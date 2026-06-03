@@ -1624,6 +1624,23 @@ select:focus{border-color:var(--p-border)}
 
 <script>
 /* ══════════════════════════════════════════════════════════════ */
+/* SHARED DB HELPERS — General Settings catalog persistence        */
+/* All tabs (products, rides, categories, gateways, devices, etc.) */
+/* read/write their own DB collection, scoped to the signed-in     */
+/* tenant. Defined early so every later <script> block can use them.*/
+/* ══════════════════════════════════════════════════════════════ */
+window.GDB_BASE = (function(){
+  var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:');
+  return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db';
+})();
+window.GDB_TENANT = (typeof localStorage!=='undefined' ? localStorage.getItem('evinra-tenant-id') : '') || '';
+window.gdbGetSync = function(table, qs){ try{ var x=new XMLHttpRequest(); x.open('GET', window.GDB_BASE+'/'+table+(qs?('?'+qs):''), false); x.send(null); return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[]; }catch(e){ return []; } };
+window.gdbScoped = function(table){ return window.gdbGetSync(table, window.GDB_TENANT ? ('tenant_id=eq.'+encodeURIComponent(window.GDB_TENANT)) : ''); };
+window.gdbPost = function(table, body){ var b=Object.assign({tenant_id:window.GDB_TENANT}, body); return fetch(window.GDB_BASE+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }); }); };
+window.gdbPatch = function(table, id, body){ return fetch(window.GDB_BASE+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(d){ throw new Error((d&&d.error)||'PATCH failed'); }); return true; }); };
+window.gdbDelete = function(table, id){ return fetch(window.GDB_BASE+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(d){ throw new Error((d&&d.error)||'DELETE failed'); }); return true; }); };
+
+/* ══════════════════════════════════════════════════════════════ */
 /* MISSING FUNCTION DEFINITIONS - ADDED FOR COMPATIBILITY */
 /* ══════════════════════════════════════════════════════════════ */
 function confirmGenDelete(){if(genDeleteCb)genDeleteCb();closeGenDelete();}
@@ -2276,7 +2293,7 @@ function confirmEMDisconnect(){
 <script>
 /* ── PRODUCTS CRUD ─────────────────────────── */
 const _PIC = c => `https://picsum.photos/seed/${c}/100/100`;
-const GEN_PRODUCTS = [
+const _GEN_PRODUCTS_DEMO = [
   // ── Concession — Foods — Snow Cones ──────────────────────────────────
   {code:'CSC001', name:'SNO CONE LIGHT CUP',        mainCat:'Concession',cat:'Foods',subCat:'Snow Cones',  price:14.00,active:true,inherited:true,image:_PIC('CSC001')},
   // Concession — Foods — Cotton Candy
@@ -2396,6 +2413,13 @@ const GEN_PRODUCTS = [
   // ── Other ────────────────────────────────────────────────────────────
   {code:'MVP0009',name:'OTHER',                      mainCat:'Other',   cat:'Other',  subCat:'Other',       price:10.00,active:true,inherited:true,image:_PIC('MVP0009')},
 ];
+
+/* Products persist in the DB `products` collection (per tenant). */
+let GEN_PRODUCTS = (window.gdbScoped('products')||[]).map(function(p){
+  return { _srcId:(p.id||p._id), code:p.code||'', name:p.name||'', mainCat:p.main_cat||'',
+    cat:p.cat||'', subCat:p.sub_cat||'', price:Number(p.price)||0,
+    active:(p.active!==0 && p.active!==false), inherited:false, image:p.image||'' };
+});
 
 // ── EM Catalog: full product list from Event Management Module (superset of GEN_PRODUCTS)
 // Items whose code does NOT exist in GEN_PRODUCTS appear in the "Import from EM" picker
@@ -2704,13 +2728,23 @@ function saveProduct(){
   const image=document.getElementById('pImgZone').dataset.imgData||'';
   if(!name){alert('Item name is required.');return;}
   if(!mainCat){alert('Main category is required.');return;}
+  const finalCode = code || pEditCode || ('LOC'+Date.now());
+  const body = { name:name, code:finalCode, main_cat:mainCat, cat:cat, sub_cat:subCat, price:price, active:active?1:0, image:image };
   if(pEditCode){
     const p=GEN_PRODUCTS.find(x=>x.code===pEditCode);
-    if(p)Object.assign(p,{name,code:code||pEditCode,mainCat,cat,subCat,price,active,image:image||p.image||''});
-  }else{
-    GEN_PRODUCTS.push({code:code||'LOC'+Date.now(),name,mainCat,cat,subCat,price,active,image,inherited:false});
+    const srcId = p ? p._srcId : null;
+    if(!srcId){ alert('Could not save: missing record id'); return; }
+    window.gdbPatch('products', srcId, body).then(function(){
+      if(p) Object.assign(p,{name,code:finalCode,mainCat,cat,subCat,price,active,image:image||p.image||''});
+      closeProductModal(); renderProductsTable();
+    }).catch(function(e){ alert('Could not save product: '+e.message); });
+  } else {
+    window.gdbPost('products', body).then(function(created){
+      const id = created && (created.id||created._id);
+      GEN_PRODUCTS.push({_srcId:id, code:finalCode, name:name, mainCat:mainCat, cat:cat, subCat:subCat, price:price, active:active, image:image, inherited:false});
+      closeProductModal(); renderProductsTable();
+    }).catch(function(e){ alert('Could not create product: '+e.message); });
   }
-  closeProductModal();renderProductsTable();
 }
 /* ── PRODUCT SALES / ASSIGNMENT MOCK DATA ─────────────────────
    In a real app these come from the backend.
@@ -2836,10 +2870,10 @@ function deleteProduct(code){
       message: `You are about to delete <strong style="color:var(--text)">${p.name}</strong>. Please review the warnings below.`,
       warnings,
       onConfirm: function() {
-        const idx = GEN_PRODUCTS.findIndex(x => x.code === code);
-        if (idx > -1) GEN_PRODUCTS.splice(idx, 1);
-        document.getElementById('productBlockModal').style.display = 'none';
-        renderProductsTable();
+        const pr = GEN_PRODUCTS.find(x => x.code === code);
+        const done = function(){ const idx = GEN_PRODUCTS.findIndex(x => x.code === code); if (idx > -1) GEN_PRODUCTS.splice(idx, 1); document.getElementById('productBlockModal').style.display = 'none'; renderProductsTable(); };
+        if (pr && pr._srcId) window.gdbDelete('products', pr._srcId).then(done).catch(function(e){ alert('Could not delete product: '+e.message); });
+        else done();
       },
     });
     return;
@@ -2847,9 +2881,10 @@ function deleteProduct(code){
 
   /* ── NO ISSUES — standard delete confirm ───────────────────── */
   genDeleteCb = () => {
-    const idx = GEN_PRODUCTS.findIndex(x => x.code === code);
-    if (idx > -1) GEN_PRODUCTS.splice(idx, 1);
-    renderProductsTable();
+    const pr = GEN_PRODUCTS.find(x => x.code === code);
+    const done = function(){ const idx = GEN_PRODUCTS.findIndex(x => x.code === code); if (idx > -1) GEN_PRODUCTS.splice(idx, 1); renderProductsTable(); };
+    if (pr && pr._srcId) window.gdbDelete('products', pr._srcId).then(done).catch(function(e){ alert('Could not delete product: '+e.message); });
+    else done();
   };
   document.getElementById('genDeleteName').textContent = p.name;
   document.getElementById('genDeleteModal').style.display = 'flex';
@@ -2933,14 +2968,12 @@ function _productBlockConfirm() {
 }
 
 /* ── RIDES CRUD ────────────────────────────── */
-const GEN_RIDES = [
-  {code:'RD001',name:'Roller Coaster',    type:'Ride',       price:5.00, credits:3, active:true, inherited:true},
-  {code:'RD002',name:'Ferris Wheel',      type:'Ride',       price:4.00, credits:2, active:true, inherited:true},
-  {code:'RD003',name:'Carousel',          type:'Ride',       price:2.00, credits:1, active:true, inherited:true},
-  {code:'RD004',name:'VIP Backstage Pass',type:'Experience', price:79.99,credits:10,active:true, inherited:true},
-  {code:'RD005',name:'Cast Photo Package',type:'Experience', price:24.99,credits:5, active:false,inherited:true},
-  {code:'RD006',name:'Meet & Greet',      type:'Experience', price:49.99,credits:8, active:true, inherited:true},
-];
+/* Rides & Experiences persist in the DB `ridexp` collection (per tenant). */
+let GEN_RIDES = (window.gdbScoped('ridexp')||[]).map(function(r){
+  return { _srcId:(r.id||r._id), code:r.code||'', name:r.name||'', type:r.type||'Ride',
+    price:Number(r.price)||0, credits:Number(r.credits)||0,
+    active:(r.active!==0 && r.active!==false), inherited:false };
+});
 let rEditCode=null;
 
 /* ── Ride / Experience delete validation data ── */
@@ -3020,9 +3053,15 @@ function saveRideItem(){
   const active=document.getElementById('rActive').classList.contains('on');
   if(!name){alert('Name is required.');return;}
   if(!credits){alert('Credits required must be > 0.');return;}
-  if(rEditCode){const r=GEN_RIDES.find(x=>x.code===rEditCode);if(r)Object.assign(r,{name,code:code||rEditCode,type,price,credits,active});}
-  else GEN_RIDES.push({code:code||'LOC'+Date.now(),name,type,price,credits,active,inherited:false});
-  closeRideModal();renderRidesTable();
+  const finalCode = code || rEditCode || ('LOC'+Date.now());
+  const body = { name:name, code:finalCode, type:type, price:price, credits:credits, active:!!active };
+  if(rEditCode){
+    const r=GEN_RIDES.find(x=>x.code===rEditCode); const srcId=r?r._srcId:null;
+    if(!srcId){ alert('Could not save: missing record id'); return; }
+    window.gdbPatch('ridexp', srcId, body).then(function(){ if(r)Object.assign(r,{name,code:finalCode,type,price,credits,active}); closeRideModal();renderRidesTable(); }).catch(function(e){ alert('Could not save item: '+e.message); });
+  } else {
+    window.gdbPost('ridexp', body).then(function(c){ const id=c&&(c.id||c._id); GEN_RIDES.push({_srcId:id,code:finalCode,name,type,price,credits,active,inherited:false}); closeRideModal();renderRidesTable(); }).catch(function(e){ alert('Could not create item: '+e.message); });
+  }
 }
 function deleteRideItem(code) {
   const r = GEN_RIDES.find(x => x.code === code);
@@ -3082,10 +3121,10 @@ function deleteRideItem(code) {
       message: `You are about to delete <strong style="color:var(--text)">${r.name}</strong>. Please review the warnings below.`,
       warnings,
       onConfirm: function() {
-        const idx = GEN_RIDES.findIndex(x => x.code === code);
-        if (idx > -1) GEN_RIDES.splice(idx, 1);
-        document.getElementById('productBlockModal').style.display = 'none';
-        renderRidesTable();
+        const rr = GEN_RIDES.find(x => x.code === code);
+        const done = function(){ const idx = GEN_RIDES.findIndex(x => x.code === code); if (idx > -1) GEN_RIDES.splice(idx, 1); document.getElementById('productBlockModal').style.display = 'none'; renderRidesTable(); };
+        if (rr && rr._srcId) window.gdbDelete('ridexp', rr._srcId).then(done).catch(function(e){ alert('Could not delete item: '+e.message); });
+        else done();
       },
     });
     return;
@@ -3093,9 +3132,10 @@ function deleteRideItem(code) {
 
   /* ── Standard confirm ────────────────────────────────────── */
   genDeleteCb = function() {
-    const idx = GEN_RIDES.findIndex(x => x.code === code);
-    if (idx > -1) GEN_RIDES.splice(idx, 1);
-    renderRidesTable();
+    const rr = GEN_RIDES.find(x => x.code === code);
+    const done = function(){ const idx = GEN_RIDES.findIndex(x => x.code === code); if (idx > -1) GEN_RIDES.splice(idx, 1); renderRidesTable(); };
+    if (rr && rr._srcId) window.gdbDelete('ridexp', rr._srcId).then(done).catch(function(e){ alert('Could not delete item: '+e.message); });
+    else done();
   };
   document.getElementById('genDeleteName').textContent = r.name;
   document.getElementById('genDeleteModal').style.display = 'flex';
@@ -3165,7 +3205,7 @@ window.closeGenDelete=closeGenDelete;window.confirmGenDelete=confirmGenDelete;
 
 <script>
 /* ── CATEGORIES CRUD ───────────────────────── */
-const CAT_DATA = {
+const _CAT_DATA_DEFAULT = {
   Concession: {
     desc: 'Food & beverage items',
     cats: {
@@ -3192,6 +3232,18 @@ const CAT_DATA = {
     }
   },
 };
+
+/* Product categories persist as a single per-tenant tree document. */
+var _catDocId = null;
+let CAT_DATA = (function(){
+  var rows = window.gdbScoped('product_categories');
+  if (rows && rows[0] && rows[0].tree) { _catDocId = rows[0].id || rows[0]._id; return rows[0].tree; }
+  return JSON.parse(JSON.stringify(_CAT_DATA_DEFAULT));
+})();
+function _persistCats(){
+  if (_catDocId) { window.gdbPatch('product_categories', _catDocId, { tree: CAT_DATA }).catch(function(){}); }
+  else { window.gdbPost('product_categories', { tree: CAT_DATA }).then(function(d){ _catDocId = d && (d.id||d._id); }).catch(function(){}); }
+}
 
 let selMain=null, selCat=null;
 let catModalLevel=null, catModalEditKey=null, catDeleteCb=null;
@@ -3378,7 +3430,7 @@ function saveCatItem(){
     if(catModalSubIdx!=null){subs[catModalSubIdx]=name;}
     else{subs.push(name);}
   }
-  closeCatModal();renderAll();
+  closeCatModal();renderAll();_persistCats();
 }
 
 // ── DELETE ───────────────────────────────────
@@ -3402,7 +3454,7 @@ function deleteCat(level, key, subIdx) {
     } else if (level === 'sub' && selMain && selCat) {
       CAT_DATA[selMain].cats[selCat].subs.splice(subIdx, 1);
     }
-    renderAll();
+    renderAll();_persistCats();
   };
 
   /* ══════════════════════════════════════════════════════════
@@ -4590,52 +4642,24 @@ function devLocationsForGateway(gwLabel){
 
 // Device registry (demo data). Most at Evinra so the screenshot matches;
 // a few elsewhere so the Location filter is meaningful.
-let DEVICES = (function(){
-  const list = [];
-  let _i = 0;
-  // orders = how many orders reference this device. > 0 ⇒ cannot be hard-deleted (soft-delete only).
-  const add = (name, type, deviceId, location, orders) => list.push({ id:'dev-'+(++_i), name, description:name, type, deviceId, location, orders: orders||0, active:true });
-  // Named devices (from the reference screenshot) — these have order history
-  add('TOYS HANDHELD 4', 'Handheld', '531WS21607001076', DEV_LOCATIONS[0], 128);
-  add('TOYS HANDHELD 2', 'Handheld', '530WS21606007115', DEV_LOCATIONS[0], 84);
-  add('TOYS HANDHELD',   'Handheld', '530WS21606005685', DEV_LOCATIONS[0], 56);
-  add('TOYS',            'Register', '546CS134A9000671', DEV_LOCATIONS[0], 312);
-  add('TACOS HANDHELD',  'Handheld', '530WS21606005585', DEV_LOCATIONS[0], 197);
-  // Star TSP100IV register fleet → device id = 261002507140 + (7000 + n)
-  const starNums = [582,557,556,506,485,484,470,455,440,431,420,418,402,399,388,
-                    377,366,355,344,333,322,311,300,288,277,266,255,244,233,222,
-                    211,200,188,177,166];
-  starNums.forEach((n, idx) => {
-    const loc = idx % 9 === 4 ? DEV_LOCATIONS[1] : (idx % 13 === 7 ? DEV_LOCATIONS[2] : DEV_LOCATIONS[0]);
-    // every 3rd register has no orders (so it can be hard-deleted), the rest have orders
-    const orders = idx % 3 === 0 ? 0 : (40 + (n % 160));
-    add('Star TSP100IV ' + n, 'Register', '261002507140' + (7000 + n), loc, orders);
-  });
-  // Which gateway account each device's hardware was provisioned from (by location)
-  const locGw = {
-    'Evinra Circus Concessions Inc': 'Square — Evinra Circus',
-    'Evinra Main Gate':            'Square — Evinra Circus',
-    'Downtown Box Office':              'Square — Box Office Terminal',
-  };
-  list.forEach(d => { d.gateway = locGw[d.location] || 'Square — Evinra Circus'; });
-  // Sales-location assignment + runtime fields (for the "Device by Locations" tab)
-  list.forEach((d, idx) => {
-    d.status = (idx % 7 === 0) ? 'Online' : 'N/A';
-    d.mode   = 'Standard';
-    if(idx % 4 === 3)      d.saleLocation = '';                       // some unassigned → available to assign
-    else if(idx % 3 === 0) d.saleLocation = 'Main Box Office Gate 1';
-    else if(idx % 3 === 1) d.saleLocation = 'Box Office Gate 2';
-    else                   d.saleLocation = 'Storefront';
-  });
-  return list;
-})();
+/* Devices persist in the DB `devices` collection (per tenant). */
+let DEVICES = (window.gdbScoped('devices')||[]).map(function(d){
+  var did = d.id || d._id;
+  return { id:did, _srcId:did, name:d.name||'', description:d.description||d.name||'', type:d.type||'Register',
+    deviceId:d.device_id||'', location:d.location||'', gateway:d.gateway||'', orders:Number(d.orders)||0,
+    active:(d.active!==false && d.active!==0), status:d.status||'N/A', mode:d.mode||'Standard', saleLocation:d.sale_location||'' };
+});
 
-// Sales locations a device can be assigned to (point-of-sale stations)
-const SALE_LOCATIONS = [
-  { name:'Main Box Office Gate 1', type:'OnSite Sales' },
-  { name:'Box Office Gate 2',      type:'OnSite Sales' },
-  { name:'Storefront',             type:'Online Sales' },
-];
+// Sales locations a device can be assigned to (DB-backed, default fallback).
+let SALE_LOCATIONS = (function(){
+  var rows = window.gdbScoped('sale_locations');
+  if (rows && rows.length) return rows.map(function(r){ return { name:r.name, type:r.type, _srcId:(r.id||r._id) }; });
+  return [
+    { name:'Main Box Office Gate 1', type:'OnSite Sales' },
+    { name:'Box Office Gate 2',      type:'OnSite Sales' },
+    { name:'Storefront',             type:'Online Sales' },
+  ];
+})();
 const DEVICE_STATUSES = ['N/A', 'Online', 'Offline'];
 const DEVICE_MODES    = ['Standard', 'Training', 'Kiosk'];
 
@@ -4826,18 +4850,23 @@ function saveDevice(){
     return;
   }
   const data = { name, description: desc || name, type, deviceId: id, location: loc, gateway: gw };
+  const dbBody = { name:name, description:desc||name, type:type, device_id:id, location:loc, gateway:gw };
+  const showErr = function(m){ const e=document.getElementById('devError'); e.textContent=m; e.style.display='flex'; };
   if(devEditingId){
     const i = DEVICES.findIndex(x=>x.id===devEditingId);
-    if(i>=0) DEVICES[i] = {...DEVICES[i], ...data};
-    devToast('Device updated.');
+    const srcId = (i>=0) ? DEVICES[i]._srcId : null;
+    if(!srcId){ showErr('Could not save: missing record id'); return; }
+    window.gdbPatch('devices', srcId, dbBody).then(function(){
+      if(i>=0) DEVICES[i] = {...DEVICES[i], ...data};
+      devToast('Device updated.'); renderDevices(); closeDeviceModal();
+    }).catch(function(e){ showErr('Could not save device: '+e.message); });
   } else {
-    data.id = 'dev-' + Date.now();
-    DEVICES.unshift(data);
-    devPage = 1;
-    devToast('Device added.');
+    window.gdbPost('devices', Object.assign({ status:'N/A', mode:'Standard', sale_location:'', orders:0, active:true }, dbBody)).then(function(c){
+      const id2 = c && (c.id||c._id);
+      DEVICES.unshift(Object.assign({ id:id2, _srcId:id2, orders:0, active:true, status:'N/A', mode:'Standard', saleLocation:'' }, data));
+      devPage = 1; devToast('Device added.'); renderDevices(); closeDeviceModal();
+    }).catch(function(e){ showErr('Could not add device: '+e.message); });
   }
-  renderDevices();
-  closeDeviceModal();
 }
 
 // Delete from the edit modal → reuse the same confirm flow (respects the orders rule)
@@ -4880,21 +4909,27 @@ function confirmDevDelete(){
   if(devDeleteId){
     const i = DEVICES.findIndex(x=>x.id===devDeleteId);
     if(i>=0){
-      if((DEVICES[i].orders || 0) > 0){
-        DEVICES[i].active = false;          // soft delete
-        devToast('Device deactivated (has orders).');
+      const dev = DEVICES[i]; const srcId = dev._srcId;
+      if((dev.orders || 0) > 0){
+        const apply = function(){ dev.active = false; devToast('Device deactivated (has orders).'); renderDevices(); };
+        if(srcId) window.gdbPatch('devices', srcId, { active:false }).then(apply).catch(function(e){ devToast('Could not deactivate: '+e.message); });
+        else apply();
       } else {
-        DEVICES.splice(i, 1);               // hard delete
-        devToast('Device deleted.');
+        const apply = function(){ DEVICES.splice(i, 1); devToast('Device deleted.'); renderDevices(); };
+        if(srcId) window.gdbDelete('devices', srcId).then(apply).catch(function(e){ devToast('Could not delete: '+e.message); });
+        else apply();
       }
-      renderDevices();
     }
   }
   closeDevDelete();
 }
 function reactivateDevice(id){
   const d = DEVICES.find(x=>x.id===id);
-  if(d){ d.active = true; renderDevices(); devToast('Device reactivated.'); }
+  if(d){
+    const apply = function(){ d.active = true; renderDevices(); devToast('Device reactivated.'); };
+    if(d._srcId) window.gdbPatch('devices', d._srcId, { active:true }).then(apply).catch(function(e){ devToast('Could not reactivate: '+e.message); });
+    else apply();
+  }
 }
 
 function devToast(msg){
@@ -4959,11 +4994,13 @@ const GW_LOCATIONS = [
   {id:'loc-4', name:'Fairgrounds Pavilion', city:'Reno, NV'},
 ];
 
-let GATEWAYS = [
-  {id:'gw-1', type:'square', name:'Evinra Circus',  appId:'sandbox-sq0idb-AbC123XyZ', token:'EAAAl8A_XXE83vtDYgXi9FBh8t3soJP6ovYraCPRn', env:'production', defaultLocation:'loc-1', channels:['storefront','onsite'], active:true},
-  {id:'gw-2', type:'stripe', name:'Online Store',        appId:'pk_live_51HxQ2zK9',        token:'sk_live_51HxQ2zK9c7BdEf', env:'production', defaultLocation:'loc-2', channels:['storefront'], active:true},
-  {id:'gw-3', type:'square', name:'Box Office Terminal', appId:'sandbox-sq0idb-Term9981',  token:'EAAAEdgsbX_BoxOffice7731',  env:'sandbox',    defaultLocation:'loc-3', channels:['onsite'],     active:false},
-];
+/* Payment gateways persist in the DB `gateways` collection (per tenant). */
+let GATEWAYS = (window.gdbScoped('gateways')||[]).map(function(g){
+  var gid = g.id || g._id;
+  return { id:gid, _srcId:gid, type:g.type||'square', name:g.name||'', appId:g.app_id||'',
+    token:g.token||'', env:g.env||'production', defaultLocation:g.default_location||'',
+    channels:Array.isArray(g.channels)?g.channels:[], active:(g.active!==false && g.active!==0) };
+});
 
 function gwLocName(id){ const l = GW_LOCATIONS.find(x=>x.id===id); return l ? l.name : null; }
 
@@ -5135,17 +5172,22 @@ function saveGateway(){
     channels: [...gwChannels],
     active: gwActive,
   };
+  const dbBody = { type:data.type, name:data.name, app_id:data.appId, token:data.token, env:data.env, default_location:data.defaultLocation, channels:data.channels, active:data.active };
   if(gwEditingId){
     const i = GATEWAYS.findIndex(x=>x.id===gwEditingId);
-    if(i>=0) GATEWAYS[i] = {...GATEWAYS[i], ...data};
-    gwToast('Gateway updated.');
+    const srcId = (i>=0) ? GATEWAYS[i]._srcId : null;
+    if(!srcId){ showGwError('Could not save: missing record id'); return; }
+    window.gdbPatch('gateways', srcId, dbBody).then(function(){
+      if(i>=0) GATEWAYS[i] = {...GATEWAYS[i], ...data};
+      gwToast('Gateway updated.'); renderGatewayTable(); closeGatewayWizard();
+    }).catch(function(e){ showGwError('Could not save gateway: '+e.message); });
   } else {
-    data.id = 'gw-' + Date.now();
-    GATEWAYS.push(data);
-    gwToast('Gateway added.');
+    window.gdbPost('gateways', dbBody).then(function(c){
+      const id = c && (c.id||c._id);
+      data.id = id; data._srcId = id; GATEWAYS.push(data);
+      gwToast('Gateway added.'); renderGatewayTable(); closeGatewayWizard();
+    }).catch(function(e){ showGwError('Could not add gateway: '+e.message); });
   }
-  renderGatewayTable();
-  closeGatewayWizard();
 }
 
 /* ── Delete ── */
@@ -5160,8 +5202,13 @@ function askDeleteGateway(id){
 }
 function closeGwDelete(){ document.getElementById('gwDeleteModal').classList.remove('open'); gwDeleteId=null; }
 function confirmGwDelete(){
-  if(gwDeleteId){ GATEWAYS = GATEWAYS.filter(x=>x.id!==gwDeleteId); renderGatewayTable(); gwToast('Gateway deleted.'); }
-  closeGwDelete();
+  if(gwDeleteId){
+    const g = GATEWAYS.find(x=>x.id===gwDeleteId);
+    const srcId = g ? g._srcId : null;
+    const done = function(){ GATEWAYS = GATEWAYS.filter(x=>x.id!==gwDeleteId); renderGatewayTable(); gwToast('Gateway deleted.'); closeGwDelete(); };
+    if(srcId) window.gdbDelete('gateways', srcId).then(done).catch(function(e){ gwToast('Could not delete: '+e.message); closeGwDelete(); });
+    else done();
+  } else closeGwDelete();
 }
 
 function gwToast(msg){
@@ -5289,18 +5336,25 @@ function saveAssign(){
     const e=document.getElementById('assignError'); e.textContent='Select a device and a sales location.'; e.style.display='flex'; return;
   }
   const d = DEVICES.find(x=>x.id===devId);
-  if(d){ d.saleLocation = loc; d.status = status; d.mode = mode; }
-  renderDeviceByLoc();
-  closeAssignModal();
-  devToast(wasEdit ? 'Assignment updated.' : 'Device assigned.');
+  if(!d){ closeAssignModal(); return; }
+  const apply = function(){ d.saleLocation = loc; d.status = status; d.mode = mode; renderDeviceByLoc(); closeAssignModal(); devToast(wasEdit ? 'Assignment updated.' : 'Device assigned.'); };
+  if(d._srcId) window.gdbPatch('devices', d._srcId, { sale_location:loc, status:status, mode:mode }).then(apply).catch(function(e){ const el=document.getElementById('assignError'); el.textContent='Could not save: '+e.message; el.style.display='flex'; });
+  else apply();
 }
 function unassignDevice(){
-  if(dblEditDeviceId){ const d=DEVICES.find(x=>x.id===dblEditDeviceId); if(d) d.saleLocation=''; renderDeviceByLoc(); devToast('Device unassigned.'); }
-  closeAssignModal();
+  if(dblEditDeviceId){
+    const d=DEVICES.find(x=>x.id===dblEditDeviceId);
+    const apply=function(){ if(d) d.saleLocation=''; renderDeviceByLoc(); devToast('Device unassigned.'); closeAssignModal(); };
+    if(d&&d._srcId) window.gdbPatch('devices', d._srcId, { sale_location:'' }).then(apply).catch(function(e){ devToast('Could not unassign: '+e.message); closeAssignModal(); });
+    else apply();
+  } else closeAssignModal();
 }
 function dblQuickUnassign(id){
   const d = DEVICES.find(x=>x.id===id);
-  if(d){ d.saleLocation=''; renderDeviceByLoc(); devToast('Device unassigned.'); }
+  if(!d) return;
+  const apply=function(){ d.saleLocation=''; renderDeviceByLoc(); devToast('Device unassigned.'); };
+  if(d._srcId) window.gdbPatch('devices', d._srcId, { sale_location:'' }).then(apply).catch(function(e){ devToast('Could not unassign: '+e.message); });
+  else apply();
 }
 
 /* ── Export ── */
