@@ -917,7 +917,7 @@ function _seedLayoutDocs(){
     var prod = EVINRA.getProduction(s.productionId);
     var evs  = EVINRA.eventsForShow(s.id);
     return { tenant_id:SM_TENANT, name:s.name+' — Main Layout', description:s.type+' seating layout for '+s.name,
-      type:s.type+' – Reserved Seating', production:prod?prod.name:'', seats:(evs[0]?evs[0].seats:5000),
+      type:s.type+' – Reserved Seating', production:s.name, seats:(evs[0]?evs[0].seats:5000),
       status:'published', key:'layout-'+s.id };
   });
 }
@@ -1020,9 +1020,15 @@ let assignSelected  = new Set(); // event ids selected in modal
 let nextId = 4; // next available id after id:3
 
 /* Populate every Production dropdown from the canonical dataset (DB-backed) */
-function fillProductionSelects(){
-  if(!window.EVINRA || !EVINRA.productions) return;
-  var opts = EVINRA.productions.map(function(p){ return '<option>'+p.name+'</option>'; }).join('');
+async function fillProductionSelects(){
+  // Productions are managed in the Productions page (DB `productions` collection).
+  // Load them here so new productions show up in every layout dropdown.
+  var prods = [];
+  try {
+    var d = await smGet('/productions' + (SM_TENANT ? ('?tenant_id=eq.'+encodeURIComponent(SM_TENANT)) : ''));
+    if (Array.isArray(d)) prods = d;
+  } catch(e) {}
+  var opts = prods.map(function(p){ return '<option>'+(p.name||'')+'</option>'; }).join('');
   [['filterProduction','<option value="">All Productions</option>'],
    ['nlProduction','<option value="">Select a production…</option>'],
    ['clProduction','<option value="">Select a production…</option>'],
