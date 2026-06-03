@@ -696,15 +696,32 @@ var COLORS = ['#2A9B85','#D4884A','#8B6BD4','#4A8BD4','#E8A020','#C94B4B'];
 
 /* ── DATA ── */
 /* Productions, their shows, and the EM import pool come from assets/data.js */
-var PRODUCTIONS = EVINRA.productions.map(function(p, i){
-  var ps = EVINRA.showsForProduction(p.id);
-  var code = p.name.split(/\s+/).map(function(w){ return w.charAt(0); }).join('').toUpperCase().slice(0,3);
+/* Productions are persisted in the DB `productions` collection (scoped to the
+   signed-in tenant). We read/write them directly so this page is the source of truth. */
+function pdBase(){
+  var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:');
+  return (window.EVINRA_DB_URL ? String(window.EVINRA_DB_URL).replace(/\/+$/,'') : (local ? 'http://localhost:4000' : 'https://web-production-93df6.up.railway.app')) + '/api/db';
+}
+var PD_TENANT = (window.EVINRA && EVINRA.tenantId) || (typeof localStorage!=='undefined' ? localStorage.getItem('evinra-tenant-id') : '') || '';
+function pdGetSync(table, qs){
+  try { var x=new XMLHttpRequest(); x.open('GET', pdBase()+'/'+table+(qs?('?'+qs):''), false); x.send(null);
+    return (x.status>=200&&x.status<300) ? JSON.parse(x.responseText) : []; } catch(e){ return []; }
+}
+async function pdPost(table, body){ var r=await fetch(pdBase()+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); var d=await r.json().catch(function(){return {};}); if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }
+async function pdPatch(table, id, body){ var r=await fetch(pdBase()+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'PATCH failed'); } return true; }
+async function pdDelete(table, id){ var r=await fetch(pdBase()+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'DELETE failed'); } return true; }
+
+var _dbProds = pdGetSync('productions', PD_TENANT ? ('tenant_id=eq.'+encodeURIComponent(PD_TENANT)) : '');
+var _dbShows = pdGetSync('shows');
+var _showCount = {}; (_dbShows||[]).forEach(function(s){ _showCount[s.production_id]=(_showCount[s.production_id]||0)+1; });
+function _prodCode(name){ return String(name||'').split(/\s+/).map(function(w){return w.charAt(0);}).join('').toUpperCase().slice(0,3); }
+
+var PRODUCTIONS = (_dbProds||[]).map(function(p, i){
   return {
-    id:'PR' + ('0' + (i+1)).slice(-2), name:p.name, code:code,
-    desc: ps.length + ' active show' + (ps.length===1 ? '' : 's'),
-    shows: ps.length, status:'active',
-    color: (ps[0] && ps[0].color) ? ps[0].color : '#2A9B85',
-    contact:'Operations', email:p.email, website:'', _srcId:p.id
+    id:'PR' + ('0' + (i+1)).slice(-2), _srcId:(p.id||p._id), name:p.name, code:_prodCode(p.name),
+    desc:p.description||'', description:p.description||'',
+    shows:_showCount[p.id]||0, status:p.status||'active',
+    color: COLORS[i % COLORS.length], contact:'Operations', email:'', website:''
   };
 });
 
@@ -712,9 +729,8 @@ var EM_PRODUCTIONS = [];
 
 var PROD_SHOWS = {};
 PRODUCTIONS.forEach(function(pr){
-  PROD_SHOWS[pr.id] = EVINRA.showsForProduction(pr._srcId).map(function(s){
-    var ev = EVINRA.eventsForShow(s.id)[0];
-    return { id:s.id, name:s.name, desc:s.type + ' production', seats: ev ? ev.seats : 0, source:'manual', status:'active' };
+  PROD_SHOWS[pr.id] = (_dbShows||[]).filter(function(s){ return String(s.production_id)===String(pr._srcId); }).map(function(s){
+    return { id:s.id, name:s.name, desc:(s.status||'active')+' show', seats:0, source:'manual', status:s.status||'active' };
   });
 });
 
@@ -874,20 +890,26 @@ function switchDetailTab(tab) {
 }
 
 /* ── SAVE PROD ── */
-function saveProd() {
+async function saveProd() {
   var pr = PRODUCTIONS.find(function(p){ return p.id === currentProdId; });
   if (!pr) return;
   if (pr.emId) return; /* EM productions are read-only */
-  pr.name    = (document.getElementById('pi-name').value || '').trim() || pr.name;
-  pr.desc    = (document.getElementById('pi-desc').value || '').trim();
-  pr.status  = document.getElementById('pi-status').value || pr.status;
+  pr.name        = (document.getElementById('pi-name').value || '').trim() || pr.name;
+  pr.desc        = (document.getElementById('pi-desc').value || '').trim();
+  pr.description = pr.desc;
+  pr.status      = document.getElementById('pi-status').value || pr.status;
   var st = document.getElementById('prodSaveStatus');
-  if (st) {
-    st.textContent = 'Production saved';
-    st.style.color = 'var(--p)';
-    setTimeout(function(){ st.textContent = 'Changes apply to all shows and events under this production'; st.style.color = ''; }, 2000);
+  try {
+    if (pr._srcId) await pdPatch('productions', pr._srcId, { name: pr.name, description: pr.description, status: pr.status });
+    document.getElementById('topTitle').textContent = pr.name;
+    refreshProductionsTable();
+    if (st) { st.textContent = 'Production saved'; st.style.color = 'var(--p)';
+      setTimeout(function(){ st.textContent = 'Changes apply to all shows and events under this production'; st.style.color = ''; }, 2000); }
+    showToast('Production saved');
+  } catch (e) {
+    if (st) { st.textContent = 'Could not save — ' + e.message; st.style.color = 'var(--red)'; }
+    showToast('Could not save production');
   }
-  showToast('Production saved');
 }
 
 /* ── RENDER PROD SHOWS TABLE ── */
@@ -941,13 +963,21 @@ function closeDeleteProdModal() {
   deleteTarget = null;
 }
 
-function confirmDeleteProd() {
+async function confirmDeleteProd() {
   if (!deleteTarget) return;
   var idx = PRODUCTIONS.findIndex(function(p){ return p.id === deleteTarget; });
-  if (idx > -1) PRODUCTIONS.splice(idx, 1);
-  refreshProductionsTable();
-  closeDeleteProdModal();
-  if (currentProdId === deleteTarget) goBackToList();
+  var pr = idx > -1 ? PRODUCTIONS[idx] : null;
+  try {
+    if (pr && pr._srcId) await pdDelete('productions', pr._srcId);
+    if (idx > -1) PRODUCTIONS.splice(idx, 1);
+    refreshProductionsTable();
+    closeDeleteProdModal();
+    if (currentProdId === deleteTarget) goBackToList();
+    showToast('Production deleted');
+  } catch (e) {
+    closeDeleteProdModal();
+    showToast('Could not delete — ' + e.message);
+  }
 }
 
 /* ── ADD PROD DRAWER ── */
@@ -1067,16 +1097,21 @@ function saveManualProdFromDrawer() {
   if (manErrEl) manErrEl.style.display = 'none';
   if (nameEl) nameEl.style.borderColor = '';
   if (codeEl) codeEl.style.borderColor = '';
-  var newId = 'PR' + String(PRODUCTIONS.length + 1).padStart(3,'0');
-  PRODUCTIONS.push({
-    id: newId, name: name, code: code, desc: desc,
-    shows: 0, status: 'active', color: color,
-    contact: contact, email: email, website: ''
+  pdPost('productions', { tenant_id: PD_TENANT, name: name, description: desc, status: 'active' }).then(function(created){
+    var newId = 'PR' + String(PRODUCTIONS.length + 1).padStart(3,'0');
+    PRODUCTIONS.push({
+      id: newId, _srcId: (created && (created.id || created._id)) || null,
+      name: name, code: code, desc: desc, description: desc,
+      shows: 0, status: 'active', color: color,
+      contact: contact, email: email, website: ''
+    });
+    PROD_SHOWS[newId] = [];
+    refreshProductionsTable();
+    closeAddProdDrawer();
+    showToast('Production created');
+  }).catch(function(e){
+    if (manErrEl) { manErrEl.textContent = 'Could not create — ' + e.message; manErrEl.style.display = ''; }
   });
-  PROD_SHOWS[newId] = [];
-  refreshProductionsTable();
-  closeAddProdDrawer();
-  showToast('Production created');
 }
 
 /* ── RIDE TOGGLE (compatibility alias) ── */
