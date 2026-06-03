@@ -361,6 +361,14 @@ select:focus{border-color:var(--p-border)}
           <span class="ev-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
           Device by Locations
         </button>
+        <button class="gen-tab" onclick="switchGenTab('locations');renderOpLocations()">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          Locations
+        </button>
+        <button class="gen-tab" onclick="switchGenTab('loctypes');renderLocTypes()">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/></svg></span>
+          Location Types
+        </button>
         <button class="gen-tab" onclick="switchGenTab('integrations')">
           <span class="ev-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
           Integrations
@@ -1272,6 +1280,50 @@ select:focus{border-color:var(--p-border)}
       </div>
 
     </div><!-- /gen-panel-gateway -->
+
+    <!-- ══ LOCATIONS TAB PANEL ══════════════════════════════ -->
+    <div id="gen-panel-locations" style="display:none;flex-direction:column;flex:1;min-height:0;gap:12px;margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)">Locations</div>
+        <button class="btn btn-primary" onclick="openOpLocModal()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Location</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="opLocSearch" class="form-input" oninput="renderOpLocations()" placeholder="Search name or description…" style="flex:1;min-width:180px">
+        <select id="opLocProdFilter" class="form-input" onchange="renderOpLocations()" style="width:180px"><option value="">All productions</option></select>
+        <select id="opLocTypeFilter" class="form-input" onchange="renderOpLocations()" style="width:160px"><option value="">All types</option></select>
+      </div>
+      <div class="table-wrap" style="overflow:auto;border:1px solid var(--border);border-radius:10px">
+        <table class="tbl" style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="text-align:left;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Name</th>
+            <th style="text-align:left;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Description</th>
+            <th style="text-align:left;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Production</th>
+            <th style="text-align:left;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Type</th>
+            <th style="text-align:right;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Actions</th>
+          </tr></thead>
+          <tbody id="opLocBody"></tbody>
+        </table>
+      </div>
+    </div><!-- /gen-panel-locations -->
+
+    <!-- ══ LOCATION TYPES TAB PANEL ═════════════════════════ -->
+    <div id="gen-panel-loctypes" style="display:none;flex-direction:column;flex:1;min-height:0;gap:12px;margin-top:14px">
+      <div style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)">Location Types</div>
+      <div style="font-size:12px;color:var(--text3)">Define the location types your operators choose from (e.g. Midway, Gate, Concession).</div>
+      <div style="display:flex;gap:8px;max-width:420px">
+        <input type="text" id="locTypeInput" class="form-input" placeholder="New location type…" style="flex:1" onkeydown="if(event.key==='Enter')addLocType()">
+        <button class="btn btn-primary" onclick="addLocType()">Add</button>
+      </div>
+      <div class="table-wrap" style="overflow:auto;border:1px solid var(--border);border-radius:10px;max-width:520px">
+        <table class="tbl" style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="text-align:left;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Type</th>
+            <th style="text-align:right;padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3)">Actions</th>
+          </tr></thead>
+          <tbody id="locTypeBody"></tbody>
+        </table>
+      </div>
+    </div><!-- /gen-panel-loctypes -->
 
     </div>
   </div>
@@ -3791,7 +3843,7 @@ function initializePageState(){
   if (typeof updateEMIntegUI === 'function') updateEMIntegUI(); // sync EM toggle/badge/locks to default (off)
   // If URL contains a tab hash, open it
   const hash = window.location.hash;
-  const validTabs = ['productions','products','ridexp','categories','integrations','devices'];
+  const validTabs = ['productions','products','ridexp','categories','integrations','devices','locations','loctypes'];
   const tabFromHash = hash.replace('#','');
   if(validTabs.includes(tabFromHash)){
     switchGenTab(tabFromHash);
@@ -5567,6 +5619,117 @@ function exportDblPDF(){
 }
 
 renderDeviceByLoc();
+
+/* ══ LOCATIONS + LOCATION TYPES (General Settings) ══════════════ */
+var _opLocs = null, _locTypes = null, _opLocEditId = null;
+function _le(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function _locQS(){ return PG_TENANT ? ('tenant_id=eq.'+encodeURIComponent(PG_TENANT)) : ''; }
+function _loadLocData(force){
+  if(_locTypes===null||force) _locTypes = pgGetSync('location_types', _locQS()) || [];
+  if(_opLocs===null||force)   _opLocs   = pgGetSync('op_locations',  _locQS()) || [];
+}
+function _prodNames(){ try{ return (genProductions||[]).map(function(p){return p.name;}).filter(Boolean); }catch(e){ return []; } }
+
+/* — Location Types — */
+function renderLocTypes(){
+  _loadLocData();
+  var tb=document.getElementById('locTypeBody'); if(!tb) return;
+  tb.innerHTML = (_locTypes && _locTypes.length) ? _locTypes.map(function(t){
+    var id=t.id||t._id;
+    return '<tr><td style="padding:10px 12px;font-size:12.5px;color:var(--text);border-top:1px solid var(--border)">'+_le(t.name||'')+'</td>'
+      +'<td style="padding:10px 12px;text-align:right;border-top:1px solid var(--border)"><button class="btn btn-ghost" style="font-size:11px;color:var(--red)" onclick="delLocType(\''+id+'\')">Delete</button></td></tr>';
+  }).join('') : '<tr><td colspan="2" style="padding:18px 12px;color:var(--text3);font-size:12px">No location types yet — add one above.</td></tr>';
+}
+function addLocType(){
+  var inp=document.getElementById('locTypeInput'); var name=(inp.value||'').trim();
+  if(!name){ devToast('Enter a type name'); return; }
+  _loadLocData();
+  if(_locTypes.some(function(t){return (t.name||'').toLowerCase()===name.toLowerCase();})){ devToast('That type already exists'); return; }
+  pgPost('location_types',{tenant_id:PG_TENANT,name:name}).then(function(){ inp.value=''; _loadLocData(true); renderLocTypes(); devToast('Location type added'); }).catch(function(e){ devToast(e.message||'Failed'); });
+}
+function delLocType(id){
+  var t=(_locTypes||[]).find(function(x){return String(x.id||x._id)===String(id);}); var nm=t?(t.name||''):'';
+  window.gsConfirm({ title:'Delete location type?', message:'Delete <strong>'+_le(nm)+'</strong>? Existing locations keep their saved type.', confirmLabel:'Delete', danger:true, onConfirm:function(){
+    pgDelete('location_types', id).then(function(){ _loadLocData(true); renderLocTypes(); devToast('Deleted'); }).catch(function(e){ devToast(e.message||'Failed'); });
+  }});
+}
+
+/* — Locations — */
+function _fillLocFilters(){
+  var pf=document.getElementById('opLocProdFilter'), tf=document.getElementById('opLocTypeFilter');
+  if(pf){ var c1=pf.value; pf.innerHTML='<option value="">All productions</option>'+_prodNames().map(function(n){return '<option>'+_le(n)+'</option>';}).join(''); pf.value=c1; }
+  if(tf){ var c2=tf.value; tf.innerHTML='<option value="">All types</option>'+(_locTypes||[]).map(function(t){return '<option>'+_le(t.name||'')+'</option>';}).join(''); tf.value=c2; }
+}
+function renderOpLocations(){
+  _loadLocData(); _fillLocFilters();
+  var q=((document.getElementById('opLocSearch')||{}).value||'').toLowerCase().trim();
+  var pf=(document.getElementById('opLocProdFilter')||{}).value||'';
+  var tf=(document.getElementById('opLocTypeFilter')||{}).value||'';
+  var list=(_opLocs||[]).filter(function(l){
+    if(q && (((l.name||'')+' '+(l.description||'')).toLowerCase().indexOf(q)<0)) return false;
+    if(pf && l.production!==pf) return false;
+    if(tf && l.type!==tf) return false;
+    return true;
+  });
+  var tb=document.getElementById('opLocBody'); if(!tb) return;
+  if(!list.length){ tb.innerHTML='<tr><td colspan="5" style="padding:20px 12px;color:var(--text3);font-size:12px">'+((_opLocs&&_opLocs.length)?'No locations match your filters.':'No locations yet — click “Add Location”.')+'</td></tr>'; return; }
+  tb.innerHTML=list.map(function(l){
+    var id=l.id||l._id;
+    function td(v){ return '<td style="padding:10px 12px;font-size:12.5px;color:var(--text2);border-top:1px solid var(--border)">'+v+'</td>'; }
+    return '<tr>'
+      +'<td style="padding:10px 12px;font-size:12.5px;color:var(--text);font-weight:600;border-top:1px solid var(--border)">'+_le(l.name||'')+'</td>'
+      +td(_le(l.description||'—'))
+      +td(_le(l.production||'—'))
+      +td(l.type?('<span style="font-size:11px;background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:2px 8px;color:var(--text)">'+_le(l.type)+'</span>'):'—')
+      +'<td style="padding:10px 12px;text-align:right;border-top:1px solid var(--border);white-space:nowrap">'
+        +'<button class="btn btn-ghost" style="font-size:11px" onclick="openOpLocModal(\''+id+'\')">Edit</button> '
+        +'<button class="btn btn-ghost" style="font-size:11px;color:var(--red)" onclick="delOpLoc(\''+id+'\')">Delete</button>'
+      +'</td></tr>';
+  }).join('');
+}
+function delOpLoc(id){
+  var l=(_opLocs||[]).find(function(x){return String(x.id||x._id)===String(id);}); var nm=l?(l.name||''):'';
+  window.gsConfirm({ title:'Delete location?', message:'Delete <strong>'+_le(nm)+'</strong>?', confirmLabel:'Delete', danger:true, onConfirm:function(){
+    pgDelete('op_locations', id).then(function(){ _loadLocData(true); renderOpLocations(); devToast('Location deleted'); }).catch(function(e){ devToast(e.message||'Failed'); });
+  }});
+}
+function openOpLocModal(id){
+  _loadLocData();
+  _opLocEditId = id || null;
+  var l = id ? (_opLocs||[]).find(function(x){return String(x.id||x._id)===String(id);}) : null;
+  var ov=document.getElementById('opLocModalOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='opLocModalOv'; ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:4000;padding:20px'; document.body.appendChild(ov); }
+  var prodOpts='<option value="">— Production —</option>'+_prodNames().map(function(n){return '<option>'+_le(n)+'</option>';}).join('');
+  var typeOpts='<option value="">— Type —</option>'+(_locTypes||[]).map(function(t){return '<option>'+_le(t.name||'')+'</option>';}).join('');
+  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-width:460px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.45)">'
+    +'<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:14px">'+(id?'Edit location':'Add location')+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div><label class="form-label">Name *</label><input id="olName" class="form-input" value="'+(l?_le(l.name||''):'')+'" placeholder="e.g. Midway Booth 1"></div>'
+    +'<div><label class="form-label">Description</label><input id="olDesc" class="form-input" value="'+(l?_le(l.description||''):'')+'"></div>'
+    +'<div><label class="form-label">Production</label><select id="olProd" class="form-input">'+prodOpts+'</select></div>'
+    +'<div><label class="form-label">Location Type</label><select id="olType" class="form-input">'+typeOpts+'</select></div>'
+    +'<div id="olErr" style="display:none;font-size:11.5px;color:var(--red)"></div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">'
+    +'<button class="btn btn-ghost" onclick="closeOpLocModal()">Cancel</button>'
+    +'<button class="btn btn-primary" onclick="saveOpLoc()">'+(id?'Save changes':'Add location')+'</button>'
+    +'</div></div>';
+  ov.style.display='flex';
+  if(l){ var pe=document.getElementById('olProd'); if(pe) pe.value=l.production||''; var te=document.getElementById('olType'); if(te) te.value=l.type||''; }
+}
+function closeOpLocModal(){ var ov=document.getElementById('opLocModalOv'); if(ov) ov.style.display='none'; }
+function saveOpLoc(){
+  var name=(document.getElementById('olName').value||'').trim();
+  var desc=(document.getElementById('olDesc').value||'').trim();
+  var prod=document.getElementById('olProd').value||'';
+  var type=document.getElementById('olType').value||'';
+  var err=document.getElementById('olErr');
+  if(!name){ err.textContent='Name is required.'; err.style.display='block'; return; }
+  var body={ tenant_id:PG_TENANT, name:name, description:desc, production:prod, type:type };
+  var p = _opLocEditId ? pgPatch('op_locations', _opLocEditId, body) : pgPost('op_locations', body);
+  p.then(function(){ _loadLocData(true); renderOpLocations(); closeOpLocModal(); devToast(_opLocEditId?'Location updated':'Location added'); })
+   .catch(function(e){ err.textContent=e.message||'Failed to save'; err.style.display='block'; });
+}
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
