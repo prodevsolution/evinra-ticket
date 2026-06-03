@@ -480,6 +480,7 @@ html,body{height:100%;font-family:var(--body,Outfit,sans-serif);font-size:14px;l
           <thead>
             <tr>
               <th>Name</th>
+              <th>Production</th>
               <th>Description</th>
               <th>Type</th>
               <th>Seats</th>
@@ -1062,7 +1063,7 @@ function renderTable() {
   );
 
   if (!filtered.length) {
-    body.innerHTML = `<tr class="tbl-empty"><td colspan="8">
+    body.innerHTML = `<tr class="tbl-empty"><td colspan="9">
       <div class="empty-icon"><i class="bi bi-grid-3x3-gap"></i></div>
       <div class="empty-msg">No layouts found</div>
       <div class="empty-sub">Adjust filters or create a new layout</div>
@@ -1089,6 +1090,7 @@ function renderTable() {
           ${draftHint}
         </div>
       </td>
+      <td><span class="type-cell">${l.production || '—'}</span></td>
       <td><div class="desc-cell">${l.description}</div></td>
       <td><div class="type-cell">${l.type}</div></td>
       <td><span class="seats-cell">${l.seats > 0 ? l.seats.toLocaleString() : '—'}</span></td>
