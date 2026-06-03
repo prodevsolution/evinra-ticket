@@ -745,6 +745,7 @@ const eventCatalog = [
 function vslBase(){ var h=location.hostname,local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:'); return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db'; }
 var VSL_TENANT=(typeof localStorage!=='undefined'?localStorage.getItem('evinra-tenant-id'):'')||'';
 function vslGetSync(qs){ try{var x=new XMLHttpRequest();x.open('GET',vslBase()+'/vendors'+(qs?('?'+qs):''),false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
+function vslGetPath(path){ try{var x=new XMLHttpRequest();x.open('GET',vslBase()+path,false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
 function vslPatch(id,body){ return fetch(vslBase()+'/vendors?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)return r.json().catch(function(){return{};}).then(function(d){throw new Error((d&&d.error)||'PATCH failed');});return true;}); }
 function vslConfirm(opts){
   opts=opts||{}; var ov=document.getElementById('vslConfirmOverlay');
@@ -764,9 +765,19 @@ function vslConfirm(opts){
 }
 
 let vendors = (vslGetSync(VSL_TENANT?('tenant_id=eq.'+encodeURIComponent(VSL_TENANT)):'')||[]).map(function(d,i){
-  return { id:i+1, _srcId:(d.id||d._id), code:d.code||'', name:d.name||'', email:d.contact_email||'',
+  var code = d.code || '';
+  // Sales + revenue from real orders attributed via ?vendor=CODE
+  var sales = 0, revenue = 0;
+  if (code) {
+    var ords = vslGetPath('/orders?vendor_code=eq.'+encodeURIComponent(code));
+    if (Array.isArray(ords)) ords.forEach(function(o){
+      if (String(o.status||'').toLowerCase() === 'cancelled' || String(o.status||'').toLowerCase() === 'refunded') return;
+      sales++; revenue += Number(o.total) || 0;
+    });
+  }
+  return { id:i+1, _srcId:(d.id||d._id), code:code, name:d.name||'', email:d.contact_email||'',
     commission:Number(d.commission)||0, status:d.status||'Active',
-    clicks:0, sales:0, revenue:0,
+    clicks:Number(d.clicks)||0, sales:sales, revenue:Math.round(revenue),
     eventId:(d.event_id!=null?d.event_id:null), baseUrl:d.base_url||'' };
 });
 
