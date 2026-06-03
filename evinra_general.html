@@ -404,9 +404,9 @@ select:focus{border-color:var(--p-border)}
           <table class="tbl" id="prodsTableGen">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Name</th>
                 <th>Contact</th>
+                <th>Contact Email</th>
                 <th>Description</th>
                 <th>Source</th>
                 <th>Shows</th>
@@ -3755,7 +3755,7 @@ var _pgShowCount = {}; (_pgShows||[]).forEach(function(s){ _pgShowCount[s.produc
 let genProductions = (pgGetSync('productions', PG_TENANT ? ('tenant_id=eq.'+encodeURIComponent(PG_TENANT)) : '')||[]).map(function(p){
   var pid = p.id || p._id;
   return { id:pid, _srcId:pid, name:p.name, code:_pgCode(p.name), description:p.description||'',
-    source:'Local', shows:_pgShowCount[pid]||0, status:p.status||'active', contact:'', email:'' };
+    source:'Local', shows:_pgShowCount[pid]||0, status:p.status||'active', contact:p.contact||'', email:p.email||'' };
 });
 let prodGenEditId = null;
 
@@ -3786,9 +3786,9 @@ function renderProdsGen(list) {
       + '</div>'
       + '</div></td>';
     return '<tr style="cursor:pointer" onclick="openEditProdModal(\'' + p.id + '\')">'
-      + '<td style="font-family:var(--mono);color:var(--p);font-size:11px">' + p.id + '</td>'
       + '<td style="font-weight:500;color:var(--text);font-size:12px">' + p.name + '</td>'
-      + '<td><div style="font-size:12px;color:var(--text);font-weight:500">' + (p.contact||'—') + '</div>' + emailHtml + '</td>'
+      + '<td><div style="font-size:12px;color:var(--text)">' + (p.contact||'—') + '</div></td>'
+      + '<td style="font-size:11.5px;color:var(--text2);font-family:var(--mono)">' + (p.email || '—') + '</td>'
       + '<td style="color:var(--text3);font-size:11px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.description + '</td>'
       + '<td><span class="badge ' + (srcCls[p.source]||'badge-muted') + '">' + p.source + '</span></td>'
       + '<td style="font-family:var(--mono);font-size:11.5px;color:var(--text2)">' + p.shows + '</td>'
@@ -3968,13 +3968,13 @@ function saveProdGen() {
   if (prodGenEditId) {
     const pr = genProductions.find(x => x.id === prodGenEditId);
     const srcId = pr ? pr._srcId : prodGenEditId;
-    pgPatch('productions', srcId, { name, description, status }).then(function(){
+    pgPatch('productions', srcId, { name, description, status, contact, email }).then(function(){
       const idx = genProductions.findIndex(x => x.id === prodGenEditId);
       if (idx !== -1) Object.assign(genProductions[idx], { name, code, description, contact, email, status });
       closeProdGenModal(); filterProds();
     }).catch(function(e){ alert('Could not save production: ' + e.message); });
   } else {
-    pgPost('productions', { tenant_id: PG_TENANT, name, description, status: status || 'active' }).then(function(created){
+    pgPost('productions', { tenant_id: PG_TENANT, name, description, status: status || 'active', contact, email }).then(function(created){
       const id = (created && (created.id || created._id));
       genProductions.push({ id:id, _srcId:id, name, code:code||_pgCode(name), description, source:'Local', shows:0, status:status||'active', contact, email });
       if (!GEN_PROD_SHOWS[id]) GEN_PROD_SHOWS[id] = [];
