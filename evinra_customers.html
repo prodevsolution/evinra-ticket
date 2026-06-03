@@ -408,24 +408,9 @@ select:focus{border-color:var(--p-border)}
   function fmtDate(v){ if(!v) return '—'; try{var d=new Date(v); if(isNaN(d))return '—'; return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return '—';} }
   function toast(msg, ok){ var w=document.getElementById('toastWrap'); var t=document.createElement('div'); t.setAttribute('role','status'); t.textContent=msg; t.style.cssText='background:var(--bg2);border:1px solid var(--border);border-left:3px solid '+(ok===false?'var(--red)':'var(--p)')+';border-radius:8px;padding:11px 16px;font-size:12.5px;color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.35)'; w.appendChild(t); setTimeout(function(){t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(function(){t.remove();},300);},3000); }
 
-  var DEMO=[
-    {first:'Maria',last:'Gonzalez',email:'maria.gonzalez@example.com',phone:'+1 (786) 555-0144'},
-    {first:'James',last:'Cole',email:'james.cole@example.com',phone:'+1 (305) 555-0188'},
-    {first:'Sara',last:'Nguyen',email:'sara.nguyen@example.com',phone:'+1 (954) 555-0107'},
-    {first:'Derek',last:'Hall',email:'derek.hall@example.com',phone:''},
-    {first:'Lucia',last:'Romero',email:'lucia.romero@example.com',phone:'+1 (407) 555-0132'},
-    {first:'Tom',last:'Becker',email:'tom.becker@example.com',phone:'+1 (813) 555-0166'},
-    {first:'Aisha',last:'Khan',email:'aisha.khan@example.com',phone:''},
-    {first:'Leo',last:'Martins',email:'leo.martins@example.com',phone:'+1 (786) 555-0190'}
-  ];
-
+  // Customers are real buyers captured by the storefront at purchase time
+  // (upserted into the `customers` collection by tenant_id + email). No demo seeding.
   var rows = CU_TENANT ? getSync('/customers?tenant_id=eq.'+enc(CU_TENANT)) : [];
-  if((!rows||!rows.length) && CU_TENANT){
-    try{ var seed=DEMO.map(function(c){ return Object.assign({tenant_id:CU_TENANT}, c); });
-      var x=new XMLHttpRequest(); x.open('POST',cuBase()+'/customers',false); x.setRequestHeader('Content-Type','application/json'); x.send(JSON.stringify(seed));
-      if(x.status>=200&&x.status<300) rows=JSON.parse(x.responseText);
-    }catch(e){}
-  }
 
   var CUSTOMERS = (rows||[]).map(function(c){
     var email=(c.email||'').trim();
@@ -469,7 +454,12 @@ select:focus{border-color:var(--p-border)}
   window.renderTable=function(){
     var list=filtered();
     var tb=document.getElementById('custTableBody'); var empty=document.getElementById('emptyState');
-    if(!list.length){ tb.innerHTML=''; empty.style.display='flex'; updateStats(); return; }
+    if(!list.length){
+      tb.innerHTML=''; empty.style.display='flex';
+      var msg=empty.querySelector('p');
+      if(msg) msg.textContent = CUSTOMERS.length ? 'No customers match your filters' : 'No customers yet — they appear here automatically when buyers complete a purchase on your storefront.';
+      updateStats(); return;
+    }
     empty.style.display='none';
     tb.innerHTML=list.map(function(c){
       var sg=segOf(c);
