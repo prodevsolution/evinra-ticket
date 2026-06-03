@@ -3736,14 +3736,26 @@ function importGenEMProds() {
   setTimeout(() => { _t.style.opacity='0'; _t.style.transition='opacity .3s'; setTimeout(()=>_t.remove(),300); }, 3500);
 }
 
-const genProductions = [
-  { id:'PRD-001', name:'Evinra Faris Event',   description:'Main touring production with full experience lineup', source:'Local', shows:2, status:'active',   contact:'Maria Santos',    email:'msantos@evinra.com'         },
-  { id:'PRD-002', name:'Summer Festival 2026', description:'Outdoor summer festival series — multi-stage',        source:'Local', shows:1, status:'active',   contact:'James Cole',      email:'jcole@summerfest.com'       },
-  { id:'PRD-003', name:'Bayfront Events',      description:'Bayfront Arena residency shows',                      source:'EM',    shows:2, status:'active',   contact:'Sara Green',      email:'sgreen@bayfrontevents.com'  },
-  { id:'PRD-004', name:'Miami Arena Events',   description:'Large-capacity arena concert series',                 source:'EM',    shows:3, status:'active',   contact:'Tom Ray',         email:'tray@miamiarena.com'        },
-  { id:'PRD-005', name:'Golden Rock Tour',     description:'National rock tour — pending final approval',         source:'Local', shows:0, status:'draft',    contact:'Lucy Chen',       email:'lchen@goldenrock.com'       },
-  { id:'PRD-006', name:'Championship Series',  description:'Sports championship event series',                    source:'EM',    shows:0, status:'archived', contact:'Alex Rivera',     email:'arivera@championship.com'   },
-];
+/* Productions are loaded from / persisted to the DB `productions` collection,
+   scoped to the signed-in tenant (this page does not load assets/data.js). */
+function pgBase(){
+  var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:');
+  return (window.EVINRA_DB_URL ? String(window.EVINRA_DB_URL).replace(/\/+$/,'') : (local ? 'http://localhost:4000' : 'https://web-production-93df6.up.railway.app')) + '/api/db';
+}
+var PG_TENANT = (typeof localStorage!=='undefined' ? localStorage.getItem('evinra-tenant-id') : '') || '';
+function pgGetSync(table, qs){ try{ var x=new XMLHttpRequest(); x.open('GET', pgBase()+'/'+table+(qs?('?'+qs):''), false); x.send(null); return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[]; }catch(e){ return []; } }
+async function pgPost(table, body){ var r=await fetch(pgBase()+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); var d=await r.json().catch(function(){return {};}); if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }
+async function pgPatch(table, id, body){ var r=await fetch(pgBase()+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'PATCH failed'); } return true; }
+async function pgDelete(table, id){ var r=await fetch(pgBase()+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}); if(!r.ok){ var d=await r.json().catch(function(){return {};}); throw new Error((d&&d.error)||'DELETE failed'); } return true; }
+function _pgCode(name){ return String(name||'').split(/\s+/).map(function(w){return w.charAt(0);}).join('').toUpperCase().slice(0,3); }
+
+var _pgShows = pgGetSync('shows');
+var _pgShowCount = {}; (_pgShows||[]).forEach(function(s){ _pgShowCount[s.production_id]=(_pgShowCount[s.production_id]||0)+1; });
+let genProductions = (pgGetSync('productions', PG_TENANT ? ('tenant_id=eq.'+encodeURIComponent(PG_TENANT)) : '')||[]).map(function(p){
+  var pid = p.id || p._id;
+  return { id:pid, _srcId:pid, name:p.name, code:_pgCode(p.name), description:p.description||'',
+    source:'Local', shows:_pgShowCount[pid]||0, status:p.status||'active', contact:'', email:'' };
+});
 let prodGenEditId = null;
 
 function renderProdsGen(list) {
@@ -3798,14 +3810,12 @@ function filterProds(q) {
 }
 
 /* ── Productions modal helpers ─────────────────────────────── */
-const GEN_PROD_SHOWS = {
-  'PRD-001': [{id:'SHW-001',name:'Night 1 — Faris',date:'Dec 12 2025',seats:1200,status:'active'},{id:'SHW-002',name:'Night 2 — Faris',date:'Dec 13 2025',seats:1200,status:'active'}],
-  'PRD-002': [{id:'SHW-003',name:'Opening Night',date:'Jul 4 2026',seats:3000,status:'draft'}],
-  'PRD-003': [{id:'SHW-004',name:'Bayfront Show A',date:'Dec 18 2025',seats:800,status:'active'},{id:'SHW-005',name:'Bayfront Show B',date:'Dec 19 2025',seats:800,status:'active'}],
-  'PRD-004': [{id:'SHW-006',name:'Arena Night 1',date:'Dec 20 2025',seats:5000,status:'active'},{id:'SHW-007',name:'Arena Night 2',date:'Dec 21 2025',seats:5000,status:'active'},{id:'SHW-008',name:'Arena Night 3',date:'Dec 22 2025',seats:5000,status:'active'}],
-  'PRD-005': [],
-  'PRD-006': [],
-};
+const GEN_PROD_SHOWS = {};
+genProductions.forEach(function(pr){
+  GEN_PROD_SHOWS[pr.id] = (_pgShows||[]).filter(function(s){ return String(s.production_id)===String(pr._srcId); }).map(function(s){
+    return { id:s.id, name:s.name, date:'', seats:0, status:s.status||'active' };
+  });
+});
 
 function switchProdGenTab(tab) {
   ['info','shows'].forEach(function(t){
@@ -3948,27 +3958,28 @@ function saveProdGen() {
     return;
   }
   document.getElementById('pg-name').style.borderColor = '';
-  const nextId = 'PRD-' + String(genProductions.length + 1).padStart(3,'0');
-  const data = {
-    id:          prodGenEditId || nextId,
-    name,
-    code:        document.getElementById('pg-code').value.trim(),
-    description: document.getElementById('pg-desc').value.trim(),
-    contact:     document.getElementById('pg-contact').value.trim(),
-    email:       document.getElementById('pg-email').value.trim(),
-    source:      document.getElementById('pg-source').value,
-    status:      document.getElementById('pg-status').value,
-    shows:       prodGenEditId ? (genProductions.find(x=>x.id===prodGenEditId)?.shows||0) : 0,
-  };
+  const description = document.getElementById('pg-desc').value.trim();
+  const status      = document.getElementById('pg-status').value;
+  const code        = document.getElementById('pg-code').value.trim();
+  const contact     = document.getElementById('pg-contact').value.trim();
+  const email       = document.getElementById('pg-email').value.trim();
+
   if (prodGenEditId) {
-    const idx = genProductions.findIndex(x => x.id === prodGenEditId);
-    if (idx !== -1) genProductions[idx] = data;
+    const pr = genProductions.find(x => x.id === prodGenEditId);
+    const srcId = pr ? pr._srcId : prodGenEditId;
+    pgPatch('productions', srcId, { name, description, status }).then(function(){
+      const idx = genProductions.findIndex(x => x.id === prodGenEditId);
+      if (idx !== -1) Object.assign(genProductions[idx], { name, code, description, contact, email, status });
+      closeProdGenModal(); filterProds();
+    }).catch(function(e){ alert('Could not save production: ' + e.message); });
   } else {
-    genProductions.push(data);
-    if (!GEN_PROD_SHOWS[data.id]) GEN_PROD_SHOWS[data.id] = [];
+    pgPost('productions', { tenant_id: PG_TENANT, name, description, status: status || 'active' }).then(function(created){
+      const id = (created && (created.id || created._id));
+      genProductions.push({ id:id, _srcId:id, name, code:code||_pgCode(name), description, source:'Local', shows:0, status:status||'active', contact, email });
+      if (!GEN_PROD_SHOWS[id]) GEN_PROD_SHOWS[id] = [];
+      closeProdGenModal(); filterProds();
+    }).catch(function(e){ alert('Could not create production: ' + e.message); });
   }
-  closeProdGenModal();
-  filterProds();
 }
 
 const PROD_BLOCK_STATUSES = ['active','on-sale','on sale','complete','completed','sold','sold out'];
@@ -4008,9 +4019,13 @@ function deleteProdGen(id) {
 
   // No blocking shows — proceed with normal delete confirm
   genDeleteCb = function() {
-    const idx = genProductions.findIndex(x => x.id === id);
-    if (idx !== -1) genProductions.splice(idx, 1);
-    filterProds();
+    const prod = genProductions.find(x => x.id === id);
+    const srcId = prod ? prod._srcId : id;
+    pgDelete('productions', srcId).then(function(){
+      const idx = genProductions.findIndex(x => x.id === id);
+      if (idx !== -1) genProductions.splice(idx, 1);
+      filterProds();
+    }).catch(function(e){ alert('Could not delete production: ' + e.message); });
   };
   const modal = document.getElementById('genDeleteModal');
   const lbl   = document.getElementById('genDeleteName');
