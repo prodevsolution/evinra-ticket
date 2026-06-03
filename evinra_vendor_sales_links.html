@@ -727,17 +727,25 @@ select:focus{border-color:var(--p-border)}
 </div>
 
 <script>
-// ── Event catalog (shared with other_vendors page) ───────────────────────────
-const eventCatalog = [
-  { id:1, name:'Summer Festival 2026',    date:'Jul 12, 2026',  isoDate:'2026-07-12', url:'https://tickets.evinra.com/event/summer-festival-2026' },
-  { id:2, name:'Jazz Night at Bayfront',  date:'Jun 7, 2026',   isoDate:'2026-06-07', url:'https://tickets.evinra.com/event/jazz-night-bayfront' },
-  { id:3, name:'Electronic Music Expo',   date:'Jun 28, 2026',  isoDate:'2026-06-28', url:'https://tickets.evinra.com/event/electronic-music-expo' },
-  { id:4, name:'Food & Art Fair',         date:'Jul 4, 2026',   isoDate:'2026-07-04', url:'https://tickets.evinra.com/event/food-art-fair' },
-  { id:5, name:'Latin Beats Concert',     date:'Aug 15, 2026',  isoDate:'2026-08-15', url:'https://tickets.evinra.com/event/latin-beats-concert' },
-  { id:6, name:'Night Market Miami',      date:'Sep 5, 2026',   isoDate:'2026-09-05', url:'https://tickets.evinra.com/event/night-market-miami' },
-  { id:7, name:'Rooftop Sessions Vol. 3', date:'Sep 20, 2026',  isoDate:'2026-09-20', url:'https://tickets.evinra.com/event/rooftop-sessions-v3' },
-  { id:8, name:"New Year's Eve Gala",     date:'Dec 31, 2026',  isoDate:'2026-12-31', url:'https://tickets.evinra.com/event/nye-gala-2026' },
-];
+// ── Event catalog — the tenant's REAL events (from the DB), used to attribute
+//    referral links to a specific event. (vslBase is hoisted from the block below.)
+let eventCatalog = (function(){
+  var T = (typeof localStorage!=='undefined' ? localStorage.getItem('evinra-tenant-id') : '') || '';
+  if(!T) return [];
+  function g(p){ try{var x=new XMLHttpRequest();x.open('GET',vslBase()+p,false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
+  var prods = g('/productions?tenant_id=eq.'+encodeURIComponent(T));
+  var prodIds = {}; (prods||[]).forEach(function(p){ prodIds[p.id||p._id]=1; });
+  var shows = g('/shows'); var showIds = {}; (shows||[]).forEach(function(s){ if(prodIds[s.production_id]) showIds[s.id||s._id]=1; });
+  var evs = g('/events');
+  var seen = {};
+  return (evs||[]).filter(function(e){ return showIds[e.show_id]; }).map(function(e){
+    var d = e.start_at ? new Date(e.start_at) : null;
+    var date = (d && !isNaN(d)) ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var iso  = e.start_at ? String(e.start_at).slice(0,10) : '';
+    var nm   = e.name || e.function_name || 'Event';
+    return { id:String(e.id||e._id), name:nm, date:date, isoDate:iso, url:'' };
+  }).filter(function(e){ var k=e.name+'|'+e.isoDate; if(seen[k]) return false; seen[k]=1; return true; });
+})();
 
 // ── Vendor data (each has a baseUrl + eventId for their referral link) ────────
 /* Vendors come from the same DB `vendors` collection as the Other Vendors page
@@ -842,7 +850,7 @@ function renderTable(){
   const filtered = vendors.filter(v=>{
     if(q && !v.name.toLowerCase().includes(q) && !v.code.toLowerCase().includes(q) && !v.email.toLowerCase().includes(q)) return false;
     if(vf && v.id !== parseInt(vf)) return false;
-    if(ef && v.eventId !== parseInt(ef)) return false;
+    if(ef && String(v.eventId) !== String(ef)) return false;
     if(sf && v.status !== sf) return false;
     if(df || dt){
       const evt = v.eventId ? eventCatalog.find(e=>e.id===v.eventId) : null;
@@ -1038,7 +1046,7 @@ function onEventChange(){
   const sel = document.getElementById('fEvent');
   const opt = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
   if(opt){
-    document.getElementById('fBaseUrl').value = opt.dataset.url;
+    if(opt.dataset.url) document.getElementById('fBaseUrl').value = opt.dataset.url; // only auto-fill when the event has a URL
     document.getElementById('fEventBadge').style.display    = 'flex';
     document.getElementById('fEventBadgeName').textContent  = opt.dataset.name;
     document.getElementById('fEventBadgeDate').textContent  = opt.dataset.date;
@@ -1123,7 +1131,7 @@ function saveLink(){
   const commission = parseFloat(document.getElementById('fCommission').value)||0;
   if(commission < 0 || commission > 100){ document.getElementById('fCommission').focus(); showToast('Commission must be 0–100%', '', 'error'); return; }
   const eSel    = document.getElementById('fEvent');
-  const eventId = eSel.value ? parseInt(eSel.value) : null;
+  const eventId = eSel.value || null;
   const status     = document.getElementById('fStatus').value;
   const v = vendors.find(x=>x.id===vid);
   if(!v){ closeLinkModal(); return; }
@@ -1165,8 +1173,8 @@ function bEventChange(){
   const sel = document.getElementById('bEvent');
   const opt = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
   if(opt){
-    _bEventId = parseInt(sel.value);
-    document.getElementById('bBaseUrl').value         = opt.dataset.url;
+    _bEventId = sel.value;
+    if(opt.dataset.url) document.getElementById('bBaseUrl').value = opt.dataset.url; // only auto-fill when the event has a URL
     document.getElementById('bEventBadge').style.display = 'flex';
     document.getElementById('bEventName').textContent = opt.dataset.name;
     document.getElementById('bEventDate').textContent = opt.dataset.date;
