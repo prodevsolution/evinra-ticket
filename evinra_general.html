@@ -1672,6 +1672,24 @@ window.gsConfirm = function(opts){
   setTimeout(function(){ okBtn.focus(); }, 30);
 };
 
+/* Keyword-matched real product photo (LoremFlickr, stable per code). */
+window._prodImg = function(p){
+  var n=String(p.name||'').toUpperCase(), s=p.subCat||p.sub_cat||'', kw;
+  if(s==='Drinks'){
+    if(n.indexOf('WATER')>=0) kw='water,bottle';
+    else if(n.indexOf('CAN SODA')>=0) kw='soda,can';
+    else if(n.indexOf('SODA')>=0) kw='soda';
+    else if(n.indexOf('COFFEE')>=0) kw='coffee';
+    else if(n.indexOf('COCOA')>=0||n.indexOf('HOT')>=0) kw='hot,chocolate';
+    else kw='soft,drink';
+  } else {
+    var m={'Snow Cones':'snow,cone','Cotton Candy':'cotton,candy','Funnel Cakes':'funnel,cake','Popcorn 1':'popcorn','Lemonade':'lemonade','Grab':'snack,food','Pizza':'pizza','Grease':'fried,food','Smoothie':'smoothie','Toys':'toy','Ride':'fairground,ride','Seat':'stadium,seats','Upgrade':'vip,pass','Parking':'parking,lot','Tickets':'event,ticket','Other':'carnival'};
+    kw=m[s]||'carnival,food';
+  }
+  var code=String(p.code||'x'), lock=0, i; for(i=0;i<code.length;i++) lock+=code.charCodeAt(i); lock=lock%1000;
+  return 'https://loremflickr.com/160/160/'+kw+'?lock='+lock;
+};
+
 /* First-run seeding: if this tenant's collection is empty, batch-insert the demo rows and return them. */
 window.gdbSeedIfEmpty = function(table, rows){
   var existing = window.gdbScoped(table);
@@ -2461,7 +2479,7 @@ const _GEN_PRODUCTS_DEMO = [
 
 /* Products persist in the DB `products` collection (per tenant). Seed demo on first run. */
 let GEN_PRODUCTS = (window.gdbSeedIfEmpty('products', _GEN_PRODUCTS_DEMO.map(function(d){
-  return { code:d.code, name:d.name, main_cat:d.mainCat, cat:d.cat, sub_cat:d.subCat, price:d.price, active:d.active?1:0, image:d.image||'' };
+  return { code:d.code, name:d.name, main_cat:d.mainCat, cat:d.cat, sub_cat:d.subCat, price:d.price, active:d.active?1:0, image:window._prodImg(d) };
 }))||[]).map(function(p){
   return { _srcId:(p.id||p._id), code:p.code||'', name:p.name||'', mainCat:p.main_cat||'',
     cat:p.cat||'', subCat:p.sub_cat||'', price:Number(p.price)||0,
