@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js"></script>
-<script src="https://cdn-eu.seatsio.net/chart.js" defer></script>
+<script src="https://cdn-na.seatsio.net/chart.js" defer></script>
 <style>
 /* ── Dark tokens ─────────────────────────────────────── */
 html[data-theme="dark"],html:not([data-theme]){
@@ -884,7 +884,7 @@ html,body{height:100%;font-family:var(--body,Outfit,sans-serif);font-size:14px;l
 <script>
 /* ── seats.io state ─────────────────────────────────────── */
 let seatsKey    = localStorage.getItem('seatsio_key')    || '';
-let seatsRegion = localStorage.getItem('seatsio_region') || 'eu';
+let seatsRegion = localStorage.getItem('seatsio_region') || 'na';
 let seatsLang   = localStorage.getItem('seatsio_lang')   || 'en';
 let designer    = null;
 let activeLayout = null;
@@ -1018,10 +1018,23 @@ let assignSelected  = new Set(); // event ids selected in modal
 
 let nextId = 4; // next available id after id:3
 
+/* Populate every Production dropdown from the canonical dataset (DB-backed) */
+function fillProductionSelects(){
+  if(!window.EVINRA || !EVINRA.productions) return;
+  var opts = EVINRA.productions.map(function(p){ return '<option>'+p.name+'</option>'; }).join('');
+  [['filterProduction','<option value="">All Productions</option>'],
+   ['nlProduction','<option value="">Select a production…</option>'],
+   ['clProduction','<option value="">Select a production…</option>'],
+   ['dpProdInput','<option value="">Select production…</option>']
+  ].forEach(function(pair){
+    var el=document.getElementById(pair[0]);
+    if(el) el.innerHTML = pair[1] + opts;
+  });
+}
+
 /* ── Init ───────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  var pf=document.getElementById('filterProduction');
-  if(pf && window.EVINRA){ pf.innerHTML='<option value="">All Productions</option>'+EVINRA.productions.map(function(p){return '<option>'+p.name+'</option>';}).join(''); }
+  fillProductionSelects();
   loadLayouts();
   // Prefill the seats.io region from the backend env config so the designer targets
   // the right workspace (the secret key is still entered in-page, never served by the API).
@@ -1108,9 +1121,17 @@ function renderTable() {
 }
 
 /* ── Designer ───────────────────────────────────────────── */
-function openDesigner(id) {
+async function openDesigner(id) {
   const layout = layouts.find(l => l.id === id);
   if (!layout) return;
+  // Seeded/legacy layouts carry a placeholder key (e.g. "layout-xyz") that is not a
+  // real seats.io chart — the designer can't open those. Create a real chart first.
+  if (!_isRealChart(layout.key)) {
+    try {
+      const k = await smCreateChart(layout.name);
+      if (k) { layout.key = k; await smPatch(layout._dbId, { key: k }); renderTable(); }
+    } catch (e) { /* seats.io unavailable — fall through; designer will surface the error */ }
+  }
   activeLayout = layout;
 
   // Populate header
@@ -1276,6 +1297,7 @@ function initDesigner(chartKey) {
   try {
     designer = new seatsio.SeatingChartDesigner({
       secretKey: seatsKey,
+      region: seatsRegion || 'na',
       divId: 'designerContainer',
       language: seatsLang,
       chartKey: chartKey,
