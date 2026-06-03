@@ -740,18 +740,35 @@ const eventCatalog = [
 ];
 
 // ── Vendor data (each has a baseUrl + eventId for their referral link) ────────
-const vendors = [
-  { id:1, code:'VND-SUN1', name:'Sunrise Snacks Co.',  email:'sales@sunrisesnacks.com',  commission:8,   status:'Active',   clicks:624,  sales:72,  revenue:4320, eventId:1, baseUrl:'https://tickets.evinra.com/event/summer-festival-2026' },
-  { id:2, code:'VND-CML2', name:'CoolMerch Ltd.',      email:'info@coolmerch.com',       commission:10,  status:'Active',   clicks:511,  sales:58,  revenue:5220, eventId:2, baseUrl:'https://tickets.evinra.com/event/jazz-night-bayfront' },
-  { id:3, code:'VND-AQV3', name:'AquaVend Inc.',       email:'orders@aquavend.com',      commission:7,   status:'Active',   clicks:389,  sales:41,  revenue:2460, eventId:3, baseUrl:'https://tickets.evinra.com/event/electronic-music-expo' },
-  { id:4, code:'VND-FNG4', name:'FunGear Supplies',    email:'hello@fungear.com',        commission:9,   status:'Paused',   clicks:210,  sales:24,  revenue:1680, eventId:4, baseUrl:'https://tickets.evinra.com/event/food-art-fair' },
-  { id:5, code:'VND-TST5', name:'TastyBites Corp.',    email:'partners@tastybites.com',  commission:8.5, status:'Active',   clicks:744,  sales:89,  revenue:4450, eventId:5, baseUrl:'https://tickets.evinra.com/event/latin-beats-concert' },
-  { id:6, code:'VND-NOW6', name:'NightOwl Merch',      email:'merch@nightowl.com',       commission:12,  status:'Active',   clicks:302,  sales:35,  revenue:2800, eventId:1, baseUrl:'https://tickets.evinra.com/event/summer-festival-2026' },
-  { id:7, code:'VND-BRW7', name:'BrewMasters',         email:'biz@brewmasters.com',      commission:6,   status:'Active',   clicks:487,  sales:53,  revenue:1590, eventId:6, baseUrl:'https://tickets.evinra.com/event/night-market-miami' },
-  { id:8, code:'VND-ELT8', name:'EliteWear Co.',       email:'elite@elitewear.com',      commission:11,  status:'Inactive', clicks:0,    sales:0,   revenue:0,    eventId:null, baseUrl:'' },
-  { id:9, code:'VND-SNK9', name:'SnackZone LLC',       email:'snacks@snackzone.com',     commission:7.5, status:'Active',   clicks:418,  sales:27,  revenue:1350, eventId:7, baseUrl:'https://tickets.evinra.com/event/rooftop-sessions-v3' },
-  { id:10,code:'VND-PGH0', name:'PromoGear Hub',       email:'sales@promogear.com',      commission:9,   status:'Inactive', clicks:157,  sales:13,  revenue:640,  eventId:null, baseUrl:'' }
-];
+/* Vendors come from the same DB `vendors` collection as the Other Vendors page
+   (per tenant). Referral-link config (base_url + event_id) persists here. */
+function vslBase(){ var h=location.hostname,local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:'); return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db'; }
+var VSL_TENANT=(typeof localStorage!=='undefined'?localStorage.getItem('evinra-tenant-id'):'')||'';
+function vslGetSync(qs){ try{var x=new XMLHttpRequest();x.open('GET',vslBase()+'/vendors'+(qs?('?'+qs):''),false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
+function vslPatch(id,body){ return fetch(vslBase()+'/vendors?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)return r.json().catch(function(){return{};}).then(function(d){throw new Error((d&&d.error)||'PATCH failed');});return true;}); }
+function vslConfirm(opts){
+  opts=opts||{}; var ov=document.getElementById('vslConfirmOverlay');
+  if(!ov){ ov=document.createElement('div'); ov.id='vslConfirmOverlay'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:7000;padding:20px';
+    ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-width:430px;width:100%;padding:22px 22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.45)"><div id="vslcTitle" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px"></div><div id="vslcMsg" style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:18px"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="vslcCancel" type="button" class="btn btn-ghost" style="min-height:38px">Cancel</button><button id="vslcOk" type="button" class="btn btn-primary" style="min-height:38px"></button></div></div>';
+    document.body.appendChild(ov); }
+  document.getElementById('vslcTitle').textContent=opts.title||'Confirm';
+  document.getElementById('vslcMsg').innerHTML=opts.message||'';
+  var ok=document.getElementById('vslcOk'),cancel=document.getElementById('vslcCancel');
+  ok.textContent=opts.confirmLabel||'Confirm'; ok.className='btn '+(opts.danger?'btn-red':'btn-primary');
+  function close(){ ov.style.display='none'; document.removeEventListener('keydown',onKey); }
+  function doOk(){ close(); if(opts.onConfirm)opts.onConfirm(); }
+  function onKey(e){ if(e.key==='Escape')close(); else if(e.key==='Enter'){e.preventDefault();doOk();} }
+  ok.onclick=doOk; cancel.onclick=close; ov.onclick=function(e){if(e.target===ov)close();};
+  document.addEventListener('keydown',onKey); ov.style.display='flex'; setTimeout(function(){ok.focus();},30);
+}
+
+let vendors = (vslGetSync(VSL_TENANT?('tenant_id=eq.'+encodeURIComponent(VSL_TENANT)):'')||[]).map(function(d,i){
+  return { id:i+1, _srcId:(d.id||d._id), code:d.code||'', name:d.name||'', email:d.contact_email||'',
+    commission:Number(d.commission)||0, status:d.status||'Active',
+    clicks:0, sales:0, revenue:0,
+    eventId:(d.event_id!=null?d.event_id:null), baseUrl:d.base_url||'' };
+});
 
 let editId = null;
 
@@ -913,10 +930,11 @@ function renderTable(){
 function toggleStatus(id){
   const v = vendors.find(x=>x.id===id);
   if(!v) return;
-  if(v.status==='Active') v.status='Paused';
-  else if(v.status==='Paused') v.status='Active';
-  else v.status='Active';
+  const next = (v.status==='Active') ? 'Paused' : 'Active';
+  v.status = next;
   renderTable();
+  if(v._srcId) vslPatch(v._srcId, { status: next }).then(function(){ showToast('Link '+(next==='Active'?'activated':'paused'), v.name); })
+    .catch(function(e){ showToast('Could not update status', e.message, 'error'); });
 }
 
 // ── Detail drawer ─────────────────────────────────────────────────────────────
@@ -1087,22 +1105,29 @@ function closeLinkModal(){
 
 function saveLink(){
   const vid = parseInt(document.getElementById('fVendor').value);
-  if(!vid){ document.getElementById('fVendor').focus(); return; }
+  if(!vid){ document.getElementById('fVendor').focus(); showToast('Select a vendor.', '', 'error'); return; }
   const base = (document.getElementById('fBaseUrl').value||'').replace(/[?#].*$/,'').trim();
-  if(!base){ document.getElementById('fBaseUrl').focus(); return; }
+  if(!base){ document.getElementById('fBaseUrl').focus(); showToast('Enter the base ticket URL.', '', 'error'); return; }
+  if(!/^https?:\/\/.+/i.test(base)){ document.getElementById('fBaseUrl').focus(); showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
+  const commission = parseFloat(document.getElementById('fCommission').value)||0;
+  if(commission < 0 || commission > 100){ document.getElementById('fCommission').focus(); showToast('Commission must be 0–100%', '', 'error'); return; }
   const eSel    = document.getElementById('fEvent');
   const eventId = eSel.value ? parseInt(eSel.value) : null;
-  const commission = parseFloat(document.getElementById('fCommission').value)||0;
   const status     = document.getElementById('fStatus').value;
   const v = vendors.find(x=>x.id===vid);
-  if(v){
-    v.commission = commission;
-    v.status     = status;
-    v.baseUrl    = base;
-    v.eventId    = eventId;
-  }
-  closeLinkModal();
-  renderTable();
+  if(!v){ closeLinkModal(); return; }
+  const persist = function(){
+    vslPatch(v._srcId, { base_url:base, event_id:eventId, commission:commission, status:status }).then(function(){
+      v.commission = commission; v.status = status; v.baseUrl = base; v.eventId = eventId;
+      closeLinkModal(); renderTable(); showToast('Referral link saved', v.name);
+    }).catch(function(e){ showToast('Could not save link', e.message, 'error'); });
+  };
+  vslConfirm({
+    title: 'Save referral link',
+    message: 'Save the referral link for <strong>'+String(v.name).replace(/[<>&]/g,'')+'</strong> at '+commission+'% commission?',
+    confirmLabel: 'Save link',
+    onConfirm: persist
+  });
 }
 
 // ── Builder Modal ─────────────────────────────────────────────────────────
@@ -1196,16 +1221,25 @@ function bCopyAll(){
 
 function createAllLinks(){
   const raw = (document.getElementById('bBaseUrl').value||'').replace(/[?#].*$/,'').trim();
-  if(!raw) return;
+  if(!raw){ showToast('Enter a base URL first.', '', 'error'); return; }
+  if(!/^https?:\/\/.+/i.test(raw)){ showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
   const evtId = _bEventId;
-  vendors.forEach(v=>{ v.baseUrl = raw; v.eventId = evtId; });
-  closeBuilderModal();
-  renderTable();
   const eName = evtId ? (eventCatalog.find(e=>e.id===evtId)||{}).name : null;
-  showToast(
-    `${vendors.length} referral links created successfully!`,
-    eName ? `Event: ${eName}` : 'Custom URL applied to all vendors'
-  );
+  vslConfirm({
+    title: 'Create links for all vendors',
+    message: 'This will set the referral link for <strong>all '+vendors.length+' vendors</strong> to the same base URL'
+      + (eName ? ' (event: '+String(eName).replace(/[<>&]/g,'')+')' : '') + ', overwriting any existing links. Continue?',
+    confirmLabel: 'Create all links',
+    onConfirm: function(){
+      Promise.all(vendors.map(function(v){
+        v.baseUrl = raw; v.eventId = evtId;
+        return v._srcId ? vslPatch(v._srcId, { base_url:raw, event_id:evtId }).catch(function(){}) : Promise.resolve();
+      })).then(function(){
+        closeBuilderModal(); renderTable();
+        showToast(vendors.length + ' referral links created successfully!', eName ? ('Event: '+eName) : 'Custom URL applied to all vendors');
+      });
+    }
+  });
 }
 
 // ── Toast notification ────────────────────────────────────────────
