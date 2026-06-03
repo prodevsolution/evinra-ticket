@@ -729,6 +729,8 @@ select:focus{border-color:var(--p-border)}
 <script>
 // ── Event catalog — the tenant's REAL events (from the DB), used to attribute
 //    referral links to a specific event. (vslBase is hoisted from the block below.)
+// Storefront base URL (per-tenant deep link); referral links are generated from this.
+function vslStorefrontBase(){ var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:'); return local ? 'http://localhost:5501' : 'https://evinra-storefront.netlify.app'; }
 let eventCatalog = (function(){
   var T = (typeof localStorage!=='undefined' ? localStorage.getItem('evinra-tenant-id') : '') || '';
   if(!T) return [];
@@ -743,7 +745,10 @@ let eventCatalog = (function(){
     var date = (d && !isNaN(d)) ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     var iso  = e.start_at ? String(e.start_at).slice(0,10) : '';
     var nm   = e.name || e.function_name || 'Event';
-    return { id:String(e.id||e._id), name:nm, date:date, isoDate:iso, url:'' };
+    var eid  = String(e.id||e._id);
+    // Generated storefront deep link for this event (tenant-scoped).
+    var url  = vslStorefrontBase() + '?tenant=' + encodeURIComponent(T) + '&event=' + encodeURIComponent(eid);
+    return { id:eid, name:nm, date:date, isoDate:iso, url:url };
   }).filter(function(e){ var k=e.name+'|'+e.isoDate; if(seen[k]) return false; seen[k]=1; return true; });
 })();
 
@@ -801,7 +806,9 @@ function statusBadge(s){
 }
 function copyIcon(title){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px" title="${title}"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`; }
 function checkIcon(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="20 6 9 17 4 12"/></svg>`; }
-function refLink(v){ return v.baseUrl ? v.baseUrl + '?vendor=' + v.code : null; }
+function refLink(v){ if(!v.baseUrl) return null; var sep = v.baseUrl.indexOf('?')>=0 ? '&' : '?'; return v.baseUrl + sep + 'vendor=' + encodeURIComponent(v.code); }
+// Clean a base URL for storage: drop any existing ?vendor= but KEEP other params (tenant, event).
+function _cleanBase(u){ u=(u||'').trim(); if(!u) return ''; try{ var url=new URL(u); url.searchParams.delete('vendor'); var s=url.toString(); return s.replace(/[?&]$/,''); }catch(e){ return u.replace(/([?&])vendor=[^&#]*/ig,'$1').replace(/[?&]+$/,'').replace(/[#].*$/,''); } }
 function copyText(text, btn){
   navigator.clipboard.writeText(text).catch(()=>{});
   const orig = btn.innerHTML;
@@ -1065,7 +1072,7 @@ function onUrlInput(){
 
 function _updateModalPreview(){
   const code = document.getElementById('fCode').value.trim();
-  const base = (document.getElementById('fBaseUrl').value||'').replace(/[?#].*$/,'').trim();
+  const base = _cleanBase(document.getElementById('fBaseUrl').value||'');
   const el   = document.getElementById('linkPreview');
   if(!code || !base){
     el.innerHTML = '<span style="color:var(--text3)">Select a vendor and event to generate the link</span>';
@@ -1125,7 +1132,7 @@ function closeLinkModal(){
 function saveLink(){
   const vid = parseInt(document.getElementById('fVendor').value);
   if(!vid){ document.getElementById('fVendor').focus(); showToast('Select a vendor.', '', 'error'); return; }
-  const base = (document.getElementById('fBaseUrl').value||'').replace(/[?#].*$/,'').trim();
+  const base = _cleanBase(document.getElementById('fBaseUrl').value||'');
   if(!base){ document.getElementById('fBaseUrl').focus(); showToast('Enter the base ticket URL.', '', 'error'); return; }
   if(!/^https?:\/\/.+/i.test(base)){ document.getElementById('fBaseUrl').focus(); showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
   const commission = parseFloat(document.getElementById('fCommission').value)||0;
@@ -1193,7 +1200,7 @@ function bUrlInput(){
 }
 
 function _bBuildList(){
-  const raw     = (document.getElementById('bBaseUrl').value||'').replace(/[?#].*$/,'').trim();
+  const raw     = _cleanBase(document.getElementById('bBaseUrl').value||'');
   const results = document.getElementById('bResults');
   const list    = document.getElementById('bList');
   const copyBtn = document.getElementById('bCopyAllBtn');
@@ -1216,7 +1223,7 @@ function _bBuildList(){
 }
 
 function _bSyncBtn(){
-  const raw   = (document.getElementById('bBaseUrl').value||'').replace(/[?#].*$/,'').trim();
+  const raw   = _cleanBase(document.getElementById('bBaseUrl').value||'');
   const btn   = document.getElementById('bCreateBtn');
   const label = document.getElementById('bCreateLabel');
   const has   = !!raw;
@@ -1227,7 +1234,7 @@ function _bSyncBtn(){
 }
 
 function bCopyAll(){
-  const raw = (document.getElementById('bBaseUrl').value||'').replace(/[?#].*$/,'').trim();
+  const raw = _cleanBase(document.getElementById('bBaseUrl').value||'');
   if(!raw) return;
   const csv = 'Vendor,Code,Referral Link,Commission\n' +
     vendors.map(v=>`"${v.name}","${v.code}","${raw}?vendor=${v.code}","${v.commission}%"`).join('\n');
@@ -1239,7 +1246,7 @@ function bCopyAll(){
 }
 
 function createAllLinks(){
-  const raw = (document.getElementById('bBaseUrl').value||'').replace(/[?#].*$/,'').trim();
+  const raw = _cleanBase(document.getElementById('bBaseUrl').value||'');
   if(!raw){ showToast('Enter a base URL first.', '', 'error'); return; }
   if(!/^https?:\/\/.+/i.test(raw)){ showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
   const evtId = _bEventId;
