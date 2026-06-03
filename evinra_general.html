@@ -1639,6 +1639,18 @@ window.gdbScoped = function(table){ return window.gdbGetSync(table, window.GDB_T
 window.gdbPost = function(table, body){ var b=Object.assign({tenant_id:window.GDB_TENANT}, body); return fetch(window.GDB_BASE+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }); }); };
 window.gdbPatch = function(table, id, body){ return fetch(window.GDB_BASE+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(d){ throw new Error((d&&d.error)||'PATCH failed'); }); return true; }); };
 window.gdbDelete = function(table, id){ return fetch(window.GDB_BASE+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(d){ throw new Error((d&&d.error)||'DELETE failed'); }); return true; }); };
+/* First-run seeding: if this tenant's collection is empty, batch-insert the demo rows and return them. */
+window.gdbSeedIfEmpty = function(table, rows){
+  var existing = window.gdbScoped(table);
+  if ((existing && existing.length) || !window.GDB_TENANT || !rows || !rows.length) return existing || [];
+  try {
+    var withTenant = rows.map(function(r){ return Object.assign({ tenant_id: window.GDB_TENANT }, r); });
+    var x=new XMLHttpRequest(); x.open('POST', window.GDB_BASE+'/'+table, false);
+    x.setRequestHeader('Content-Type','application/json'); x.send(JSON.stringify(withTenant));
+    if (x.status>=200 && x.status<300) return JSON.parse(x.responseText);
+  } catch(e){}
+  return window.gdbScoped(table);
+};
 
 /* ══════════════════════════════════════════════════════════════ */
 /* MISSING FUNCTION DEFINITIONS - ADDED FOR COMPATIBILITY */
@@ -2414,8 +2426,10 @@ const _GEN_PRODUCTS_DEMO = [
   {code:'MVP0009',name:'OTHER',                      mainCat:'Other',   cat:'Other',  subCat:'Other',       price:10.00,active:true,inherited:true,image:_PIC('MVP0009')},
 ];
 
-/* Products persist in the DB `products` collection (per tenant). */
-let GEN_PRODUCTS = (window.gdbScoped('products')||[]).map(function(p){
+/* Products persist in the DB `products` collection (per tenant). Seed demo on first run. */
+let GEN_PRODUCTS = (window.gdbSeedIfEmpty('products', _GEN_PRODUCTS_DEMO.map(function(d){
+  return { code:d.code, name:d.name, main_cat:d.mainCat, cat:d.cat, sub_cat:d.subCat, price:d.price, active:d.active?1:0, image:d.image||'' };
+}))||[]).map(function(p){
   return { _srcId:(p.id||p._id), code:p.code||'', name:p.name||'', mainCat:p.main_cat||'',
     cat:p.cat||'', subCat:p.sub_cat||'', price:Number(p.price)||0,
     active:(p.active!==0 && p.active!==false), inherited:false, image:p.image||'' };
@@ -2968,8 +2982,16 @@ function _productBlockConfirm() {
 }
 
 /* ── RIDES CRUD ────────────────────────────── */
-/* Rides & Experiences persist in the DB `ridexp` collection (per tenant). */
-let GEN_RIDES = (window.gdbScoped('ridexp')||[]).map(function(r){
+/* Rides & Experiences persist in the DB `ridexp` collection (per tenant). Seed demo on first run. */
+const _GEN_RIDES_DEMO = [
+  {code:'RD001',name:'Roller Coaster',    type:'Ride',       price:5.00, credits:3, active:true},
+  {code:'RD002',name:'Ferris Wheel',      type:'Ride',       price:4.00, credits:2, active:true},
+  {code:'RD003',name:'Carousel',          type:'Ride',       price:2.00, credits:1, active:true},
+  {code:'RD004',name:'VIP Backstage Pass',type:'Experience', price:79.99,credits:10,active:true},
+  {code:'RD005',name:'Cast Photo Package',type:'Experience', price:24.99,credits:5, active:false},
+  {code:'RD006',name:'Meet & Greet',      type:'Experience', price:49.99,credits:8, active:true},
+];
+let GEN_RIDES = (window.gdbSeedIfEmpty('ridexp', _GEN_RIDES_DEMO)||[]).map(function(r){
   return { _srcId:(r.id||r._id), code:r.code||'', name:r.name||'', type:r.type||'Ride',
     price:Number(r.price)||0, credits:Number(r.credits)||0,
     active:(r.active!==0 && r.active!==false), inherited:false };
@@ -3236,7 +3258,7 @@ const _CAT_DATA_DEFAULT = {
 /* Product categories persist as a single per-tenant tree document. */
 var _catDocId = null;
 let CAT_DATA = (function(){
-  var rows = window.gdbScoped('product_categories');
+  var rows = window.gdbSeedIfEmpty('product_categories', [{ tree: _CAT_DATA_DEFAULT }]);
   if (rows && rows[0] && rows[0].tree) { _catDocId = rows[0].id || rows[0]._id; return rows[0].tree; }
   return JSON.parse(JSON.stringify(_CAT_DATA_DEFAULT));
 })();
@@ -4642,17 +4664,28 @@ function devLocationsForGateway(gwLabel){
 
 // Device registry (demo data). Most at Evinra so the screenshot matches;
 // a few elsewhere so the Location filter is meaningful.
-/* Devices persist in the DB `devices` collection (per tenant). */
-let DEVICES = (window.gdbScoped('devices')||[]).map(function(d){
+/* Devices persist in the DB `devices` collection (per tenant). Seed demo on first run. */
+const _DEVICES_DEMO = [
+  { name:'TOYS HANDHELD 4', description:'TOYS HANDHELD 4', type:'Handheld', device_id:'531WS21607001076', location:'Main', gateway:'Main Box Office', status:'Online', mode:'Standard', sale_location:'Main Box Office Gate 1', orders:128, active:true },
+  { name:'TOYS HANDHELD 2', description:'TOYS HANDHELD 2', type:'Handheld', device_id:'530WS21606007115', location:'Main', gateway:'Main Box Office', status:'N/A',    mode:'Standard', sale_location:'Box Office Gate 2',      orders:84,  active:true },
+  { name:'TOYS',            description:'TOYS Register',   type:'Register', device_id:'546CS134A9000671', location:'Main', gateway:'Main Box Office', status:'Online', mode:'Standard', sale_location:'Main Box Office Gate 1', orders:312, active:true },
+  { name:'TACOS HANDHELD',  description:'TACOS HANDHELD',  type:'Handheld', device_id:'530WS21606005585', location:'Main', gateway:'Main Box Office', status:'N/A',    mode:'Standard', sale_location:'Storefront',            orders:197, active:true },
+  { name:'Star TSP100IV 1', description:'Star Register',   type:'Register', device_id:'2610025071407001', location:'Main', gateway:'Main Box Office', status:'N/A',    mode:'Standard', sale_location:'',                      orders:0,   active:true },
+];
+let DEVICES = (window.gdbSeedIfEmpty('devices', _DEVICES_DEMO)||[]).map(function(d){
   var did = d.id || d._id;
   return { id:did, _srcId:did, name:d.name||'', description:d.description||d.name||'', type:d.type||'Register',
     deviceId:d.device_id||'', location:d.location||'', gateway:d.gateway||'', orders:Number(d.orders)||0,
     active:(d.active!==false && d.active!==0), status:d.status||'N/A', mode:d.mode||'Standard', saleLocation:d.sale_location||'' };
 });
 
-// Sales locations a device can be assigned to (DB-backed, default fallback).
+// Sales locations a device can be assigned to (DB-backed, seeded on first run).
 let SALE_LOCATIONS = (function(){
-  var rows = window.gdbScoped('sale_locations');
+  var rows = window.gdbSeedIfEmpty('sale_locations', [
+    { name:'Main Box Office Gate 1', type:'OnSite Sales' },
+    { name:'Box Office Gate 2',      type:'OnSite Sales' },
+    { name:'Storefront',             type:'Online Sales' },
+  ]);
   if (rows && rows.length) return rows.map(function(r){ return { name:r.name, type:r.type, _srcId:(r.id||r._id) }; });
   return [
     { name:'Main Box Office Gate 1', type:'OnSite Sales' },
@@ -4994,8 +5027,12 @@ const GW_LOCATIONS = [
   {id:'loc-4', name:'Fairgrounds Pavilion', city:'Reno, NV'},
 ];
 
-/* Payment gateways persist in the DB `gateways` collection (per tenant). */
-let GATEWAYS = (window.gdbScoped('gateways')||[]).map(function(g){
+/* Payment gateways persist in the DB `gateways` collection (per tenant). Seed demo on first run. */
+const _GATEWAYS_DEMO = [
+  { type:'square', name:'Main Box Office', app_id:'sandbox-sq0idb-DEMO', token:'DEMO-TOKEN-REPLACE-ME', env:'sandbox', default_location:'loc-1', channels:['storefront','onsite'], active:true },
+  { type:'stripe', name:'Online Store',    app_id:'pk_test_DEMO',        token:'sk_test_DEMO',          env:'sandbox', default_location:'loc-2', channels:['storefront'],          active:false },
+];
+let GATEWAYS = (window.gdbSeedIfEmpty('gateways', _GATEWAYS_DEMO)||[]).map(function(g){
   var gid = g.id || g._id;
   return { id:gid, _srcId:gid, type:g.type||'square', name:g.name||'', appId:g.app_id||'',
     token:g.token||'', env:g.env||'production', defaultLocation:g.default_location||'',
@@ -5071,7 +5108,10 @@ function openGatewayWizard(id){
   document.getElementById('gwType').value  = g ? g.type  : 'square';
   document.getElementById('gwName').value  = g ? g.name  : '';
   document.getElementById('gwAppId').value = g ? g.appId : '';
-  document.getElementById('gwToken').value = g ? g.token : '';
+  // Write-only token: never prefill the saved secret. Blank = keep existing on save.
+  var _tokEl = document.getElementById('gwToken');
+  _tokEl.value = '';
+  _tokEl.placeholder = (g && g.token) ? '•••••••• saved — leave blank to keep' : 'Access / Secret token';
   document.getElementById('gwEnv').value   = g ? g.env   : 'production';
   ['gwAppId','gwToken'].forEach(fid=>{ const el=document.getElementById(fid); if(el) el.type='password'; });
   gwSelLocation = g ? (g.defaultLocation || null) : null;
@@ -5135,7 +5175,7 @@ function gwValidateStep1(){
   const missing = [];
   if(!name)  missing.push('Name');
   if(!appId) missing.push('Application ID');
-  if(!token) missing.push('Access Token');
+  if(!token && !gwEditingId) missing.push('Access Token'); // when editing, blank = keep saved token
   if(missing.length){ showGwError('Please fill in: ' + missing.join(', ')); return false; }
   hideGwError();
   return true;
@@ -5172,11 +5212,14 @@ function saveGateway(){
     channels: [...gwChannels],
     active: gwActive,
   };
-  const dbBody = { type:data.type, name:data.name, app_id:data.appId, token:data.token, env:data.env, default_location:data.defaultLocation, channels:data.channels, active:data.active };
+  const tokenEntered = data.token !== '';
+  const dbBody = { type:data.type, name:data.name, app_id:data.appId, env:data.env, default_location:data.defaultLocation, channels:data.channels, active:data.active };
+  if(tokenEntered || !gwEditingId) dbBody.token = data.token; // only write the token when (re)entered
   if(gwEditingId){
     const i = GATEWAYS.findIndex(x=>x.id===gwEditingId);
     const srcId = (i>=0) ? GATEWAYS[i]._srcId : null;
     if(!srcId){ showGwError('Could not save: missing record id'); return; }
+    if(!tokenEntered && i>=0) data.token = GATEWAYS[i].token; // keep the saved token locally
     window.gdbPatch('gateways', srcId, dbBody).then(function(){
       if(i>=0) GATEWAYS[i] = {...GATEWAYS[i], ...data};
       gwToast('Gateway updated.'); renderGatewayTable(); closeGatewayWizard();
