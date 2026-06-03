@@ -578,7 +578,7 @@ select:focus{border-color:var(--p-border)}
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
-let vendors = [
+const _VENDORS_DEMO = [
   {
     id: 1, code: 'VND-SUN1', name: 'Sunrise Snacks Co.', category: 'Food & Beverage',
     contactName: 'Maria Gonzalez', contactEmail: 'maria@sunrise.com',
@@ -754,7 +754,56 @@ let vendors = [
   }
 ];
 
-let nextId = 13;
+/* ── DB persistence (per tenant) ──────────────────────────────── */
+function vbBase(){ var h=location.hostname,local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:'); return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db'; }
+var VB_TENANT=(typeof localStorage!=='undefined'?localStorage.getItem('evinra-tenant-id'):'')||'';
+function vbGetSync(qs){ try{var x=new XMLHttpRequest();x.open('GET',vbBase()+'/vendors'+(qs?('?'+qs):''),false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
+function vbPost(body){ var b=Object.assign({tenant_id:VB_TENANT},body); return fetch(vbBase()+'/vendors',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.json().catch(function(){return{};}).then(function(d){if(!r.ok)throw new Error((d&&d.error)||'POST failed');return Array.isArray(d)?d[0]:d;});}); }
+function vbPatch(id,body){ return fetch(vbBase()+'/vendors?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(!r.ok)return r.json().catch(function(){return{};}).then(function(d){throw new Error((d&&d.error)||'PATCH failed');});return true;}); }
+function vbDelete(id){ return fetch(vbBase()+'/vendors?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}).then(function(r){if(!r.ok)return r.json().catch(function(){return{};}).then(function(d){throw new Error((d&&d.error)||'DELETE failed');});return true;}); }
+function _vbToLocal(d,i){ return { id:i+1, _srcId:(d.id||d._id), code:d.code||'', name:d.name||'', category:d.category||'Food & Beverage', contactName:d.contact_name||'', contactEmail:d.contact_email||'', phone:d.phone||'', website:d.website||'', address:d.address||'', commission:Number(d.commission)||0, status:d.status||'Active', selfReg:!!d.self_reg, notes:d.notes||'', products:Array.isArray(d.products)?d.products:[], refLinks:Array.isArray(d.ref_links)?d.ref_links:[] }; }
+function _vbToDb(v){ return { code:v.code, name:v.name, category:v.category, contact_name:v.contactName, contact_email:v.contactEmail, phone:v.phone, website:v.website, address:v.address, commission:v.commission, status:v.status, self_reg:!!v.selfReg, notes:v.notes, products:v.products||[], ref_links:v.refLinks||[] }; }
+
+var _vbRows = vbGetSync(VB_TENANT?('tenant_id=eq.'+encodeURIComponent(VB_TENANT)):'');
+if((!_vbRows||!_vbRows.length) && VB_TENANT){
+  try{ var _seed=_VENDORS_DEMO.map(function(v){ return Object.assign({tenant_id:VB_TENANT}, _vbToDb(v)); });
+    var _xx=new XMLHttpRequest(); _xx.open('POST',vbBase()+'/vendors',false); _xx.setRequestHeader('Content-Type','application/json'); _xx.send(JSON.stringify(_seed));
+    if(_xx.status>=200&&_xx.status<300) _vbRows=JSON.parse(_xx.responseText);
+  }catch(e){}
+}
+let vendors = (_vbRows||[]).map(_vbToLocal);
+
+/* ── Toast + confirm helpers (Forms & Feedback) ──────────────── */
+function vbToast(msg, ok){
+  var t=document.createElement('div');
+  t.setAttribute('role','status'); t.setAttribute('aria-live','polite');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:6000;background:var(--bg2);border:1px solid '+(ok===false?'var(--red-border,var(--border))':'var(--border)')+';border-left:3px solid '+(ok===false?'var(--red)':'var(--p)')+';border-radius:8px;padding:11px 16px;font-size:12.5px;color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.35)';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(function(){t.remove();},300); }, 3000);
+}
+function vbConfirm(opts){
+  opts=opts||{};
+  var ov=document.getElementById('vbConfirmOverlay');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='vbConfirmOverlay'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:6000;padding:20px';
+    ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-width:430px;width:100%;padding:22px 22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.45)"><div id="vbcTitle" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px"></div><div id="vbcMsg" style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:18px"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="vbcCancel" type="button" class="btn btn-ghost" style="min-height:38px">Cancel</button><button id="vbcOk" type="button" class="btn btn-primary" style="min-height:38px"></button></div></div>';
+    document.body.appendChild(ov);
+  }
+  document.getElementById('vbcTitle').textContent=opts.title||'Confirm';
+  document.getElementById('vbcMsg').innerHTML=opts.message||'';
+  var ok=document.getElementById('vbcOk'), cancel=document.getElementById('vbcCancel');
+  ok.textContent=opts.confirmLabel||'Confirm'; ok.className='btn '+(opts.danger?'btn-red':'btn-primary');
+  function close(){ ov.style.display='none'; document.removeEventListener('keydown',onKey); }
+  function doOk(){ close(); if(opts.onConfirm) opts.onConfirm(); }
+  function onKey(e){ if(e.key==='Escape')close(); else if(e.key==='Enter'){e.preventDefault();doOk();} }
+  ok.onclick=doOk; cancel.onclick=close; ov.onclick=function(e){ if(e.target===ov)close(); };
+  document.addEventListener('keydown',onKey); ov.style.display='flex'; setTimeout(function(){ok.focus();},30);
+}
+function vbEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+let nextId = vendors.length + 1;
 let deleteTargetId = null;
 
 // ─── CODE UTILITIES ──────────────────────────────────────────────────────────
@@ -934,17 +983,39 @@ function saveVendor() {
     selfReg: selfRegBtn.classList.contains('on')
   };
 
-  if (editId) {
-    const idx = vendors.findIndex(x => x.id === parseInt(editId));
-    if (idx > -1) {
-      vendors[idx] = { ...vendors[idx], ...data };
-    }
-  } else {
-    vendors.push({ id: nextId++, products: [], ...data });
+  // ── Validation (Forms & Feedback) ──
+  if (data.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contactEmail)) {
+    const el=document.getElementById('fContactEmail'); el.focus(); el.style.borderColor='var(--red)'; setTimeout(()=>el.style.borderColor='',1800);
+    vbToast('Enter a valid contact email (name@vendor.com) or leave it blank.', false); return;
   }
-
-  closeModal();
-  renderTable();
+  if (data.commission < 0 || data.commission > 100) {
+    const el=document.getElementById('fCommission'); el.focus(); el.style.borderColor='var(--red)'; setTimeout(()=>el.style.borderColor='',1800);
+    vbToast('Commission must be between 0 and 100%.', false); return;
+  }
+  const persist = function(){
+    if (editId) {
+      const idx = vendors.findIndex(x => x.id === parseInt(editId));
+      const v = idx > -1 ? vendors[idx] : null;
+      const srcId = v ? v._srcId : null;
+      if (!srcId) { vbToast('Could not save: missing record id', false); return; }
+      const merged = { ...v, ...data };
+      vbPatch(srcId, _vbToDb(merged)).then(function(){ vendors[idx] = merged; closeModal(); renderTable(); vbToast('Vendor saved'); })
+        .catch(function(e){ vbToast('Could not save vendor: '+e.message, false); });
+    } else {
+      vbPost(_vbToDb({ ...data, products:[], refLinks:[] })).then(function(c){
+        const sid = c && (c.id||c._id);
+        vendors.push({ id: nextId++, _srcId: sid, products: [], refLinks: [], ...data });
+        closeModal(); renderTable(); vbToast('Vendor created');
+      }).catch(function(e){ vbToast('Could not create vendor: '+e.message, false); });
+    }
+  };
+  vbConfirm({
+    title: editId ? 'Save vendor' : 'Add vendor',
+    message: (editId ? 'Save changes to ' : 'Add ') + '<strong>'+vbEsc(name)+'</strong>'
+      + ' <span style="color:var(--text3)">('+vbEsc(data.category)+' · '+data.commission+'% commission)</span>?',
+    confirmLabel: editId ? 'Save changes' : 'Add vendor',
+    onConfirm: persist
+  });
 }
 
 // ─── CLOSE MODAL ─────────────────────────────────────────────────────────────
@@ -967,9 +1038,11 @@ function closeDeleteModal() {
 
 function confirmDelete() {
   if (deleteTargetId === null) return;
-  vendors = vendors.filter(v => v.id !== deleteTargetId);
-  closeDeleteModal();
-  renderTable();
+  const v = vendors.find(x => x.id === deleteTargetId);
+  const srcId = v ? v._srcId : null;
+  const done = function(){ vendors = vendors.filter(x => x.id !== deleteTargetId); closeDeleteModal(); renderTable(); vbToast('Vendor deleted'); };
+  if (srcId) vbDelete(srcId).then(done).catch(function(e){ closeDeleteModal(); vbToast('Could not delete vendor: '+e.message, false); });
+  else done();
 }
 
 // ─── PRODUCTS PANEL ───────────────────────────────────────────────────────────
@@ -1168,7 +1241,8 @@ function createRefLink() {
     _syncCreateBtn();
   }, 1600);
 
-  // Re-render saved links
+  // Persist + re-render saved links
+  if (v._srcId) vbPatch(v._srcId, { ref_links: v.refLinks }).catch(function(){});
   _renderCreatedLinks(v);
 
   // Auto-reset form for next link
@@ -1193,6 +1267,7 @@ function removeRefLink(idx) {
       }
     }
   }
+  if (v._srcId) vbPatch(v._srcId, { ref_links: v.refLinks }).catch(function(){});
   _renderCreatedLinks(v);
   _syncCreateBtn();
 }
