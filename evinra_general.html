@@ -1639,6 +1639,39 @@ window.gdbScoped = function(table){ return window.gdbGetSync(table, window.GDB_T
 window.gdbPost = function(table, body){ var b=Object.assign({tenant_id:window.GDB_TENANT}, body); return fetch(window.GDB_BASE+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }); }); };
 window.gdbPatch = function(table, id, body){ return fetch(window.GDB_BASE+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(d){ throw new Error((d&&d.error)||'PATCH failed'); }); return true; }); };
 window.gdbDelete = function(table, id){ return fetch(window.GDB_BASE+'/'+table+'?_id=eq.'+encodeURIComponent(id),{method:'DELETE'}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(d){ throw new Error((d&&d.error)||'DELETE failed'); }); return true; }); };
+/* ── Reusable confirmation dialog (Forms & Feedback: confirm before commit) ── */
+window.gsEsc = function(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+window.gsConfirm = function(opts){
+  opts = opts || {};
+  var ov = document.getElementById('gsConfirmOverlay');
+  if(!ov){
+    ov = document.createElement('div'); ov.id='gsConfirmOverlay';
+    ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true'); ov.setAttribute('aria-labelledby','gscTitle');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:4000;padding:20px';
+    ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-width:440px;width:100%;padding:22px 22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.45)">'
+      +'<div id="gscTitle" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px"></div>'
+      +'<div id="gscMsg" style="font-size:12.5px;color:var(--text2);line-height:1.55;margin-bottom:18px"></div>'
+      +'<div style="display:flex;gap:8px;justify-content:flex-end">'
+      +'<button id="gscCancel" type="button" class="btn btn-ghost" style="min-height:38px">Cancel</button>'
+      +'<button id="gscOk" type="button" class="btn btn-primary" style="min-height:38px"></button>'
+      +'</div></div>';
+    document.body.appendChild(ov);
+  }
+  document.getElementById('gscTitle').textContent = opts.title || 'Confirm';
+  document.getElementById('gscMsg').innerHTML = opts.message || '';
+  var okBtn = document.getElementById('gscOk'), cancelBtn = document.getElementById('gscCancel');
+  okBtn.textContent = opts.confirmLabel || 'Confirm';
+  okBtn.className = 'btn ' + (opts.danger ? 'btn-red' : 'btn-primary');
+  function close(){ ov.style.display='none'; document.removeEventListener('keydown', onKey); }
+  function doOk(){ close(); if(opts.onConfirm) opts.onConfirm(); }
+  function onKey(e){ if(e.key==='Escape'){ close(); } else if(e.key==='Enter'){ e.preventDefault(); doOk(); } }
+  okBtn.onclick = doOk; cancelBtn.onclick = close;
+  ov.onclick = function(e){ if(e.target===ov) close(); };
+  document.addEventListener('keydown', onKey);
+  ov.style.display = 'flex';
+  setTimeout(function(){ okBtn.focus(); }, 30);
+};
+
 /* First-run seeding: if this tenant's collection is empty, batch-insert the demo rows and return them. */
 window.gdbSeedIfEmpty = function(table, rows){
   var existing = window.gdbScoped(table);
@@ -2740,25 +2773,37 @@ function saveProduct(){
   const price=parseFloat(document.getElementById('pPrice').value)||0;
   const active=document.getElementById('pActive').classList.contains('on');
   const image=document.getElementById('pImgZone').dataset.imgData||'';
-  if(!name){alert('Item name is required.');return;}
-  if(!mainCat){alert('Main category is required.');return;}
+  // ── Validation ──
+  if(!name){ alert('Item name is required.'); document.getElementById('pName').focus(); return; }
+  if(!mainCat){ alert('Select a main category.'); document.getElementById('pMainCat').focus(); return; }
+  if(isNaN(price) || price < 0){ alert('Price must be a number of 0 or more.'); document.getElementById('pPrice').focus(); return; }
+  if(!pEditCode && code && GEN_PRODUCTS.some(x=>x.code===code)){ alert('Product code "'+code+'" already exists. Use a unique code or leave it blank.'); document.getElementById('pCode').focus(); return; }
   const finalCode = code || pEditCode || ('LOC'+Date.now());
   const body = { name:name, code:finalCode, main_cat:mainCat, cat:cat, sub_cat:subCat, price:price, active:active?1:0, image:image };
-  if(pEditCode){
-    const p=GEN_PRODUCTS.find(x=>x.code===pEditCode);
-    const srcId = p ? p._srcId : null;
-    if(!srcId){ alert('Could not save: missing record id'); return; }
-    window.gdbPatch('products', srcId, body).then(function(){
-      if(p) Object.assign(p,{name,code:finalCode,mainCat,cat,subCat,price,active,image:image||p.image||''});
-      closeProductModal(); renderProductsTable();
-    }).catch(function(e){ alert('Could not save product: '+e.message); });
-  } else {
-    window.gdbPost('products', body).then(function(created){
-      const id = created && (created.id||created._id);
-      GEN_PRODUCTS.push({_srcId:id, code:finalCode, name:name, mainCat:mainCat, cat:cat, subCat:subCat, price:price, active:active, image:image, inherited:false});
-      closeProductModal(); renderProductsTable();
-    }).catch(function(e){ alert('Could not create product: '+e.message); });
-  }
+  const persist = function(){
+    if(pEditCode){
+      const p=GEN_PRODUCTS.find(x=>x.code===pEditCode);
+      const srcId = p ? p._srcId : null;
+      if(!srcId){ alert('Could not save: missing record id'); return; }
+      window.gdbPatch('products', srcId, body).then(function(){
+        if(p) Object.assign(p,{name,code:finalCode,mainCat,cat,subCat,price,active,image:image||p.image||''});
+        closeProductModal(); renderProductsTable();
+      }).catch(function(e){ alert('Could not save product: '+e.message); });
+    } else {
+      window.gdbPost('products', body).then(function(created){
+        const id = created && (created.id||created._id);
+        GEN_PRODUCTS.push({_srcId:id, code:finalCode, name:name, mainCat:mainCat, cat:cat, subCat:subCat, price:price, active:active, image:image, inherited:false});
+        closeProductModal(); renderProductsTable();
+      }).catch(function(e){ alert('Could not create product: '+e.message); });
+    }
+  };
+  window.gsConfirm({
+    title: pEditCode ? 'Save product' : 'Add product',
+    message: (pEditCode ? 'Save changes to ' : 'Add ') + '<strong>'+gsEsc(name)+'</strong>'
+      + ' <span style="color:var(--text3)">('+gsEsc(mainCat)+(cat?(' › '+gsEsc(cat)):'')+' · $'+price.toFixed(2)+')</span>?',
+    confirmLabel: pEditCode ? 'Save changes' : 'Add product',
+    onConfirm: persist
+  });
 }
 /* ── PRODUCT SALES / ASSIGNMENT MOCK DATA ─────────────────────
    In a real app these come from the backend.
@@ -3073,17 +3118,29 @@ function saveRideItem(){
   const price=parseFloat(document.getElementById('rPrice').value)||0;
   const credits=parseInt(document.getElementById('rCredits').value)||0;
   const active=document.getElementById('rActive').classList.contains('on');
-  if(!name){alert('Name is required.');return;}
-  if(!credits){alert('Credits required must be > 0.');return;}
+  // ── Validation ──
+  if(!name){ alert('Name is required.'); document.getElementById('rName').focus(); return; }
+  if(isNaN(price) || price < 0){ alert('Price must be a number of 0 or more.'); document.getElementById('rPrice').focus(); return; }
+  if(!credits || credits < 1){ alert('Credits required must be 1 or more.'); document.getElementById('rCredits').focus(); return; }
+  if(!rEditCode && code && GEN_RIDES.some(x=>x.code===code)){ alert('Code "'+code+'" already exists. Use a unique code or leave it blank.'); document.getElementById('rCode').focus(); return; }
   const finalCode = code || rEditCode || ('LOC'+Date.now());
   const body = { name:name, code:finalCode, type:type, price:price, credits:credits, active:!!active };
-  if(rEditCode){
-    const r=GEN_RIDES.find(x=>x.code===rEditCode); const srcId=r?r._srcId:null;
-    if(!srcId){ alert('Could not save: missing record id'); return; }
-    window.gdbPatch('ridexp', srcId, body).then(function(){ if(r)Object.assign(r,{name,code:finalCode,type,price,credits,active}); closeRideModal();renderRidesTable(); }).catch(function(e){ alert('Could not save item: '+e.message); });
-  } else {
-    window.gdbPost('ridexp', body).then(function(c){ const id=c&&(c.id||c._id); GEN_RIDES.push({_srcId:id,code:finalCode,name,type,price,credits,active,inherited:false}); closeRideModal();renderRidesTable(); }).catch(function(e){ alert('Could not create item: '+e.message); });
-  }
+  const persist = function(){
+    if(rEditCode){
+      const r=GEN_RIDES.find(x=>x.code===rEditCode); const srcId=r?r._srcId:null;
+      if(!srcId){ alert('Could not save: missing record id'); return; }
+      window.gdbPatch('ridexp', srcId, body).then(function(){ if(r)Object.assign(r,{name,code:finalCode,type,price,credits,active}); closeRideModal();renderRidesTable(); }).catch(function(e){ alert('Could not save item: '+e.message); });
+    } else {
+      window.gdbPost('ridexp', body).then(function(c){ const id=c&&(c.id||c._id); GEN_RIDES.push({_srcId:id,code:finalCode,name,type,price,credits,active,inherited:false}); closeRideModal();renderRidesTable(); }).catch(function(e){ alert('Could not create item: '+e.message); });
+    }
+  };
+  window.gsConfirm({
+    title: rEditCode ? 'Save '+type.toLowerCase() : 'Add '+type.toLowerCase(),
+    message: (rEditCode ? 'Save changes to ' : 'Add ') + '<strong>'+gsEsc(name)+'</strong>'
+      + ' <span style="color:var(--text3)">('+gsEsc(type)+' · '+credits+' cr · $'+price.toFixed(2)+')</span>?',
+    confirmLabel: rEditCode ? 'Save changes' : 'Add item',
+    onConfirm: persist
+  });
 }
 function deleteRideItem(code) {
   const r = GEN_RIDES.find(x => x.code === code);
@@ -3438,21 +3495,34 @@ function closeCatModal(){document.getElementById('catModal').style.display='none
 function saveCatItem(){
   const name=document.getElementById('catName').value.trim();
   const desc=document.getElementById('catDesc').value.trim();
-  if(!name){alert('Name is required.');return;}
+  if(!name){ alert('Name is required.'); document.getElementById('catName').focus(); return; }
   const lv=catModalLevel, ek=catModalEditKey;
-  if(lv==='main'){
-    if(ek){const d=CAT_DATA[ek];if(ek!==name){CAT_DATA[name]=d;delete CAT_DATA[ek];if(selMain===ek)selMain=name;}else{d.desc=desc;}}
-    else{CAT_DATA[name]={desc,cats:{}};}
-  } else if(lv==='cat'&&selMain){
-    const cats=CAT_DATA[selMain].cats;
-    if(ek){const d=cats[ek];if(ek!==name){cats[name]=d;delete cats[ek];if(selCat===ek)selCat=name;}else{d.desc=desc;}}
-    else{cats[name]={desc,subs:[]};}
-  } else if(lv==='sub'&&selMain&&selCat){
-    const subs=CAT_DATA[selMain].cats[selCat].subs;
-    if(catModalSubIdx!=null){subs[catModalSubIdx]=name;}
-    else{subs.push(name);}
-  }
-  closeCatModal();renderAll();_persistCats();
+  // ── Duplicate-name validation at the relevant level ──
+  if(lv==='main' && name!==ek && CAT_DATA[name]){ alert('A main category named "'+name+'" already exists.'); return; }
+  if(lv==='cat' && selMain && name!==ek && CAT_DATA[selMain].cats[name]){ alert('A category named "'+name+'" already exists under '+selMain+'.'); return; }
+  if(lv==='sub' && selMain && selCat){ const subsNow=CAT_DATA[selMain].cats[selCat].subs; const dupIdx=subsNow.indexOf(name); if(dupIdx>-1 && dupIdx!==catModalSubIdx){ alert('A sub-category named "'+name+'" already exists here.'); return; } }
+  const lvLabel = lv==='main'?'main category':(lv==='cat'?'category':'sub-category');
+  const persist = function(){
+    if(lv==='main'){
+      if(ek){const d=CAT_DATA[ek];if(ek!==name){CAT_DATA[name]=d;delete CAT_DATA[ek];if(selMain===ek)selMain=name;}else{d.desc=desc;}}
+      else{CAT_DATA[name]={desc,cats:{}};}
+    } else if(lv==='cat'&&selMain){
+      const cats=CAT_DATA[selMain].cats;
+      if(ek){const d=cats[ek];if(ek!==name){cats[name]=d;delete cats[ek];if(selCat===ek)selCat=name;}else{d.desc=desc;}}
+      else{cats[name]={desc,subs:[]};}
+    } else if(lv==='sub'&&selMain&&selCat){
+      const subs=CAT_DATA[selMain].cats[selCat].subs;
+      if(catModalSubIdx!=null){subs[catModalSubIdx]=name;}
+      else{subs.push(name);}
+    }
+    closeCatModal();renderAll();_persistCats();
+  };
+  window.gsConfirm({
+    title: ek ? 'Save '+lvLabel : 'Add '+lvLabel,
+    message: (ek ? 'Save changes to ' : 'Add ') + '<strong>'+gsEsc(name)+'</strong> '+lvLabel+'?',
+    confirmLabel: ek ? 'Save changes' : 'Add',
+    onConfirm: persist
+  });
 }
 
 // ── DELETE ───────────────────────────────────
@@ -4038,23 +4108,39 @@ function saveProdGen() {
   const code        = document.getElementById('pg-code').value.trim();
   const contact     = document.getElementById('pg-contact').value.trim();
   const email       = document.getElementById('pg-email').value.trim();
-
-  if (prodGenEditId) {
-    const pr = genProductions.find(x => x.id === prodGenEditId);
-    const srcId = pr ? pr._srcId : prodGenEditId;
-    pgPatch('productions', srcId, { name, description, status, contact, email }).then(function(){
-      const idx = genProductions.findIndex(x => x.id === prodGenEditId);
-      if (idx !== -1) Object.assign(genProductions[idx], { name, code, description, contact, email, status });
-      closeProdGenModal(); filterProds();
-    }).catch(function(e){ alert('Could not save production: ' + e.message); });
-  } else {
-    pgPost('productions', { tenant_id: PG_TENANT, name, description, status: status || 'active', contact, email }).then(function(created){
-      const id = (created && (created.id || created._id));
-      genProductions.push({ id:id, _srcId:id, name, code:code||_pgCode(name), description, source:'Local', shows:0, status:status||'active', contact, email });
-      if (!GEN_PROD_SHOWS[id]) GEN_PROD_SHOWS[id] = [];
-      closeProdGenModal(); filterProds();
-    }).catch(function(e){ alert('Could not create production: ' + e.message); });
+  // Email format validation (optional field)
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('pg-email').style.borderColor = 'var(--red)';
+    document.getElementById('pg-email').focus();
+    alert('Enter a valid contact email (e.g. name@company.com) or leave it blank.');
+    return;
   }
+  document.getElementById('pg-email').style.borderColor = '';
+  const persist = function(){
+    if (prodGenEditId) {
+      const pr = genProductions.find(x => x.id === prodGenEditId);
+      const srcId = pr ? pr._srcId : prodGenEditId;
+      pgPatch('productions', srcId, { name, description, status, contact, email }).then(function(){
+        const idx = genProductions.findIndex(x => x.id === prodGenEditId);
+        if (idx !== -1) Object.assign(genProductions[idx], { name, code, description, contact, email, status });
+        closeProdGenModal(); filterProds();
+      }).catch(function(e){ alert('Could not save production: ' + e.message); });
+    } else {
+      pgPost('productions', { tenant_id: PG_TENANT, name, description, status: status || 'active', contact, email }).then(function(created){
+        const id = (created && (created.id || created._id));
+        genProductions.push({ id:id, _srcId:id, name, code:code||_pgCode(name), description, source:'Local', shows:0, status:status||'active', contact, email });
+        if (!GEN_PROD_SHOWS[id]) GEN_PROD_SHOWS[id] = [];
+        closeProdGenModal(); filterProds();
+      }).catch(function(e){ alert('Could not create production: ' + e.message); });
+    }
+  };
+  window.gsConfirm({
+    title: prodGenEditId ? 'Save production' : 'Add production',
+    message: (prodGenEditId ? 'Save changes to ' : 'Add ') + '<strong>'+gsEsc(name)+'</strong>'
+      + ' <span style="color:var(--text3)">('+gsEsc(status)+')</span>?',
+    confirmLabel: prodGenEditId ? 'Save changes' : 'Add production',
+    onConfirm: persist
+  });
 }
 
 const PROD_BLOCK_STATUSES = ['active','on-sale','on sale','complete','completed','sold','sold out'];
@@ -4882,24 +4968,35 @@ function saveDevice(){
     e.style.display = 'flex';
     return;
   }
+  const showErr = function(m){ const e=document.getElementById('devError'); e.textContent=m; e.style.display='flex'; };
+  // Duplicate Device ID check (within this tenant's fleet)
+  if(DEVICES.some(x=>x.deviceId===id && x.id!==devEditingId)){ showErr('A device with ID "'+id+'" already exists.'); return; }
   const data = { name, description: desc || name, type, deviceId: id, location: loc, gateway: gw };
   const dbBody = { name:name, description:desc||name, type:type, device_id:id, location:loc, gateway:gw };
-  const showErr = function(m){ const e=document.getElementById('devError'); e.textContent=m; e.style.display='flex'; };
-  if(devEditingId){
-    const i = DEVICES.findIndex(x=>x.id===devEditingId);
-    const srcId = (i>=0) ? DEVICES[i]._srcId : null;
-    if(!srcId){ showErr('Could not save: missing record id'); return; }
-    window.gdbPatch('devices', srcId, dbBody).then(function(){
-      if(i>=0) DEVICES[i] = {...DEVICES[i], ...data};
-      devToast('Device updated.'); renderDevices(); closeDeviceModal();
-    }).catch(function(e){ showErr('Could not save device: '+e.message); });
-  } else {
-    window.gdbPost('devices', Object.assign({ status:'N/A', mode:'Standard', sale_location:'', orders:0, active:true }, dbBody)).then(function(c){
-      const id2 = c && (c.id||c._id);
-      DEVICES.unshift(Object.assign({ id:id2, _srcId:id2, orders:0, active:true, status:'N/A', mode:'Standard', saleLocation:'' }, data));
-      devPage = 1; devToast('Device added.'); renderDevices(); closeDeviceModal();
-    }).catch(function(e){ showErr('Could not add device: '+e.message); });
-  }
+  const persist = function(){
+    if(devEditingId){
+      const i = DEVICES.findIndex(x=>x.id===devEditingId);
+      const srcId = (i>=0) ? DEVICES[i]._srcId : null;
+      if(!srcId){ showErr('Could not save: missing record id'); return; }
+      window.gdbPatch('devices', srcId, dbBody).then(function(){
+        if(i>=0) DEVICES[i] = {...DEVICES[i], ...data};
+        devToast('Device updated.'); renderDevices(); closeDeviceModal();
+      }).catch(function(e){ showErr('Could not save device: '+e.message); });
+    } else {
+      window.gdbPost('devices', Object.assign({ status:'N/A', mode:'Standard', sale_location:'', orders:0, active:true }, dbBody)).then(function(c){
+        const id2 = c && (c.id||c._id);
+        DEVICES.unshift(Object.assign({ id:id2, _srcId:id2, orders:0, active:true, status:'N/A', mode:'Standard', saleLocation:'' }, data));
+        devPage = 1; devToast('Device added.'); renderDevices(); closeDeviceModal();
+      }).catch(function(e){ showErr('Could not add device: '+e.message); });
+    }
+  };
+  window.gsConfirm({
+    title: devEditingId ? 'Save device' : 'Add device',
+    message: (devEditingId ? 'Save changes to ' : 'Add ') + '<strong>'+gsEsc(name)+'</strong>'
+      + ' <span style="color:var(--text3)">('+gsEsc(type)+' · '+gsEsc(loc)+')</span>?',
+    confirmLabel: devEditingId ? 'Save changes' : 'Add device',
+    onConfirm: persist
+  });
 }
 
 // Delete from the edit modal → reuse the same confirm flow (respects the orders rule)
@@ -5215,22 +5312,33 @@ function saveGateway(){
   const tokenEntered = data.token !== '';
   const dbBody = { type:data.type, name:data.name, app_id:data.appId, env:data.env, default_location:data.defaultLocation, channels:data.channels, active:data.active };
   if(tokenEntered || !gwEditingId) dbBody.token = data.token; // only write the token when (re)entered
-  if(gwEditingId){
-    const i = GATEWAYS.findIndex(x=>x.id===gwEditingId);
-    const srcId = (i>=0) ? GATEWAYS[i]._srcId : null;
-    if(!srcId){ showGwError('Could not save: missing record id'); return; }
-    if(!tokenEntered && i>=0) data.token = GATEWAYS[i].token; // keep the saved token locally
-    window.gdbPatch('gateways', srcId, dbBody).then(function(){
-      if(i>=0) GATEWAYS[i] = {...GATEWAYS[i], ...data};
-      gwToast('Gateway updated.'); renderGatewayTable(); closeGatewayWizard();
-    }).catch(function(e){ showGwError('Could not save gateway: '+e.message); });
-  } else {
-    window.gdbPost('gateways', dbBody).then(function(c){
-      const id = c && (c.id||c._id);
-      data.id = id; data._srcId = id; GATEWAYS.push(data);
-      gwToast('Gateway added.'); renderGatewayTable(); closeGatewayWizard();
-    }).catch(function(e){ showGwError('Could not add gateway: '+e.message); });
-  }
+  const gwMeta = (typeof GW_TYPE_META!=='undefined' && GW_TYPE_META[data.type]) ? GW_TYPE_META[data.type].label : data.type;
+  const persist = function(){
+    if(gwEditingId){
+      const i = GATEWAYS.findIndex(x=>x.id===gwEditingId);
+      const srcId = (i>=0) ? GATEWAYS[i]._srcId : null;
+      if(!srcId){ showGwError('Could not save: missing record id'); return; }
+      if(!tokenEntered && i>=0) data.token = GATEWAYS[i].token; // keep the saved token locally
+      window.gdbPatch('gateways', srcId, dbBody).then(function(){
+        if(i>=0) GATEWAYS[i] = {...GATEWAYS[i], ...data};
+        gwToast('Gateway updated.'); renderGatewayTable(); closeGatewayWizard();
+      }).catch(function(e){ showGwError('Could not save gateway: '+e.message); });
+    } else {
+      window.gdbPost('gateways', dbBody).then(function(c){
+        const id = c && (c.id||c._id);
+        data.id = id; data._srcId = id; GATEWAYS.push(data);
+        gwToast('Gateway added.'); renderGatewayTable(); closeGatewayWizard();
+      }).catch(function(e){ showGwError('Could not add gateway: '+e.message); });
+    }
+  };
+  window.gsConfirm({
+    title: gwEditingId ? 'Save gateway' : 'Add gateway',
+    message: (gwEditingId ? 'Save changes to ' : 'Connect ') + '<strong>'+gsEsc(data.name)+'</strong>'
+      + ' <span style="color:var(--text3)">('+gsEsc(gwMeta)+' · '+gsEsc(data.env)+')</span>?'
+      + (data.env==='production' ? '<div style="margin-top:8px;color:var(--amber);font-size:11.5px">⚠ Production environment — live payments will use these credentials.</div>' : ''),
+    confirmLabel: gwEditingId ? 'Save changes' : 'Add gateway',
+    onConfirm: persist
+  });
 }
 
 /* ── Delete ── */
@@ -5380,9 +5488,18 @@ function saveAssign(){
   }
   const d = DEVICES.find(x=>x.id===devId);
   if(!d){ closeAssignModal(); return; }
-  const apply = function(){ d.saleLocation = loc; d.status = status; d.mode = mode; renderDeviceByLoc(); closeAssignModal(); devToast(wasEdit ? 'Assignment updated.' : 'Device assigned.'); };
-  if(d._srcId) window.gdbPatch('devices', d._srcId, { sale_location:loc, status:status, mode:mode }).then(apply).catch(function(e){ const el=document.getElementById('assignError'); el.textContent='Could not save: '+e.message; el.style.display='flex'; });
-  else apply();
+  const persist = function(){
+    const apply = function(){ d.saleLocation = loc; d.status = status; d.mode = mode; renderDeviceByLoc(); closeAssignModal(); devToast(wasEdit ? 'Assignment updated.' : 'Device assigned.'); };
+    if(d._srcId) window.gdbPatch('devices', d._srcId, { sale_location:loc, status:status, mode:mode }).then(apply).catch(function(e){ const el=document.getElementById('assignError'); el.textContent='Could not save: '+e.message; el.style.display='flex'; });
+    else apply();
+  };
+  window.gsConfirm({
+    title: wasEdit ? 'Update assignment' : 'Assign device',
+    message: (wasEdit ? 'Update ' : 'Assign ') + '<strong>'+gsEsc(d.name)+'</strong> to <strong>'+gsEsc(loc)+'</strong>'
+      + ' <span style="color:var(--text3)">('+gsEsc(status)+' · '+gsEsc(mode)+')</span>?',
+    confirmLabel: wasEdit ? 'Update' : 'Assign',
+    onConfirm: persist
+  });
 }
 function unassignDevice(){
   if(dblEditDeviceId){
