@@ -357,31 +357,31 @@ select:focus{border-color:var(--p-border)}
             <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--p)!important"><path d="M15 7h3a5 5 0 0 1 0 10h-3m-6 0H6A5 5 0 0 1 6 7h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
             Active Links
           </div>
-          <div class="stat-val" style="color:var(--p)">8</div>
-          <div class="stat-sub">out of 10 vendors</div>
+          <div class="stat-val" style="color:var(--p)" id="stActiveLinks">0</div>
+          <div class="stat-sub" id="stActiveSub">out of 0 vendors</div>
         </div>
         <div class="stat-card blue">
           <div class="stat-lbl" style="color:var(--blue)">
             <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--blue)!important"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"/></svg></span>
             Total Clicks
           </div>
-          <div class="stat-val" style="color:var(--blue)">3,842</div>
-          <div class="stat-sub">link visits this month</div>
+          <div class="stat-val" style="color:var(--blue)" id="stClicks">0</div>
+          <div class="stat-sub">link visits</div>
         </div>
         <div class="stat-card violet">
           <div class="stat-lbl" style="color:var(--violet)">
             <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--violet)!important"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
             Sales
           </div>
-          <div class="stat-val" style="color:var(--violet)">412</div>
-          <div class="stat-sub">tickets sold via links</div>
+          <div class="stat-val" style="color:var(--violet)" id="stSales">0</div>
+          <div class="stat-sub">orders via links</div>
         </div>
         <div class="stat-card amber">
           <div class="stat-lbl" style="color:var(--amber)">
             <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--amber)!important"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
             Revenue
           </div>
-          <div class="stat-val" style="color:var(--amber)">$24,510</div>
+          <div class="stat-val" style="color:var(--amber)" id="stRevenue">$0</div>
           <div class="stat-sub">total attributed</div>
         </div>
         <div class="stat-card gold">
@@ -389,7 +389,7 @@ select:focus{border-color:var(--p-border)}
             <span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--gold)!important"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
             Commission Due
           </div>
-          <div class="stat-val" style="color:var(--gold)">$2,184</div>
+          <div class="stat-val" style="color:var(--gold)" id="stCommission">$0</div>
           <div class="stat-sub">pending payout</div>
         </div>
       </div>
@@ -506,14 +506,20 @@ select:focus{border-color:var(--p-border)}
       <!-- Event selector -->
       <div class="form-field">
         <label class="form-label">Event <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);margin-left:4px">&#8212; auto-fills ticket URL</span></label>
-        <div style="position:relative">
-          <select class="form-select" id="bEvent" onchange="bEventChange()" style="padding-left:34px">
-            <option value="">&#8212; Choose an event &#8212;</option>
-          </select>
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:var(--text3)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;width:11px;height:11px;stroke:var(--text3)"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="evt-pick" id="bEventPick">
+          <button type="button" class="evt-pick-trigger" id="bEventTrigger" onclick="evtPickOpen('b')" aria-haspopup="listbox" aria-expanded="false">
+            <span class="evt-pick-cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span class="evt-pick-text" id="bEventText">Choose an event</span>
+            <svg class="evt-pick-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <input type="hidden" id="bEvent" value="">
+          <div class="evt-pick-pop" id="bEventPop" role="listbox">
+            <div class="evt-pick-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="bEventSearch" placeholder="Search events…" oninput="evtPickFilter('b')" autocomplete="off">
+            </div>
+            <div class="evt-pick-list" id="bEventList"></div>
+          </div>
         </div>
       </div>
 
@@ -543,7 +549,7 @@ select:focus{border-color:var(--p-border)}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:var(--text3)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </span>
         </div>
-        <div class="form-hint">Must not contain <code style="background:var(--bg4);border:1px solid var(--border);border-radius:3px;padding:0 4px;font-family:var(--mono)">?</code> &#8212; vendor code is appended automatically</div>
+        <div class="form-hint">Pick an event above to auto-fill this &#8212; tenant, event &amp; vendor code are added automatically</div>
       </div>
 
       <!-- Generated links preview -->
@@ -633,13 +639,20 @@ select:focus{border-color:var(--p-border)}
         <label class="form-label">Event
           <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);margin-left:4px">— auto-fills the ticket URL</span>
         </label>
-        <div style="position:relative">
-          <select class="form-select" id="fEvent" onchange="onEventChange()" style="padding-left:34px">
-            <option value="">— Choose an event —</option>
-          </select>
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:var(--text3)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </span>
+        <div class="evt-pick" id="fEventPick">
+          <button type="button" class="evt-pick-trigger" id="fEventTrigger" onclick="evtPickOpen('f')" aria-haspopup="listbox" aria-expanded="false">
+            <span class="evt-pick-cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            <span class="evt-pick-text" id="fEventText">Choose an event</span>
+            <svg class="evt-pick-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <input type="hidden" id="fEvent" value="">
+          <div class="evt-pick-pop" id="fEventPop" role="listbox">
+            <div class="evt-pick-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="fEventSearch" placeholder="Search events…" oninput="evtPickFilter('f')" autocomplete="off">
+            </div>
+            <div class="evt-pick-list" id="fEventList"></div>
+          </div>
         </div>
       </div>
 
@@ -674,7 +687,7 @@ select:focus{border-color:var(--p-border)}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;stroke:var(--text3)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </span>
         </div>
-        <div class="form-hint">URL must not contain <code style="background:var(--bg4);border:1px solid var(--border);border-radius:3px;padding:0 4px;font-family:var(--mono)">?</code> — the vendor parameter is appended automatically</div>
+        <div class="form-hint">Pick an event above to auto-fill this — tenant, event &amp; vendor code are added automatically</div>
       </div>
 
       <!-- Live preview -->
@@ -727,6 +740,55 @@ select:focus{border-color:var(--p-border)}
   </div>
 </div>
 
+<style>
+/* ── Event picker (custom searchable combobox) ───────────────────────────── */
+.evt-pick{ position:relative; }
+.evt-pick-trigger{
+  display:flex; align-items:center; gap:9px; width:100%; min-height:42px;
+  padding:7px 34px 7px 12px; text-align:left; cursor:pointer;
+  background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+  color:var(--text); font:inherit; transition:border-color .15s, box-shadow .15s;
+}
+.evt-pick-trigger:hover{ border-color:var(--border2); }
+.evt-pick-trigger[aria-expanded="true"]{ border-color:var(--p); box-shadow:0 0 0 3px var(--p-dim); }
+.evt-pick-cal{ display:flex; flex-shrink:0; }
+.evt-pick-cal svg{ width:15px; height:15px; stroke:var(--text3); }
+.evt-pick-trigger.has-val .evt-pick-cal svg{ stroke:var(--p); }
+.evt-pick-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; color:var(--text3); font-size:13px; }
+.evt-pick-trigger.has-val .evt-pick-text{ color:var(--text); }
+.evt-pick-tname{ font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.evt-pick-tdate{ font-size:10.5px; color:var(--text3); font-family:var(--mono); }
+.evt-pick-chev{ position:absolute; right:11px; top:50%; transform:translateY(-50%); width:12px; height:12px; stroke:var(--text3); pointer-events:none; transition:transform .18s; }
+.evt-pick-trigger[aria-expanded="true"] + input + .evt-pick-pop ~ .evt-pick-chev,
+.evt-pick-trigger[aria-expanded="true"] .evt-pick-chev{ transform:translateY(-50%) rotate(180deg); }
+.evt-pick-pop{
+  position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60;
+  background:var(--bg2); border:1px solid var(--border2); border-radius:10px;
+  box-shadow:0 16px 44px rgba(0,0,0,.5); overflow:hidden;
+  display:none; flex-direction:column; max-height:340px;
+  opacity:0; transform:translateY(-4px); transition:opacity .14s ease-out, transform .14s ease-out;
+}
+.evt-pick-pop.open{ display:flex; opacity:1; transform:translateY(0); }
+.evt-pick-search{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.evt-pick-search svg{ width:14px; height:14px; stroke:var(--text3); flex-shrink:0; }
+.evt-pick-search input{ flex:1; background:transparent; border:0; outline:none; color:var(--text); font:inherit; font-size:13px; padding:2px 0; }
+.evt-pick-search input::placeholder{ color:var(--text3); }
+.evt-pick-list{ overflow-y:auto; padding:6px; display:flex; flex-direction:column; gap:2px; }
+.evt-pick-opt{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  padding:9px 10px; border:1px solid transparent; border-radius:7px; background:transparent;
+  color:var(--text); font:inherit; transition:background .12s, border-color .12s;
+}
+.evt-pick-opt:hover{ background:var(--bg3); }
+.evt-pick-opt.is-active{ background:var(--p-dim); border-color:var(--p-border); }
+.evt-pick-opt-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.evt-pick-opt-name{ font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.evt-pick-opt-sub{ font-size:10.5px; color:var(--text3); font-family:var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.evt-pick-rel{ flex-shrink:0; font-size:9.5px; font-weight:600; letter-spacing:.3px; text-transform:uppercase; padding:3px 7px; border-radius:20px; background:var(--bg4); color:var(--text2); border:1px solid var(--border); }
+.evt-pick-rel.is-today{ background:var(--p-dim); color:var(--p); border-color:var(--p-border); }
+.evt-pick-check{ width:15px; height:15px; stroke:var(--p); flex-shrink:0; }
+.evt-pick-empty{ padding:22px 14px; text-align:center; font-size:12px; color:var(--text3); }
+</style>
 <script>
 // ── Event catalog — the tenant's REAL events (from the DB), used to attribute
 //    referral links to a specific event. (vslBase is hoisted from the block below.)
@@ -738,20 +800,97 @@ let eventCatalog = (function(){
   function g(p){ try{var x=new XMLHttpRequest();x.open('GET',vslBase()+p,false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
   var prods = g('/productions?tenant_id=eq.'+encodeURIComponent(T));
   var prodIds = {}; (prods||[]).forEach(function(p){ prodIds[p.id||p._id]=1; });
-  var shows = g('/shows'); var showIds = {}; (shows||[]).forEach(function(s){ if(prodIds[s.production_id]) showIds[s.id||s._id]=1; });
+  var shows = g('/shows'); var showIds = {}; var showName = {};
+  (shows||[]).forEach(function(s){ if(prodIds[s.production_id]){ var sid=s.id||s._id; showIds[sid]=1; showName[sid]=s.name||''; } });
   var evs = g('/events');
+  // Start of today (local) — referral links can only point to current/future events.
+  var now = new Date(); var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   var seen = {};
   return (evs||[]).filter(function(e){ return showIds[e.show_id]; }).map(function(e){
     var d = e.start_at ? new Date(e.start_at) : null;
-    var date = (d && !isNaN(d)) ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var valid = !!(d && !isNaN(d));
+    var ts   = valid ? d.getTime() : Infinity;
+    var date = valid ? d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : 'Date TBA';
+    var time = valid ? d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
     var iso  = e.start_at ? String(e.start_at).slice(0,10) : '';
     var nm   = e.name || e.function_name || 'Event';
     var eid  = String(e.id||e._id);
     // Generated storefront deep link for this event (tenant-scoped).
     var url  = vslStorefrontBase() + '?tenant=' + encodeURIComponent(T) + '&event=' + encodeURIComponent(eid);
-    return { id:eid, name:nm, date:date, isoDate:iso, url:url };
-  }).filter(function(e){ var k=e.name+'|'+e.isoDate; if(seen[k]) return false; seen[k]=1; return true; });
+    return { id:eid, name:nm, show:showName[e.show_id]||'', date:date, time:time, isoDate:iso, ts:ts, valid:valid, url:url };
+  })
+  .filter(function(e){ var k=e.name+'|'+e.isoDate; if(seen[k]) return false; seen[k]=1; return true; })
+  .filter(function(e){ return !e.valid || e.ts >= todayStart; })   // hide past events
+  .sort(function(a,b){ return a.ts - b.ts; });                     // soonest first
 })();
+
+// ── Event picker (custom searchable combobox; current/future only) ───────────
+var EVT_PICK = { f:{ sel:null }, b:{ sel:null } };
+function _evtRel(e){
+  if(!e.valid) return '';
+  var now=new Date(); var t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  var ed=new Date(e.ts); var ed0=new Date(ed.getFullYear(),ed.getMonth(),ed.getDate()).getTime();
+  var dd=Math.round((ed0-t0)/86400000);
+  if(dd<=0) return 'Today';
+  if(dd===1) return 'Tomorrow';
+  if(dd<=7) return 'In '+dd+'d';
+  return '';
+}
+function _esc(s){ return String(s||'').replace(/[<>&]/g,function(c){return c==='<'?'&lt;':c==='>'?'&gt;':'&amp;';}); }
+function evtPickList(p){
+  var listEl=document.getElementById(p+'EventList');
+  if(!listEl) return;
+  if(!eventCatalog.length){ listEl.innerHTML='<div class="evt-pick-empty">No upcoming events for this company.</div>'; return; }
+  var q=(document.getElementById(p+'EventSearch').value||'').trim().toLowerCase();
+  var items=eventCatalog.filter(function(e){ return !q || (e.name+' '+e.show+' '+e.date).toLowerCase().indexOf(q)>=0; });
+  if(!items.length){ listEl.innerHTML='<div class="evt-pick-empty">No events match your search.</div>'; return; }
+  var selId=EVT_PICK[p].sel?EVT_PICK[p].sel.id:null;
+  listEl.innerHTML=items.map(function(e){
+    var rel=_evtRel(e);
+    var relHtml=rel?'<span class="evt-pick-rel'+(rel==='Today'?' is-today':'')+'">'+rel+'</span>':'';
+    var active=(e.id===selId);
+    var sub=(e.show?_esc(e.show)+' · ':'')+_esc(e.date)+(e.time?' · '+_esc(e.time):'');
+    return '<button type="button" role="option" aria-selected="'+active+'" class="evt-pick-opt'+(active?' is-active':'')+'" onclick="evtPickChoose(\''+p+'\',\''+e.id+'\')">'
+      +'<span class="evt-pick-opt-main"><span class="evt-pick-opt-name">'+_esc(e.name)+'</span><span class="evt-pick-opt-sub">'+sub+'</span></span>'
+      +relHtml
+      +(active?'<svg class="evt-pick-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+      +'</button>';
+  }).join('');
+}
+function evtPickOpen(p){
+  var pop=document.getElementById(p+'EventPop'), trig=document.getElementById(p+'EventTrigger');
+  var willOpen=!pop.classList.contains('open');
+  ['f','b'].forEach(function(x){ var o=document.getElementById(x+'EventPop'); if(o)o.classList.remove('open'); var t=document.getElementById(x+'EventTrigger'); if(t)t.setAttribute('aria-expanded','false'); });
+  if(!willOpen) return;
+  var s=document.getElementById(p+'EventSearch'); if(s)s.value='';
+  evtPickList(p);
+  pop.classList.add('open'); trig.setAttribute('aria-expanded','true');
+  setTimeout(function(){ if(s)s.focus(); },30);
+}
+function evtPickClose(p){ var o=document.getElementById(p+'EventPop'); if(o)o.classList.remove('open'); var t=document.getElementById(p+'EventTrigger'); if(t)t.setAttribute('aria-expanded','false'); }
+function evtPickFilter(p){ evtPickList(p); }
+function _evtPickTrigger(p){
+  var e=EVT_PICK[p].sel, txt=document.getElementById(p+'EventText'), trig=document.getElementById(p+'EventTrigger');
+  if(!txt||!trig) return;
+  if(e){ txt.innerHTML='<span class="evt-pick-tname">'+_esc(e.name)+'</span><span class="evt-pick-tdate">'+_esc(e.date)+(e.time?' · '+_esc(e.time):'')+'</span>'; trig.classList.add('has-val'); }
+  else { txt.textContent='Choose an event'; trig.classList.remove('has-val'); }
+}
+function evtPickChoose(p,id){
+  var e=eventCatalog.find(function(x){return x.id===id;}); if(!e) return;
+  EVT_PICK[p].sel=e; document.getElementById(p+'Event').value=e.id;
+  _evtPickTrigger(p); evtPickClose(p);
+  if(p==='f') onEventChange(); else bEventChange();
+}
+function evtPickSet(p,id){
+  var e=id?eventCatalog.find(function(x){return x.id===id;}):null;
+  EVT_PICK[p].sel=e||null; document.getElementById(p+'Event').value=e?e.id:'';
+  _evtPickTrigger(p);
+}
+function evtPickClear(p){ EVT_PICK[p].sel=null; var h=document.getElementById(p+'Event'); if(h)h.value=''; _evtPickTrigger(p); }
+document.addEventListener('click', function(ev){
+  ['f','b'].forEach(function(p){ var w=document.getElementById(p+'EventPick'); if(w && !w.contains(ev.target)) evtPickClose(p); });
+});
+document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ evtPickClose('f'); evtPickClose('b'); } });
 
 // ── Vendor data (each has a baseUrl + eventId for their referral link) ────────
 /* Vendors come from the same DB `vendors` collection as the Other Vendors page
@@ -879,8 +1018,25 @@ function clearFilters(){
   renderTable();
 }
 
+function updateStats(){
+  const configured = vendors.filter(v=>v.baseUrl);
+  const activeLinks = configured.filter(v=>v.status==='Active').length;
+  const clicks = vendors.reduce((s,v)=>s+(v.clicks||0),0);
+  const sales  = vendors.reduce((s,v)=>s+(v.sales||0),0);
+  const revenue= vendors.reduce((s,v)=>s+(v.revenue||0),0);
+  const comm   = vendors.reduce((s,v)=>s+Math.round((v.revenue||0)*(v.commission||0)/100),0);
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('stActiveLinks', activeLinks);
+  set('stActiveSub', 'out of '+vendors.length+' vendor'+(vendors.length===1?'':'s'));
+  set('stClicks', clicks.toLocaleString());
+  set('stSales', sales.toLocaleString());
+  set('stRevenue', fmtMoney(revenue));
+  set('stCommission', fmtMoney(comm));
+}
+
 function renderTable(){
   _syncClearBtn();
+  updateStats();
   const q   = (document.getElementById('searchInput').value||'').toLowerCase();
   const vf  = document.getElementById('vendorFilter').value;
   const ef  = document.getElementById('eventFilter').value;
@@ -889,6 +1045,8 @@ function renderTable(){
   const dt  = document.getElementById('dateTo').value;
 
   const filtered = vendors.filter(v=>{
+    // Only list vendors that actually have a referral link configured.
+    if(!v.baseUrl) return false;
     if(q && !v.name.toLowerCase().includes(q) && !v.code.toLowerCase().includes(q) && !v.email.toLowerCase().includes(q)) return false;
     if(vf && v.id !== parseInt(vf)) return false;
     if(ef && String(v.eventId) !== String(ef)) return false;
@@ -905,7 +1063,12 @@ function renderTable(){
 
   const tbody = document.getElementById('tblBody');
   if(!filtered.length){
-    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><p>No vendors found</p></div></td></tr>';
+    const anyConfigured = vendors.some(v=>v.baseUrl);
+    const anyFilter = q||vf||ef||sf||df||dt;
+    const msg = (!anyConfigured && !anyFilter)
+      ? '<p>No referral links yet</p><p style="font-size:11px;color:var(--text3);margin-top:4px">Use “Add Vendor Sales Link” or the Link Builder to create one.</p>'
+      : '<p>No referral links match your filters</p>';
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state">'+msg+'</div></td></tr>';
     return;
   }
 
@@ -1068,12 +1231,7 @@ function _populateVendorSel(){
   sel.innerHTML = '<option value="">Select vendor…</option>' +
     vendors.map(v=>`<option value="${v.id}">${v.name} (${v.code})</option>`).join('');
 }
-function _populateEventSel(selectedId){
-  const sel = document.getElementById('fEvent');
-  sel.innerHTML = '<option value="">— Choose an event —</option>' +
-    eventCatalog.map(e=>`<option value="${e.id}" data-url="${e.url}" data-name="${e.name}" data-date="${e.date}">${e.name} · ${e.date}</option>`).join('');
-  if(selectedId) sel.value = selectedId;
-}
+function _populateEventSel(selectedId){ evtPickSet('f', selectedId||''); }
 
 function onVendorChange(){
   const id = parseInt(document.getElementById('fVendor').value);
@@ -1084,35 +1242,31 @@ function onVendorChange(){
 }
 
 function onEventChange(){
-  const sel = document.getElementById('fEvent');
-  const opt = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
-  if(opt){
-    if(opt.dataset.url) document.getElementById('fBaseUrl').value = opt.dataset.url; // only auto-fill when the event has a URL
-    document.getElementById('fEventBadge').style.display    = 'flex';
-    document.getElementById('fEventBadgeName').textContent  = opt.dataset.name;
-    document.getElementById('fEventBadgeDate').textContent  = opt.dataset.date;
-  } else {
-    document.getElementById('fEventBadge').style.display = 'none';
-  }
+  const e = EVT_PICK.f.sel;
+  if(e && e.url) document.getElementById('fBaseUrl').value = e.url; // auto-fill the tenant+event deep link
   _updateModalPreview();
 }
 
 function onUrlInput(){
-  // Manual URL edit clears event selection
-  document.getElementById('fEvent').value = '';
-  document.getElementById('fEventBadge').style.display = 'none';
+  // Manual URL edit clears the event selection
+  evtPickClear('f');
   _updateModalPreview();
 }
 
 function _updateModalPreview(){
   const code = document.getElementById('fCode').value.trim();
-  const base = _cleanBase(document.getElementById('fBaseUrl').value||'');
+  const raw  = (document.getElementById('fBaseUrl').value||'').trim();
   const el   = document.getElementById('linkPreview');
-  if(!code || !base){
+  if(!code || !raw){
     el.innerHTML = '<span style="color:var(--text3)">Select a vendor and event to generate the link</span>';
     return;
   }
-  el.innerHTML = `<span style="color:var(--text2)">${base}</span><span style="color:var(--p);font-weight:600">?vendor=${code}</span>`;
+  const eid  = EVT_PICK.f.sel ? EVT_PICK.f.sel.id : null;
+  const link = buildRefLink(raw, code, eid);
+  const vIdx = link.search(/[?&]vendor=/);
+  const lBase  = vIdx>=0 ? link.slice(0,vIdx) : link;
+  const lParam = vIdx>=0 ? link.slice(vIdx) : '';
+  el.innerHTML = `<span style="color:var(--text2)">${lBase}</span><span style="color:var(--p);font-weight:600">${lParam}</span>`;
 }
 
 function openLinkModal(){
@@ -1144,16 +1298,6 @@ function openEdit(id){
   document.getElementById('fBaseUrl').value    = v.baseUrl || '';
   document.getElementById('fCommission').value = v.commission;
   document.getElementById('fStatus').value     = v.status;
-  // Show event badge if event selected
-  const eSel = document.getElementById('fEvent');
-  if(v.eventId && eSel.value){
-    const opt = eSel.options[eSel.selectedIndex];
-    document.getElementById('fEventBadge').style.display    = 'flex';
-    document.getElementById('fEventBadgeName').textContent  = opt.dataset.name;
-    document.getElementById('fEventBadgeDate').textContent  = opt.dataset.date;
-  } else {
-    document.getElementById('fEventBadge').style.display = 'none';
-  }
   _updateModalPreview();
   document.getElementById('linkModal').classList.add('open');
 }
@@ -1198,11 +1342,8 @@ let _bEventId = null;
 
 function openBuilderModal(){
   _bEventId = null;
-  const sel = document.getElementById('bEvent');
-  sel.innerHTML = '<option value="">— Choose an event —</option>' +
-    eventCatalog.map(e=>`<option value="${e.id}" data-url="${e.url}" data-name="${e.name}" data-date="${e.date}">${e.name} · ${e.date}</option>`).join('');
+  evtPickClear('b');
   document.getElementById('bBaseUrl').value = '';
-  document.getElementById('bEventBadge').style.display = 'none';
   document.getElementById('bResults').style.display = 'none';
   document.getElementById('bCopyAllBtn').style.display = 'none';
   _bSyncBtn();
@@ -1214,24 +1355,19 @@ function closeBuilderModal(){
 }
 
 function bEventChange(){
-  const sel = document.getElementById('bEvent');
-  const opt = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
-  if(opt){
-    _bEventId = sel.value;
-    if(opt.dataset.url) document.getElementById('bBaseUrl').value = opt.dataset.url; // only auto-fill when the event has a URL
-    document.getElementById('bEventBadge').style.display = 'flex';
-    document.getElementById('bEventName').textContent = opt.dataset.name;
-    document.getElementById('bEventDate').textContent = opt.dataset.date;
+  const e = EVT_PICK.b.sel;
+  if(e){
+    _bEventId = e.id;
+    if(e.url) document.getElementById('bBaseUrl').value = e.url; // auto-fill the tenant+event deep link
   } else {
     _bEventId = null;
-    document.getElementById('bEventBadge').style.display = 'none';
   }
   _bBuildList();
 }
 
 function bUrlInput(){
-  document.getElementById('bEvent').value = '';
-  document.getElementById('bEventBadge').style.display = 'none';
+  // Manual URL edit clears the event selection
+  evtPickClear('b');
   _bEventId = null;
   _bBuildList();
 }
