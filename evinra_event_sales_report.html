@@ -101,6 +101,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex
 .venue-name{font-size:12px;font-weight:700;color:var(--text);font-family:var(--display);letter-spacing:-.2px}
 .venue-sub{font-size:10px;font-family:var(--mono);color:var(--text3);display:flex;align-items:center;gap:4px}
 .venue-shows{font-size:10px;font-family:var(--mono);color:var(--text3);padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg4);white-space:nowrap;flex-shrink:0}
+/* SHOW SUB-HEADER */
+.show-header td{padding:7px 14px 7px 28px;background:var(--bg3);border-top:1px solid var(--border)}
+.show-header-inner{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.show-pip{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.show-name{font-size:11.5px;font-weight:700;color:var(--text);font-family:var(--display);letter-spacing:-.1px}
+.show-tag{font-size:10px;font-family:var(--mono);color:var(--p);display:inline-flex;align-items:center;gap:4px;background:var(--p-dim);border:1px solid var(--p-border);border-radius:5px;padding:2px 8px}
+.show-tag.muted{color:var(--text3);background:var(--bg4);border-color:var(--border)}
+.summary-date-row td.sum-date{padding-left:36px}
 /* DATA ROWS */
 .evt-table tbody tr.data-row{transition:background .12s;cursor:pointer}
 .evt-table tbody tr.data-row:hover td{background:rgba(255,255,255,.02)}
@@ -588,76 +596,90 @@ select:focus{border-color:var(--p-border)}
     return tr;
   }
 
-  /* ── SUMMARY RENDER — group by production, one row per date ── */
-  function renderSummary(shows){
+  /* ── SUMMARY RENDER — group by Production → Show → Event ── */
+  function renderSummary(rows){
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
 
-    const prods = groupByProduction(shows);
+    const prods = groupByProduction(rows);   // prod.shows holds the raw rows
     let GT=0,GF=0,GD=0,GTi=0,GP=0,GR=0,rowNum=0;
 
     prods.forEach(prod => {
-      let vT=0,vF=0,vD=0,vTi=0,vP=0,vR=0;
+      let pT=0,pF=0,pD=0,pTi=0,pP=0,pR=0;
 
-      /* group this production's shows by date */
-      const byDate = {};
-      prod.shows.forEach(s => {
-        if (!byDate[s.date]) byDate[s.date] = { date:s.date, day:s.day, shows:[] };
-        byDate[s.date].shows.push(s);
-      });
-      const dateGroups = Object.values(byDate).sort((a,b) => new Date(a.date)-new Date(b.date));
-
-      const vh = document.createElement('tr');
-      vh.className = 'venue-header';
-      vh.innerHTML = `<td colspan="11"><div class="venue-header-inner">
+      /* Production header */
+      const ph = document.createElement('tr');
+      ph.className = 'venue-header';
+      ph.innerHTML = `<td colspan="11"><div class="venue-header-inner">
         <div class="venue-pip" style="background:${prod.color}"></div>
         <div class="venue-header-main">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="venue-name">${prod.production}</span>
-            <span class="venue-name-tag"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${prod.venue}</span>
-            <span class="venue-name-tag" style="color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>${prod.city}</span>
-          </div>
-          <span class="venue-sub">Capacity ${prod.capacity.toLocaleString()} seats</span>
+          <span class="venue-name">${prod.production}</span>
+          <span class="venue-sub">Production</span>
         </div>
-        <span class="venue-shows" style="display:none">${dateGroups.length} date${dateGroups.length!==1?'s':''} · ${prod.shows.length} shows</span>
       </div></td>`;
-      tbody.appendChild(vh);
+      tbody.appendChild(ph);
 
-      dateGroups.forEach(group => {
-        rowNum++;
-        const sT  = group.shows.reduce((a,s)=>a+s.tickets, 0);
-        const sF  = group.shows.reduce((a,s)=>a+s.fees,    0);
-        const sD  = group.shows.reduce((a,s)=>a+s.discount,0);
-        const sTi = group.shows.reduce((a,s)=>a+s.tips,    0);
-        const sP  = group.shows.reduce((a,s)=>a+s.paid,    0);
-        const sR  = group.shows.reduce((a,s)=>a+s.refunds, 0);
-        const net = sP + sTi - sF - sD - sR;
-        const pct = capPct(sT, prod.capacity * group.shows.length);
-        const wknd = isWeekend(group.day);
-
-        const tr = document.createElement('tr');
-        tr.className = 'summary-date-row data-row';
-        tr.dataset.production = prod.production;
-        tr.dataset.day = group.day;
-        tr.dataset.search = `${prod.production} ${prod.venue} ${prod.city} ${group.date} ${group.day}`.toLowerCase();
-        tr.innerHTML = `
-          <td class="row-num">${rowNum}</td>
-          <td class="sum-date mono"><span class="date-chip">${group.date}</span></td>
-          <td><span class="day-chip${wknd?' weekend':''}">${group.day.slice(0,3)}</span></td>
-          <td>${[...new Set(group.shows.map(s=>s.channel))].map(ch=>channelBadge(ch)).join('<br>')}</td>
-          <td class="num"><span class="tickets-count">${sT.toLocaleString()}</span></td>
-          <td class="money num">${fmt$(sF)}</td>
-          <td class="money num" style="${sD>0?'color:var(--red)':'color:var(--text3)'}">${sD>0?'−':''}${fmt$(sD)}</td>
-          <td class="money num" style="color:#5AC8A0">+${fmt$(sTi)}</td>
-          <td class="money num" style="${sR>0?'color:var(--red)':'color:var(--text3)'}">${sR>0?'−':''}${fmt$(sR)}</td>
-          <td class="money num">${fmt$(sP)}</td>
-          <td class="money net num">${fmt$(net)}</td>`;
-        tbody.appendChild(tr);
-        vT+=sT; vF+=sF; vD+=sD; vTi+=sTi; vP+=sP; vR+=sR;
+      /* group this production's rows by SHOW */
+      const byShow = {};
+      prod.shows.forEach(r => {
+        const k = r.show || '—';
+        (byShow[k] = byShow[k] || { show:k, venue:r.venue, city:r.city, color:r.color, capacity:r.capacity, rows:[] }).rows.push(r);
       });
 
-      tbody.appendChild(subtotalRow(`${prod.production} subtotal — ${dateGroups.length} dates · ${prod.shows.length} shows`, vT, vF, vD, vTi, vP, vR, 3));
-      GT+=vT; GF+=vF; GD+=vD; GTi+=vTi; GP+=vP; GR+=vR;
+      Object.values(byShow).forEach(showGrp => {
+        let shT=0,shF=0,shD=0,shTi=0,shP=0,shR=0;
+
+        /* Show sub-header */
+        const sh = document.createElement('tr');
+        sh.className = 'show-header data-row';
+        sh.dataset.production = prod.production;
+        sh.innerHTML = `<td colspan="11"><div class="show-header-inner">
+          <span class="show-pip" style="background:${showGrp.color}"></span>
+          <span class="show-name">${showGrp.show}</span>
+          ${showGrp.venue?`<span class="show-tag"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${showGrp.venue}</span>`:''}
+          ${showGrp.city?`<span class="show-tag muted">${showGrp.city}</span>`:''}
+        </div></td>`;
+        tbody.appendChild(sh);
+
+        /* group this show's rows by EVENT (aggregate orders) */
+        const byEvent = {};
+        showGrp.rows.forEach(r => {
+          const k = r.event || '—';
+          const g = byEvent[k] || (byEvent[k] = { event:k, date:r.date, day:r.day, ts:(parseMMDDYYYY(r.date)||new Date(0)), channels:{}, tickets:0,fees:0,discount:0,tips:0,paid:0,refunds:0 });
+          g.tickets+=r.tickets; g.fees+=r.fees; g.discount+=r.discount; g.tips+=r.tips; g.paid+=r.paid; g.refunds+=r.refunds; g.channels[r.channel]=1;
+        });
+
+        Object.values(byEvent).sort((a,b)=> a.ts - b.ts).forEach(ev => {
+          rowNum++;
+          const net  = ev.paid + ev.tips - ev.fees - ev.discount - ev.refunds;
+          const wknd = isWeekend(ev.day||'');
+          const tr = document.createElement('tr');
+          tr.className = 'summary-date-row data-row';
+          tr.dataset.production = prod.production;
+          tr.dataset.day = ev.day||'';
+          tr.dataset.search = `${prod.production} ${showGrp.show} ${ev.event} ${showGrp.venue} ${showGrp.city} ${ev.date} ${ev.day}`.toLowerCase();
+          tr.innerHTML = `
+            <td class="row-num">${rowNum}</td>
+            <td class="sum-date"><div style="font-size:12px;color:var(--text);font-weight:500">${ev.event}</div><span class="date-chip" style="margin-top:3px;display:inline-block">${ev.date}</span></td>
+            <td><span class="day-chip${wknd?' weekend':''}">${(ev.day||'').slice(0,3)}</span></td>
+            <td>${Object.keys(ev.channels).map(ch=>channelBadge(ch)).join('<br>')}</td>
+            <td class="num"><span class="tickets-count">${ev.tickets.toLocaleString()}</span></td>
+            <td class="money num">${fmt$(ev.fees)}</td>
+            <td class="money num" style="${ev.discount>0?'color:var(--red)':'color:var(--text3)'}">${ev.discount>0?'−':''}${fmt$(ev.discount)}</td>
+            <td class="money num" style="color:#5AC8A0">+${fmt$(ev.tips)}</td>
+            <td class="money num" style="${ev.refunds>0?'color:var(--red)':'color:var(--text3)'}">${ev.refunds>0?'−':''}${fmt$(ev.refunds)}</td>
+            <td class="money num">${fmt$(ev.paid)}</td>
+            <td class="money net num">${fmt$(net)}</td>`;
+          tbody.appendChild(tr);
+          shT+=ev.tickets; shF+=ev.fees; shD+=ev.discount; shTi+=ev.tips; shP+=ev.paid; shR+=ev.refunds;
+        });
+
+        tbody.appendChild(subtotalRow(`${showGrp.show} subtotal`, shT, shF, shD, shTi, shP, shR, 3));
+        pT+=shT; pF+=shF; pD+=shD; pTi+=shTi; pP+=shP; pR+=shR;
+      });
+
+      tbody.appendChild(subtotalRow(`${prod.production} — total`, pT, pF, pD, pTi, pP, pR, 3));
+      GT+=pT; GF+=pF; GD+=pD; GTi+=pTi; GP+=pP; GR+=pR;
     });
 
     tbody.appendChild(grandTotalRow(rowNum, prods.length, GT, GF, GD, GTi, GP, GR, 3));

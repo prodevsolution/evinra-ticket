@@ -429,7 +429,7 @@
         var day = '';
         try { var dp = o.date.split('/'); day = DAYS_FULL[new Date(+dp[2], +dp[0]-1, +dp[1]).getDay()]; } catch (e) {}
         return {
-          id: i + 1, production: o.production || '', venue: o.venue || '', city: o.cityState || '', color: o.color || '#888',
+          id: i + 1, production: o.production || '', show: o.show || '', venue: o.venue || '', city: o.cityState || '', color: o.color || '#888',
           capacity: o.capacity || 0, date: o.date, time: o.time,
           day: day, channel: o.channel, event: o.event || '',
           tickets: tickets, fees: fees, discount: discount, tips: tips, paid: paid, refunds: +refunds.toFixed(2)
@@ -452,7 +452,7 @@
             var tips     = +(tickets * 0.12).toFixed(2);
             var refundsV = +((id % 5 === 0) ? e.avgPrice * ((id % 3) + 1) : 0).toFixed(2);
             rows.push({
-              id:id, production:prod.name || '', venue:e.venue, city:e.cityState, color:e.color,
+              id:id, production:prod.name || '', show:(getShow(e.showId)||{}).name || '', venue:e.venue, city:e.cityState, color:e.color,
               capacity:e.seats, date:d.us, time:sess.start,
               day:DAYS_FULL[new Date(d.iso + 'T12:00:00').getDay()],
               channel:SALES_CHANNELS[id % SALES_CHANNELS.length],
