@@ -1361,10 +1361,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
 
     // Persist: a refund record + the order's status/summary. Always.
     const nowISO = new Date().toISOString();
-    const rec = { tenant_id: OD_TENANT, order_num: order.orderNum, amount: amount, reason: reason,
-                  method: order.payMethod || '', items: seats, item_count: seats.length,
+    const rec = { tenant_id: OD_TENANT, order_num: order.orderNum,
+                  event: order.event || '', show: order.show || '', production: order.production || '',
+                  customer: order.customer || '', order_date: order.date || '',
+                  amount: amount, reason: reason, method: order.payMethod || '',
+                  items: seats, item_count: seats.length,
                   refunded_by: OD_USER || 'Staff', status: 'Completed', created_at: nowISO };
-    if(isObjId(order.id)) rec.order_id = order.id;
+    if(isObjId(order.id))      rec.order_id = order.id;
+    if(isObjId(order.eventId)) rec.event_id = order.eventId;
 
     odPost('refunds', rec)
       .then(function(){

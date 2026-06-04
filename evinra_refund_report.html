@@ -418,7 +418,7 @@ select:focus{border-color:var(--p-border)}
 /* ── DATA ─────────────────────────────────────────── */
 /* Refunds derive from refunded tickets in the canonical dataset (assets/data.js) */
 const EVENTS = EVINRA.events.map(function(e){ return { name:e.cityState+' — '+e.monthShort, date:e.firstDate.us, time:'1:00 PM' }; });
-const REFUNDS = EVINRA.refunds;
+let REFUNDS = EVINRA.refunds;
 const _REFUNDS_LEGACY = [
   /* WPB Evening Show I */
   { id:1,  date:'12/12/2025', time:'3:18pm', eventName:'WPB Evening Show I',  order:'ORD-0044', ticket:'Adult Premium Admission', amount:46.00, reason:'Duplicate Purchase', method:'Original Card', location:'Gate A',     device:'POS-01', agent:'Maria Lopez',    status:'Completed' },
@@ -623,6 +623,36 @@ document.querySelector('.date-pill[data-dp="curr-week"]').classList.add('on');
 buildKPIs(REFUNDS);
 buildReasonBars(REFUNDS);
 renderTable(REFUNDS);
+
+/* ── Load REAL refunds (persisted from the order detail) ───────── */
+(function loadRealRefunds(){
+  var TEN = (function(){ try{ return localStorage.getItem('evinra-tenant-id')||''; }catch(e){ return ''; } })();
+  var base = (function(){ var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:'); return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db'; })();
+  function map(r){
+    var d = r.created_at ? new Date(r.created_at) : null; var valid = d && !isNaN(d);
+    var dateStr = valid ? (('0'+(d.getMonth()+1)).slice(-2)+'/'+('0'+d.getDate()).slice(-2)+'/'+d.getFullYear()) : (r.order_date||'');
+    var timeStr = valid ? d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(' ','') : '';
+    return {
+      id: r.id||r._id, date: dateStr, time: timeStr,
+      eventName: r.event || r.show || r.order_num || 'Refund',
+      order: r.order_num || '',
+      ticket: (r.items && r.items.length) ? r.items.join(', ') : (r.item_count ? (r.item_count+' item'+(r.item_count>1?'s':'')) : 'Order refund'),
+      amount: Number(r.amount)||0, reason: r.reason||'—', method: r.method||'Original Card',
+      location: 'Ticket System', device: 'Ticket System', agent: r.refunded_by||'Staff',
+      status: r.status||'Completed', eventId: r.event_id||'', showId:'', production: r.production||''
+    };
+  }
+  fetch(base+'/refunds'+(TEN?('?tenant_id=eq.'+encodeURIComponent(TEN)):''))
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      if(!Array.isArray(rows) || !rows.length) return;
+      var real = rows.map(map).sort(function(a,b){ return (parseMMDDYYYY(b.date)-parseMMDDYYYY(a.date)) || 0; });
+      var realNums = {}; real.forEach(function(x){ realNums[x.order]=1; });
+      var demo = (EVINRA.refunds||[]).filter(function(x){ return !realNums[x.order]; });
+      REFUNDS = real.concat(demo);
+      buildKPIs(REFUNDS); buildReasonBars(REFUNDS); applyFilters();
+    }).catch(function(){});
+})();
 
 })();
 </script>
