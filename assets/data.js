@@ -319,6 +319,8 @@
           show: show ? show.name : (o.show_name || ''), showId: show ? show.id : '',
           event: ev ? (ev.cityState + ' — ' + ev.monthShort) : (o.event_label || ''), eventId: ev ? ev.id : '',
           channel: channel,
+          status: o.status || 'completed', refundAmount: Number(o.refund_amount) || 0,
+          venue: ev ? ev.venue : '', cityState: ev ? ev.cityState : (o.event_label || ''), color: ev ? ev.color : '#888', capacity: ev ? ev.seats : 0,
           customer: o.customer_name || 'Guest', email: o.customer_email || '',
           payMethod: ORDER_PAYS[n % ORDER_PAYS.length],
           tickets: [{
@@ -410,9 +412,31 @@
       return list;
     })();
 
-    /* SALES ROWS (per-session lines for the sales report) */
+    /* SALES ROWS (sales report). From REAL orders when the DB is the source,
+       else synthesized per-session demo rows. */
     var SALES_CHANNELS = ['Box Office','Storefront','Third Party','Vendor'];
-    var salesRows = (function () {
+    var salesRows;
+    if (usingDB && base.realOrders && base.realOrders.length) {
+      salesRows = orders.map(function (o, i) {
+        var tks = o.tickets || [];
+        var tickets  = tks.reduce(function (s, t) { return s + (t.qty || 1); }, 0);
+        var paid     = +tks.reduce(function (s, t) { return s + (Number(t.price) || 0); }, 0).toFixed(2);
+        var fees     = +tks.reduce(function (s, t) { return s + (Number(t.fee) || 0); }, 0).toFixed(2);
+        var discount = +tks.reduce(function (s, t) { return s + (Number(t.discount) || 0); }, 0).toFixed(2);
+        var tips     = +tks.reduce(function (s, t) { return s + (Number(t.tips) || 0); }, 0).toFixed(2);
+        var st = String(o.status || '').toLowerCase();
+        var refunds = st === 'refunded' ? paid : (st.indexOf('partial') >= 0 ? (o.refundAmount || 0) : 0);
+        var day = '';
+        try { var dp = o.date.split('/'); day = DAYS_FULL[new Date(+dp[2], +dp[0]-1, +dp[1]).getDay()]; } catch (e) {}
+        return {
+          id: i + 1, production: o.production || '', venue: o.venue || '', city: o.cityState || '', color: o.color || '#888',
+          capacity: o.capacity || 0, date: o.date, time: o.time,
+          day: day, channel: o.channel, event: o.event || '',
+          tickets: tickets, fees: fees, discount: discount, tips: tips, paid: paid, refunds: +refunds.toFixed(2)
+        };
+      });
+    } else {
+    salesRows = (function () {
       var rows = [], id = 0;
       events.forEach(function (e) {
         if (e.soldPct <= 0) return;
@@ -440,6 +464,7 @@
       });
       return rows;
     })();
+    }
 
     /* SCANS (derived from non-refunded tickets) */
     var SCAN_GATES    = ['Gate A','Gate B','Gate C'];
