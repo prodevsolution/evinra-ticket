@@ -220,6 +220,7 @@ tr.order-header:hover td{background:var(--bg4)}
 .status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:5px;border:1px solid}
 .status-active{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
 .status-refunded{border-color:rgba(201,75,75,.3);background:rgba(201,75,75,.1);color:#C94B4B}
+.status-partial{border-color:rgba(212,160,75,.35);background:rgba(212,160,75,.12);color:#D4A04B}
 .status-voided{border-color:var(--border);background:var(--bg4);color:var(--text3)}
 .status-badge i{font-size:10px}
 /* money */
@@ -855,6 +856,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
       totalTickets  += order.tickets.length;
       const isCollapsed = collapsed[order.id] || false;
 
+      /* refund state badge (full vs partial), from the order's persisted status */
+      const _ost = String(order.status||'').toLowerCase();
+      const _someR = order.tickets.some(t=>t.status==='Refunded');
+      let _rk='';
+      if(_ost==='refunded') _rk='full';
+      else if(_ost==='partially_refunded'||_ost==='partial_refund') _rk='partial';
+      else if(_someR) _rk = order.tickets.every(t=>t.status!=='Active') ? 'full' : 'partial';
+      const refundBadge = _rk==='full'
+        ? `<span class="status-badge status-refunded" style="margin-left:6px"><i class="ti ti-circle-x"></i>Refunded</span>`
+        : _rk==='partial'
+        ? `<span class="status-badge status-partial" style="margin-left:6px"><i class="ti ti-circle-half-2"></i>Partial Refund</span>`
+        : '';
+
       /* ── order header row ── */
       const hRow = document.createElement('tr');
       hRow.className = 'order-header';
@@ -865,7 +879,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
           <div class="order-collapse${isCollapsed?' collapsed':''}" title="Toggle rows">
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </div>
-          <span class="order-num">${order.orderNum}</span>
+          <span class="order-num">${order.orderNum}</span>${refundBadge}
           <span class="order-id-chip" title="Copy order ID" data-copy="${order.id}">
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             <span class="tid-text">${order.id.slice(0,12)}…</span>
@@ -1059,12 +1073,21 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
       const orderNet      = order.tickets.reduce((s,t)=>s+(t.price+t.tips-t.fee-t.discount), 0);
       const hasRefunded   = order.tickets.some(t=>t.status==='Refunded');
       const hasVoided     = order.tickets.some(t=>t.status==='Voided');
+      // Full vs partial refund — driven by the order's persisted status, with a
+      // ticket-level fallback (all refunded = full, some = partial).
+      const _ost = String(order.status||'').toLowerCase();
+      let refundKind = '';
+      if(_ost==='refunded') refundKind='full';
+      else if(_ost==='partially_refunded' || _ost==='partial_refund') refundKind='partial';
+      else if(hasRefunded) refundKind = order.tickets.every(t=>t.status!=='Active') ? 'full' : 'partial';
 
-      const statusBadge = hasRefunded
-        ? `<span class="status-badge status-refunded"><i class="ti ti-circle-x"></i>Refunded</span>`
+      const statusBadge = refundKind==='full'
+        ? `<span class="status-badge status-refunded" style="margin-left:6px"><i class="ti ti-circle-x"></i>Refunded</span>`
+        : refundKind==='partial'
+        ? `<span class="status-badge status-partial" style="margin-left:6px"><i class="ti ti-circle-half-2"></i>Partial Refund</span>`
         : hasVoided
-        ? `<span class="status-badge status-voided"><i class="ti ti-circle-minus"></i>Voided</span>`
-        : `<span class="status-badge status-active"><i class="ti ti-circle-check"></i>Active</span>`;
+        ? `<span class="status-badge status-voided" style="margin-left:6px"><i class="ti ti-circle-minus"></i>Voided</span>`
+        : '';
 
       const tr = document.createElement('tr');
       tr.className = 'ticket-row';
@@ -1072,7 +1095,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
       tr.onclick = () => openDetail(order.id);
       tr.innerHTML = `
         <td class="row-num">${rowNum}</td>
-        <td style="font-family:var(--mono);font-size:11px;color:var(--p);font-weight:600">${order.orderNum}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--p);font-weight:600;white-space:nowrap">${order.orderNum}${statusBadge}</td>
         <td style="font-size:11px;color:var(--text2)">${order.date}</td>
         <td style="font-size:11px;color:var(--text3)">${order.time}</td>
         <td style="font-size:12px;color:var(--text)">${order.customer}</td>
