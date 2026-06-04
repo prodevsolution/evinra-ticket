@@ -1245,9 +1245,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     const checked  = document.querySelectorAll('.detail-item:checked');
     const seats    = Array.from(checked).map(c=>c.dataset.seat);
     if(!seats.length) return;
+    const oid = detailOrderId;   // capture before closeDetail() nulls it
     closeDetail();
     // Pre-select these seats in the refund modal
-    openRefundSeats(detailOrderId, seats);
+    openRefundSeats(oid, seats);
   }
 
   function closeDetail(){
