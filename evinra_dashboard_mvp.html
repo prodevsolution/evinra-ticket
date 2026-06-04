@@ -410,7 +410,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
         <div class="topbar-sep"></div>
         <span class="topbar-date" id="todayDate">Sat, May 23 2026</span>
         <div class="topbar-sep"></div>
-        <span class="topbar-date" style="color:var(--text2)"><span id="tbActiveShows">3</span> active shows &nbsp;·&nbsp; <span style="color:var(--p)">3,847</span> tickets today</span>
+        <span class="topbar-date" style="color:var(--text2)"><span id="tbActiveShows">0</span> active shows &nbsp;·&nbsp; <span style="color:var(--p)" id="tbTicketsSold">0</span> tickets sold</span>
       </div>
       <div class="topbar-right">
         <a href="evinra_dashboard_v2.html" class="btn btn-ghost">
@@ -433,11 +433,11 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
         <!-- KPI 1 — Revenue (Period) -->
         <div class="card kpi accent-p">
           <div class="card-corner" style="background:var(--p)"></div>
-          <div class="c-title" role="heading" aria-level="2" style="color:var(--p)">Period Revenue</div>
-          <div class="kpi-value accent">$186,400</div>
-          <div class="kpi-delta up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="18 15 12 9 6 15"/></svg>
-            +12.8% vs last period
+          <div class="c-title" role="heading" aria-level="2" style="color:var(--p)">Total Revenue</div>
+          <div class="kpi-value accent" id="kpiPeriodRev">$0</div>
+          <div class="kpi-delta neu" id="kpiRevDelta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            attributed sales
           </div>
           <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-rev-bar" style="width:0%"></div></div>
           <div class="kpi-sparkwrap"><canvas id="spk1" role="img" aria-label="Revenue sparkline"></canvas></div>
@@ -446,11 +446,11 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
         <!-- KPI 2 — Tickets Today -->
         <div class="card kpi accent-b">
           <div class="card-corner" style="background:var(--blue)"></div>
-          <div class="c-title" role="heading" aria-level="2" style="color:var(--blue)">Tickets Today</div>
-          <div class="kpi-value" style="color:var(--blue)" id="ticketsToday">3,847</div>
-          <div class="kpi-delta up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="18 15 12 9 6 15"/></svg>
-            +241 vs yesterday
+          <div class="c-title" role="heading" aria-level="2" style="color:var(--blue)">Tickets Sold</div>
+          <div class="kpi-value" style="color:var(--blue)" id="ticketsToday">0</div>
+          <div class="kpi-delta neu" id="kpiTickDelta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            across all events
           </div>
           <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-tick-bar" style="width:0%;background:var(--blue)"></div></div>
           <div class="kpi-sparkwrap"><canvas id="spk2" role="img" aria-label="Tickets sparkline"></canvas></div>
@@ -460,10 +460,10 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
         <div class="card kpi accent-v">
           <div class="card-corner" style="background:var(--violet)"></div>
           <div class="c-title" role="heading" aria-level="2" style="color:var(--violet)">Active Shows</div>
-          <div class="kpi-value" style="color:var(--violet)" id="kpiActiveShows">3</div>
-          <div class="kpi-delta up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="18 15 12 9 6 15"/></svg>
-            2 new this week
+          <div class="kpi-value" style="color:var(--violet)" id="kpiActiveShows">0</div>
+          <div class="kpi-delta neu" id="kpiShowDelta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            current &amp; upcoming
           </div>
           <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-show-bar" style="width:0%;background:var(--violet)"></div></div>
           <div class="kpi-sparkwrap"><canvas id="spk3" role="img" aria-label="Shows sparkline"></canvas></div>
@@ -473,10 +473,10 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
         <div class="card kpi accent-a">
           <div class="card-corner" style="background:var(--amber)"></div>
           <div class="c-title" role="heading" aria-level="2" style="color:var(--amber)">Scan Success</div>
-          <div class="kpi-value">94<span style="font-size:22px;color:var(--text2)">%</span></div>
-          <div class="kpi-delta neu">
+          <div class="kpi-value"><span id="kpiScanRate">—</span><span style="font-size:22px;color:var(--text2)">%</span></div>
+          <div class="kpi-delta neu" id="kpiScanDelta">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Stable — no change
+            valid entries
           </div>
           <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-scan-bar" style="width:0%;background:var(--amber)"></div></div>
           <div class="kpi-sparkwrap"><canvas id="spk4" role="img" aria-label="Scan rate sparkline"></canvas></div>
@@ -492,13 +492,13 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
           <div class="rev30-header">
             <div>
               <div class="c-title" role="heading" aria-level="2" style="margin-bottom:6px">30-Day Revenue</div>
-              <div class="rev30-total">$186K</div>
-              <div class="rev30-sub">May 2026 — running total</div>
+              <div class="rev30-total" id="rev30Total">$0</div>
+              <div class="rev30-sub" id="rev30Sub">last 30 days — running total</div>
             </div>
             <div class="rev30-meta">
-              <div class="rev30-meta-item"><span class="rl">Peak &nbsp;</span><span class="rv">$12,400</span></div>
-              <div class="rev30-meta-item"><span class="rl">Daily Avg &nbsp;</span><span class="rv">$8,104</span></div>
-              <div class="rev30-meta-item"><span class="rl">vs Last Mo &nbsp;</span><span class="rv" style="color:var(--p)">+12.8%</span></div>
+              <div class="rev30-meta-item"><span class="rl">Peak &nbsp;</span><span class="rv" id="rev30Peak">$0</span></div>
+              <div class="rev30-meta-item"><span class="rl">Daily Avg &nbsp;</span><span class="rv" id="rev30Avg">$0</span></div>
+              <div class="rev30-meta-item"><span class="rl">Orders &nbsp;</span><span class="rv" id="rev30Orders">0</span></div>
             </div>
           </div>
           <div class="rev30-chart">
@@ -718,12 +718,42 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
 
   /* ── DATE ────────────────────────────────────── */
   (function(){
-    var d = new Date(2026,4,23);
+    var d = new Date();
     var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     var el = document.getElementById('todayDate');
     if(el) el.textContent = days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear();
   })();
+
+  /* ── REAL DATA (from assets/data.js → EVINRA, tenant-scoped) ─────── */
+  function _money(n){ return (window.EVINRA&&EVINRA.fmtMoney)?EVINRA.fmtMoney(n):('$'+Math.round(n||0).toLocaleString('en-US')); }
+  function _mmdd(s){ var p=String(s||'').split('/'); return p.length===3? new Date(+p[2],+p[0]-1,+p[1]) : null; } // MM/DD/YYYY
+  function computeDash(){
+    var E=window.EVINRA, out={rev30:[],ticks30:[],labels30:[],revTotal:0,revPeak:0,revAvg:0,ordersWin:0,revenue:0,ticketsSold:0,activeShows:0,scanRate:null,soldPct:0};
+    if(!E) return out;
+    out.revenue=(E.totals&&E.totals.revenue)||0;
+    out.ticketsSold=(E.totals&&E.totals.ticketsSold)||0;
+    out.activeShows=(E.totals&&E.totals.activeShows)||0;
+    out.soldPct=(E.totals&&E.totals.capacity)?Math.min(100,Math.round(out.ticketsSold/E.totals.capacity*100)):0;
+    var sc=E.scans||[];
+    var scanned=sc.filter(function(s){ return s.status && s.status!=='Not Scanned'; });
+    var valid=scanned.filter(function(s){ return s.status==='Valid'||s.status==='Late Entry'; });
+    out.scanRate=scanned.length?Math.round(valid.length/scanned.length*100):null;
+    var rows=E.salesRows||[];
+    var dated=rows.map(function(r){ return {d:_mmdd(r.date),rev:Math.max(0,(Number(r.paid)||0)-(Number(r.refunds)||0)),tk:(Number(r.tickets)||0)}; }).filter(function(x){ return x.d && !isNaN(x.d); });
+    var end=dated.length?new Date(Math.max.apply(null,dated.map(function(x){return x.d.getTime();}))):new Date();
+    end.setHours(0,0,0,0);
+    var byDay={};
+    dated.forEach(function(x){ var k=x.d.getFullYear()+'-'+x.d.getMonth()+'-'+x.d.getDate(); (byDay[k]=byDay[k]||{rev:0,tk:0,n:0}); byDay[k].rev+=x.rev; byDay[k].tk+=x.tk; byDay[k].n++; });
+    var win=0;
+    for(var i=29;i>=0;i--){ var dd=new Date(end); dd.setDate(end.getDate()-i); var k=dd.getFullYear()+'-'+dd.getMonth()+'-'+dd.getDate(); var b=byDay[k]||{rev:0,tk:0,n:0}; out.rev30.push(Math.round(b.rev)); out.ticks30.push(b.tk); out.labels30.push((dd.getMonth()+1)+'/'+dd.getDate()); win+=b.n; }
+    out.revTotal=out.rev30.reduce(function(a,b){return a+b;},0);
+    out.revPeak=out.rev30.reduce(function(a,b){return Math.max(a,b);},0);
+    out.revAvg=Math.round(out.revTotal/30);
+    out.ordersWin=win;
+    return out;
+  }
+  var DASH=computeDash();
 
   /* ── CHARTS ──────────────────────────────────── */
   var charts = [];
@@ -767,16 +797,17 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
           scales:{x:{display:false},y:{display:false}}}
       }));
     }
-    spk('spk1',[80,95,88,105,98,112,108,120,115,130,125,142,186], C.p);
-    spk('spk2',[2800,3200,2600,3600,3400,3900,3100,3700,3500,4100,3600,3847], C.blue);
-    spk('spk3',[3,3,4,4,4,5,5,5,5,5,5,5], C.violet);
-    spk('spk4',[90,92,91,93,93,94,92,95,94,93,94,94], C.amber);
+    var _flat=function(v,n){ var a=[]; for(var i=0;i<(n||12);i++) a.push(v||0); return a; };
+    spk('spk1', (DASH.rev30&&DASH.rev30.some(function(x){return x>0;}))?DASH.rev30:_flat(0,30), C.p);
+    spk('spk2', (DASH.ticks30&&DASH.ticks30.some(function(x){return x>0;}))?DASH.ticks30:_flat(0,30), C.blue);
+    spk('spk3', _flat(DASH.activeShows,12), C.violet);
+    spk('spk4', _flat(DASH.scanRate||0,12), C.amber);
 
     /* 30-day area chart */
     var rev30El = document.getElementById('rev30Chart');
     if(rev30El){
-      var rev30Data = [4200,5800,3900,6700,8200,5100,4400,7300,9800,6200,5500,8900,11200,7800,6400,5700,9200,10800,8300,7100,6800,9500,12400];
-      var labels30 = rev30Data.map(function(_,i){ return (i+1)+''; });
+      var rev30Data = (DASH.rev30&&DASH.rev30.length)?DASH.rev30:[0];
+      var labels30 = (DASH.labels30&&DASH.labels30.length)?DASH.labels30:[''];
       charts.push(new Chart(rev30El,{
         type:'line',
         data:{
@@ -816,10 +847,11 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
   /* ── KPI BAR ANIMATIONS ──────────────────────── */
   setTimeout(function(){
     function setW(id,w){ var el=document.getElementById(id); if(el) el.style.width=w; }
-    setW('kpi-rev-bar','78%');
-    setW('kpi-tick-bar','64%');
-    setW('kpi-show-bar','50%');
-    setW('kpi-scan-bar','94%');
+    var sold=(DASH.soldPct||0)+'%';
+    setW('kpi-rev-bar', sold);
+    setW('kpi-tick-bar', sold);
+    setW('kpi-show-bar', (DASH.activeShows>0?Math.min(100,DASH.activeShows*20):0)+'%');
+    setW('kpi-scan-bar', (DASH.scanRate||0)+'%');
   }, 350);
 
   /* ── CAPACITY BAR ANIMATIONS ─────────────────── */
@@ -856,6 +888,17 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
     var t = EVINRA.totals;
     var as = document.getElementById('kpiActiveShows'); if (as) as.textContent = t.activeShows;
     var tb = document.getElementById('tbActiveShows');  if (tb) tb.textContent = t.activeShows;
+
+    /* Headline KPIs + 30-day stats from real data */
+    var _set=function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+    _set('kpiPeriodRev', _money(DASH.revenue));
+    _set('ticketsToday', DASH.ticketsSold.toLocaleString());
+    _set('tbTicketsSold', DASH.ticketsSold.toLocaleString());
+    _set('kpiScanRate', DASH.scanRate==null?'—':DASH.scanRate);
+    _set('rev30Total', _money(DASH.revTotal));
+    _set('rev30Peak', _money(DASH.revPeak));
+    _set('rev30Avg', _money(DASH.revAvg));
+    _set('rev30Orders', DASH.ordersWin.toLocaleString());
 
     var body = document.getElementById('dashShowsBody');
     if (body) {
