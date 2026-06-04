@@ -1294,7 +1294,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
       </table>
       <div style="display:flex;flex-direction:column;gap:6px">
         <label style="font-size:9.5px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Refund Reason *</label>
-        <select id="refundReason" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:7px 10px;outline:none">
+        <select id="refundReason" onchange="refundDirty()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:7px 10px;outline:none">
           <option value="">Select reason…</option>
           <option>Customer request</option>
           <option>Duplicate charge</option>
@@ -1312,7 +1312,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     document.getElementById('refundModal').classList.add('open');
   }
 
-  function closeRefund(){ document.getElementById('refundModal').classList.remove('open'); refundOrderId=null; }
+  function closeRefund(){ document.getElementById('refundModal').classList.remove('open'); refundOrderId=null; if(typeof refundDirty==='function') refundDirty(); }
 
   function toggleAllRefund(chk){
     document.querySelectorAll('.refund-item:not(:disabled)').forEach(c=>{ c.checked=chk.checked; });
@@ -1323,6 +1323,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     let total=0;
     document.querySelectorAll('.refund-item:checked').forEach(c=>{ total+=parseFloat(c.dataset.amount||0); });
     document.getElementById('refundTotal').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(typeof refundDirty==='function') refundDirty(); // selection changed → clear error + re-confirm
   }
 
   /* ── Refund persistence (shared DB) ─────────────── */
@@ -1334,19 +1335,44 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
   function odPatch(table, qs, body){ return fetch(odBase()+'/'+table+'?'+qs,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ if(r.ok) return true; return r.json().catch(function(){return{};}).then(function(d){ throw new Error((d&&d.error)||'PATCH failed'); }); }); }
   function odToast(msg){ var t=document.getElementById('toast'); document.getElementById('toastMsg').textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},2600); }
 
+  /* Inline validation + two-step confirm (consistent: no native alerts) */
+  let refundArmed = false;
+  function refundErr(msg){
+    const el=document.getElementById('refundErr'); if(!el) return;
+    el.textContent = msg||''; el.style.display = msg ? 'inline-flex' : 'none';
+  }
+  function disarmRefund(){
+    refundArmed=false;
+    const l=document.getElementById('refundConfirmLbl'); if(l) l.textContent='Confirm Refund';
+  }
+  // Called on any selection/reason change — resets validation + confirm state.
+  function refundDirty(){ refundErr(''); disarmRefund(); }
+  window.refundDirty = refundDirty;
+
   function processRefund(){
     const reason = document.getElementById('refundReason').value;
     const checked = document.querySelectorAll('.refund-item:checked');
-    if(!checked.length){ alert('Select at least one item to refund.'); return; }
-    if(!reason){ alert('Please select a refund reason.'); return; }
+    // Validations (inline, near the action)
+    if(!checked.length){ refundErr('Select at least one item to refund.'); return; }
+    if(!reason){ refundErr('Select a refund reason.'); return; }
+    refundErr('');
 
     const order = ORDERS.find(o=>o.id===refundOrderId);
-    if(!order) return;
+    if(!order){ refundErr('Order not found.'); return; }
 
     // Gather selected items (amount + seat labels) before mutating.
     let amount = 0; const seats = [];
     checked.forEach(c => { amount += parseFloat(c.dataset.amount||0); if(c.dataset.seat) seats.push(c.dataset.seat); });
     amount = +amount.toFixed(2);
+
+    // Two-step confirmation for this financial action.
+    if(!refundArmed){
+      refundArmed = true;
+      const l=document.getElementById('refundConfirmLbl');
+      if(l) l.textContent = 'Click again to refund $'+amount.toFixed(2);
+      return;
+    }
+    disarmRefund();
     const seatSet = {}; seats.forEach(s => seatSet[s]=1);
 
     // Mark selected active tickets as Refunded (UI)
@@ -1447,8 +1473,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     </div>
     <div class="modal-body" id="refundContent"></div>
     <div class="modal-ftr">
+      <span id="refundErr" style="display:none;margin-right:auto;font-size:11px;font-family:var(--mono);color:var(--red);align-items:center;gap:6px"></span>
       <button class="m-btn ghost" onclick="closeRefund()">Cancel</button>
-      <button class="m-btn danger" onclick="processRefund()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Confirm Refund</button>
+      <button class="m-btn danger" id="refundConfirmBtn" onclick="processRefund()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="refundConfirmLbl">Confirm Refund</span></button>
     </div>
   </div>
 </div>
