@@ -807,9 +807,42 @@ function statusBadge(s){
 }
 function copyIcon(title){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px" title="${title}"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`; }
 function checkIcon(){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polyline points="20 6 9 17 4 12"/></svg>`; }
-function refLink(v){ if(!v.baseUrl) return null; var sep = v.baseUrl.indexOf('?')>=0 ? '&' : '?'; return v.baseUrl + sep + 'vendor=' + encodeURIComponent(v.code); }
-// Clean a base URL for storage: drop any existing ?vendor= but KEEP other params (tenant, event).
-function _cleanBase(u){ u=(u||'').trim(); if(!u) return ''; try{ var url=new URL(u); url.searchParams.delete('vendor'); var s=url.toString(); return s.replace(/[?&]$/,''); }catch(e){ return u.replace(/([?&])vendor=[^&#]*/ig,'$1').replace(/[?&]+$/,'').replace(/[#].*$/,''); } }
+// Ensure a storefront URL carries BOTH tenant and event (the storefront is strict:
+// without ?tenant= it shows "Store unavailable", and without &event= it can't deep-link).
+// Missing params are backfilled from the logged-in tenant (VSL_TENANT) and the vendor's event.
+function _ensureTenantEvent(base, eventId){
+  base = (base||'').trim();
+  if(!base) base = vslStorefrontBase();
+  try{
+    var url = new URL(base);
+    if(!url.searchParams.get('tenant') && VSL_TENANT) url.searchParams.set('tenant', VSL_TENANT);
+    if(!url.searchParams.get('event') && eventId)     url.searchParams.set('event', String(eventId));
+    url.searchParams.delete('vendor');
+    return url;
+  }catch(e){ return null; }
+}
+// Normalized base URL for storage: guarantees tenant+event, drops any vendor param.
+function _normBase(base, eventId){
+  var url = _ensureTenantEvent(base, eventId);
+  if(url){ var s = url.toString(); return s.replace(/[?&]$/,''); }
+  // String fallback when URL() is unavailable.
+  var s = (base||'').trim() || vslStorefrontBase();
+  s = s.replace(/([?&])vendor=[^&#]*/ig,'$1').replace(/[#].*$/,'');
+  function add(k,val){ if(val==null||val==='')return; if(new RegExp('[?&]'+k+'=').test(s))return; s += (s.indexOf('?')>=0?'&':'?')+k+'='+encodeURIComponent(val); }
+  add('tenant', VSL_TENANT); add('event', eventId);
+  return s.replace(/[?&]+$/,'');
+}
+// Backward-compatible alias (older call sites used _cleanBase).
+function _cleanBase(u){ return _normBase(u, null); }
+// Build the final referral link: tenant + event + vendor, always valid.
+function buildRefLink(base, vendorCode, eventId){
+  var url = _ensureTenantEvent(base, eventId);
+  if(url){ if(vendorCode) url.searchParams.set('vendor', vendorCode); return url.toString(); }
+  var s = _normBase(base, eventId);
+  if(vendorCode) s += (s.indexOf('?')>=0?'&':'?') + 'vendor=' + encodeURIComponent(vendorCode);
+  return s;
+}
+function refLink(v){ if(!v.baseUrl && !v.eventId) return null; return buildRefLink(v.baseUrl, v.code, v.eventId); }
 function copyText(text, btn){
   navigator.clipboard.writeText(text).catch(()=>{});
   const orig = btn.innerHTML;
@@ -885,9 +918,9 @@ function renderTable(){
 
     let linkCell = '';
     if(hasLink){
-      const paramIdx = link.indexOf('?vendor=');
-      const base  = link.slice(0, paramIdx);
-      const param = link.slice(paramIdx);
+      const paramIdx = link.search(/[?&]vendor=/);
+      const base  = paramIdx >= 0 ? link.slice(0, paramIdx) : link;
+      const param = paramIdx >= 0 ? link.slice(paramIdx) : '';
       linkCell = `<div class="ref-link-wrap">
         <div class="ref-link-text" title="${link}">${base}<span>${param}</span></div>
         <button class="code-copy" title="Copy link" onclick="copyText('${link}',this)">${copyIcon('Copy referral link')}</button>
@@ -991,7 +1024,7 @@ function openDetail(id){
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 12px;margin-bottom:4px">
       <div style="font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Referral Link</div>
-      <div style="font-family:var(--mono);font-size:10.5px;color:var(--text3);word-break:break-all;margin-bottom:8px">${link.slice(0,link.indexOf('?'))}<span style="color:var(--p);font-weight:600">${link.slice(link.indexOf('?'))}</span></div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--text3);word-break:break-all;margin-bottom:8px">${link?(link.indexOf('?')>=0?link.slice(0,link.indexOf('?')):link):''}<span style="color:var(--p);font-weight:600">${link&&link.indexOf('?')>=0?link.slice(link.indexOf('?')):''}</span></div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-ghost" style="height:26px;font-size:10px" onclick="copyText('${link}',this)">Copy Link</button>
         <button class="btn btn-ghost" style="height:26px;font-size:10px" onclick="copyText('${v.code}',this)">Copy Code</button>
@@ -1133,13 +1166,16 @@ function closeLinkModal(){
 function saveLink(){
   const vid = parseInt(document.getElementById('fVendor').value);
   if(!vid){ document.getElementById('fVendor').focus(); showToast('Select a vendor.', '', 'error'); return; }
-  const base = _cleanBase(document.getElementById('fBaseUrl').value||'');
-  if(!base){ document.getElementById('fBaseUrl').focus(); showToast('Enter the base ticket URL.', '', 'error'); return; }
-  if(!/^https?:\/\/.+/i.test(base)){ document.getElementById('fBaseUrl').focus(); showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
+  const rawBase = (document.getElementById('fBaseUrl').value||'').trim();
+  if(!rawBase){ document.getElementById('fBaseUrl').focus(); showToast('Enter the base ticket URL.', '', 'error'); return; }
+  if(!/^https?:\/\/.+/i.test(rawBase)){ document.getElementById('fBaseUrl').focus(); showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
   const commission = parseFloat(document.getElementById('fCommission').value)||0;
   if(commission < 0 || commission > 100){ document.getElementById('fCommission').focus(); showToast('Commission must be 0–100%', '', 'error'); return; }
   const eSel    = document.getElementById('fEvent');
   const eventId = eSel.value || null;
+  // Store a base URL that already carries tenant + event so the strict storefront accepts it.
+  const base = _normBase(rawBase, eventId);
+  if(!/[?&]tenant=/.test(base)){ showToast('No company linked', 'Open this page from your Ticket System so the link can include the tenant.', 'error'); return; }
   const status     = document.getElementById('fStatus').value;
   const v = vendors.find(x=>x.id===vid);
   if(!v){ closeLinkModal(); return; }
@@ -1208,13 +1244,16 @@ function _bBuildList(){
   if(!raw){ results.style.display='none'; copyBtn.style.display='none'; _bSyncBtn(); return; }
   document.getElementById('bCount').textContent = vendors.length + ' vendors';
   list.innerHTML = vendors.map(v=>{
-    const link = raw + '?vendor=' + v.code;
+    const link = buildRefLink(raw, v.code, _bEventId);
+    const vIdx = link.search(/[?&]vendor=/);
+    const lBase  = vIdx >= 0 ? link.slice(0, vIdx) : link;
+    const lParam = vIdx >= 0 ? link.slice(vIdx) : '';
     const dot  = v.status==='Active'
       ? `<span style="width:6px;height:6px;border-radius:50%;background:var(--p);flex-shrink:0;display:inline-block;margin-top:1px"></span>`
       : `<span style="width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;display:inline-block;margin-top:1px"></span>`;
     return `<div class="builder-result-row">
       <div style="display:flex;align-items:center;gap:6px;width:152px;flex-shrink:0;overflow:hidden">${dot}<div class="builder-result-vendor" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${v.name}</div></div>
-      <div class="builder-result-link" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${raw}<span>?vendor=${v.code}</span></div>
+      <div class="builder-result-link" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lBase}<span>${lParam}</span></div>
       <button class="code-copy" title="Copy link" onclick="copyText('${link}',this)" style="margin-left:6px;flex-shrink:0">${copyIcon('Copy')}</button>
     </div>`;
   }).join('');
@@ -1238,7 +1277,7 @@ function bCopyAll(){
   const raw = _cleanBase(document.getElementById('bBaseUrl').value||'');
   if(!raw) return;
   const csv = 'Vendor,Code,Referral Link,Commission\n' +
-    vendors.map(v=>`"${v.name}","${v.code}","${raw}?vendor=${v.code}","${v.commission}%"`).join('\n');
+    vendors.map(v=>`"${v.name}","${v.code}","${buildRefLink(raw, v.code, _bEventId)}","${v.commission}%"`).join('\n');
   navigator.clipboard.writeText(csv).catch(()=>{});
   const btn = document.getElementById('bCopyAllBtn');
   const orig = btn.innerHTML;
@@ -1247,10 +1286,12 @@ function bCopyAll(){
 }
 
 function createAllLinks(){
-  const raw = _cleanBase(document.getElementById('bBaseUrl').value||'');
-  if(!raw){ showToast('Enter a base URL first.', '', 'error'); return; }
-  if(!/^https?:\/\/.+/i.test(raw)){ showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
+  const rawIn = (document.getElementById('bBaseUrl').value||'').trim();
+  if(!rawIn){ showToast('Enter a base URL first.', '', 'error'); return; }
+  if(!/^https?:\/\/.+/i.test(rawIn)){ showToast('Enter a valid URL', 'It must start with http:// or https://', 'error'); return; }
   const evtId = _bEventId;
+  const raw = _normBase(rawIn, evtId);
+  if(!/[?&]tenant=/.test(raw)){ showToast('No company linked', 'Open this page from your Ticket System so links can include the tenant.', 'error'); return; }
   const eName = evtId ? (eventCatalog.find(e=>e.id===evtId)||{}).name : null;
   vslConfirm({
     title: 'Create links for all vendors',
