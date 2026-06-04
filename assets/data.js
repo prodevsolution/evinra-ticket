@@ -321,6 +321,7 @@
           show: show ? show.name : (o.show_name || ''), showId: show ? show.id : '',
           event: ev ? (ev.cityState + ' — ' + ev.monthShort) : (o.event_label || ''), eventId: ev ? ev.id : '',
           channel: channel,
+          vendorCode: o.vendor_code || '',
           status: o.status || 'completed', refundAmount: Number(o.refund_amount) || 0,
           venue: ev ? ev.venue : '', cityState: ev ? ev.cityState : (o.event_label || ''), color: ev ? ev.color : '#888', capacity: ev ? ev.seats : 0,
           customer: o.customer_name || 'Guest', email: o.customer_email || '',

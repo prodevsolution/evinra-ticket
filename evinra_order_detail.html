@@ -1162,6 +1162,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
 
   /* ── ORDER DETAIL MODAL ────────────────────────── */
   let detailOrderId = null;
+  let VENDORS_BY_CODE = {};   // vendor code → name (for third-party orders)
 
   function openDetail(orderId){
     const order = ORDERS.find(o=>o.id===orderId);
@@ -1178,6 +1179,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
         <div class="info-cell"><div class="info-lbl">Order #</div><div class="info-val" style="color:var(--p)">${order.orderNum}</div></div>
         <div class="info-cell"><div class="info-lbl">Date & Time</div><div class="info-val">${order.date} · ${order.time}</div></div>
         <div class="info-cell"><div class="info-lbl">Channel</div><div class="info-val">${channelBadge(order.channel)}</div></div>
+        ${order.vendorCode ? `<div class="info-cell"><div class="info-lbl">Third-Party Vendor</div><div class="info-val"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3);margin-right:4px;flex-shrink:0"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 13h6"/></svg>${VENDORS_BY_CODE[order.vendorCode] || order.vendorCode}<span style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:6px">${order.vendorCode}</span></div></div>` : ''}
         <div class="info-cell"><div class="info-lbl">Customer</div><div class="info-val"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3);margin-right:4px;flex-shrink:0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${order.customer}</div></div>
         <div class="info-cell"><div class="info-lbl">Email</div><div class="info-val" style="font-size:11px;color:var(--text2)">${order.email||'—'}</div></div>
         <div class="info-cell"><div class="info-lbl">Payment Method</div><div class="info-val"><span class="pay-tag" data-method="${order.payMethod}"><i class="ti ${payIcon(order.payMethod)}"></i>${order.payMethod}</span></div></div>
@@ -1466,6 +1468,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     if(_ef){ var _u=[]; EVINRA.events.forEach(function(e){ var v=e.cityState+' — '+e.monthShort; if(_u.indexOf(v)===-1)_u.push(v); }); _ef.innerHTML='<option value="">All Events</option>'+_u.map(function(v){return '<option>'+v+'</option>';}).join(''); }
   }
   applyFilters();
+
+  /* Load third-party vendor names (code → name) for the order detail */
+  try {
+    fetch(odBase()+'/vendors'+(OD_TENANT?('?tenant_id=eq.'+encodeURIComponent(OD_TENANT)):''))
+      .then(function(r){ return r.json(); })
+      .then(function(rows){ if(Array.isArray(rows)) rows.forEach(function(v){ if(v && v.code) VENDORS_BY_CODE[v.code] = v.name || v.code; }); })
+      .catch(function(){});
+  } catch(e){}
 
 })();
 </script>
