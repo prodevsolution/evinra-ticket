@@ -1325,6 +1325,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     document.getElementById('refundTotal').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
 
+  /* ── Refund persistence (shared DB) ─────────────── */
+  function odBase(){ var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:'); return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db'; }
+  var OD_TENANT = (function(){ try{ return localStorage.getItem('evinra-tenant-id')||''; }catch(e){ return ''; } })();
+  var OD_USER   = (function(){ try{ return localStorage.getItem('evinra-user-name')||''; }catch(e){ return ''; } })();
+  var isObjId   = function(v){ return typeof v==='string' && /^[a-f0-9]{24}$/i.test(v); };
+  function odPost(table, body){ return fetch(odBase()+'/'+table,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ return r.json().catch(function(){return{};}).then(function(d){ if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }); }); }
+  function odPatch(table, qs, body){ return fetch(odBase()+'/'+table+'?'+qs,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){ if(r.ok) return true; return r.json().catch(function(){return{};}).then(function(d){ throw new Error((d&&d.error)||'PATCH failed'); }); }); }
+  function odToast(msg){ var t=document.getElementById('toast'); document.getElementById('toastMsg').textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},2600); }
+
   function processRefund(){
     const reason = document.getElementById('refundReason').value;
     const checked = document.querySelectorAll('.refund-item:checked');
@@ -1334,22 +1343,36 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     const order = ORDERS.find(o=>o.id===refundOrderId);
     if(!order) return;
 
-    // Mark selected active tickets as Refunded
-    let idx=0;
+    // Gather selected items (amount + seat labels) before mutating.
+    let amount = 0; const seats = [];
+    checked.forEach(c => { amount += parseFloat(c.dataset.amount||0); if(c.dataset.seat) seats.push(c.dataset.seat); });
+    amount = +amount.toFixed(2);
+    const seatSet = {}; seats.forEach(s => seatSet[s]=1);
+
+    // Mark selected active tickets as Refunded (UI)
     order.tickets.forEach(t=>{
-      if(t.status==='Active' && checked[idx]?.dataset.amount){
-        t.status='Refunded'; t.fee=0; t.discount=0; t.tips=0;
-        idx++;
-      }
+      if(t.status==='Active' && seatSet[t.seat]){ t.status='Refunded'; t.fee=0; t.discount=0; t.tips=0; }
     });
+    const allRefunded = order.tickets.every(t => t.status !== 'Active');
+    order.status = allRefunded ? 'refunded' : 'partially_refunded';
 
     closeRefund();
-    const toast=document.getElementById('toast');
-    document.getElementById('toastMsg').textContent='Refund issued successfully';
-    toast.classList.add('show');
-    clearTimeout(toast._t);
-    toast._t=setTimeout(()=>toast.classList.remove('show'),2200);
     render(lastFiltered);
+
+    // Persist: a refund record + the order's status/summary. Always.
+    const nowISO = new Date().toISOString();
+    const rec = { tenant_id: OD_TENANT, order_num: order.orderNum, amount: amount, reason: reason,
+                  method: order.payMethod || '', items: seats, item_count: seats.length,
+                  refunded_by: OD_USER || 'Staff', status: 'Completed', created_at: nowISO };
+    if(isObjId(order.id)) rec.order_id = order.id;
+
+    odPost('refunds', rec)
+      .then(function(){
+        if(order.orderNum) return odPatch('orders', 'order_num=eq.'+encodeURIComponent(order.orderNum),
+          { status: allRefunded ? 'refunded' : 'partially_refunded', refund_amount: amount, refund_reason: reason, refunded_at: nowISO });
+      })
+      .then(function(){ odToast('Refund of $'+amount.toFixed(2)+' issued & saved'); })
+      .catch(function(e){ odToast('Refund shown locally — could not save: '+(e.message||'error')); });
   }
 
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeDetail(); closeRefund(); } });

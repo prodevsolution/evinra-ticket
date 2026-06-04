@@ -307,7 +307,8 @@
         var prod = show ? productions.filter(function (p) { return p.id === show.productionId; })[0] : null;
         var total = Number(o.total) || 0;
         var def = TICKET_DEFS[n % TICKET_DEFS.length];
-        var refunded = (n % 11 === 0);
+        // Reflect the order's REAL refund state (persisted from the order detail).
+        var refunded = String(o.status || '').toLowerCase().indexOf('refund') >= 0;
         var dateStr = String(o.order_date || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*/, '$2/$3/$1') || '';
         var ch = (o.channel || '').toLowerCase();
         var channel = ch.indexOf('box') >= 0 ? 'Box Office' : ch.indexOf('store') >= 0 ? 'Storefront' : ch.indexOf('third') >= 0 ? 'Third Party' : ch.indexOf('onsite') >= 0 ? 'Box Office' : 'Storefront';
