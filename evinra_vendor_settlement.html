@@ -415,9 +415,9 @@ select:focus{border-color:var(--p-border)}
         <div class="kpi-sub" id="kpiFeesSub">gross minus vendor payouts</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Total Items</div>
+        <div class="kpi-label">Orders</div>
         <div class="kpi-value" style="color:var(--blue)" id="kpiTips">—</div>
-        <div class="kpi-sub">units sold by vendors</div>
+        <div class="kpi-sub">attributed via referral</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Vendor Revenue</div>
@@ -509,7 +509,7 @@ select:focus{border-color:var(--p-border)}
         </select>
           <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
         </div>
-      <div style="position:relative">
+      <div style="position:relative;display:none">
           <select id="categoryFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
             <option value="">Product Type</option>
           <option value="">All types</option>
@@ -543,10 +543,10 @@ select:focus{border-color:var(--p-border)}
             <th>Time</th>
             <th>Event</th>
             <th>Product Type</th>
-            <th class="num">Qty</th>
+            <th class="num">Orders</th>
             <th class="num">Gross Sales</th>
-            <th class="num">Commission</th>
-            <th class="num">Vendor Revenue</th>
+            <th class="num">Comm. Rate</th>
+            <th class="num">Commission Owed</th>
             <th class="num">Settlement</th>
           </tr>
         </thead>
@@ -574,8 +574,67 @@ select:focus{border-color:var(--p-border)}
 <script>
 (function(){
 
-  /* ── DATA ───────────────────────────────────────── */
-  const VENDORS = [
+  /* ── DATA — built from REAL vendor-attributed orders, grouped per event ── */
+  function _vsBase(){
+    var h=location.hostname, local=(h==='localhost'||h==='127.0.0.1'||h===''||location.protocol==='file:');
+    return (window.EVINRA_DB_URL?String(window.EVINRA_DB_URL).replace(/\/+$/,''):(local?'http://localhost:4000':'https://web-production-93df6.up.railway.app'))+'/api/db';
+  }
+  var VS_TENANT=(typeof localStorage!=='undefined'?localStorage.getItem('evinra-tenant-id'):'')||'';
+  function _vsGet(path){ try{var x=new XMLHttpRequest();x.open('GET',_vsBase()+path,false);x.send(null);return (x.status>=200&&x.status<300)?JSON.parse(x.responseText):[];}catch(e){return [];} }
+  var VS_COLORS=['#2A9B85','#4A8BD4','#8B6BD4','#D4884A','#D4B04A','#C77B9E','#5FA98C','#6B83D4'];
+  function _vsMMDD(d){ return ('0'+(d.getMonth()+1)).slice(-2)+'/'+('0'+d.getDate()).slice(-2)+'/'+d.getFullYear(); }
+  function buildSettlement(){
+    if(!VS_TENANT) return [];
+    var prods=_vsGet('/productions?tenant_id=eq.'+encodeURIComponent(VS_TENANT));
+    var prodName={},prodIds={}; (prods||[]).forEach(function(p){var id=p.id||p._id;prodIds[id]=1;prodName[id]=p.name||'';});
+    var shows=_vsGet('/shows'); var showProd={},showIds={}; (shows||[]).forEach(function(s){var id=s.id||s._id; if(prodIds[s.production_id]){showIds[id]=1;showProd[id]=s.production_id;}});
+    var events=_vsGet('/events'); var evById={}; (events||[]).forEach(function(e){ if(showIds[e.show_id]) evById[String(e.id||e._id)]=e; });
+    var vendors=_vsGet('/vendors?tenant_id=eq.'+encodeURIComponent(VS_TENANT));
+    var orders=_vsGet('/orders?tenant_id=eq.'+encodeURIComponent(VS_TENANT));
+    // Group orders by vendor code (skip cancelled/voided; subtract refunds from gross).
+    var byVendor={};
+    (orders||[]).forEach(function(o){
+      var code=String(o.vendor_code||'').trim(); if(!code) return;
+      var st=String(o.status||'').toLowerCase(); if(st==='cancelled'||st==='voided') return;
+      (byVendor[code]=byVendor[code]||[]).push(o);
+    });
+    var out=[];
+    (vendors||[]).forEach(function(v,vi){
+      var code=v.code||''; var ords=byVendor[code]; if(!ords||!ords.length) return;  // only vendors with attributed sales
+      var rate=Number(v.commission)||0;
+      var byEvent={};
+      ords.forEach(function(o){ var eid=String(o.event_id||'--'); (byEvent[eid]=byEvent[eid]||[]).push(o); });
+      var showsArr=Object.keys(byEvent).map(function(eid){
+        var list=byEvent[eid], ev=evById[eid];
+        var gross=list.reduce(function(s,o){ return s+Math.max(0,(Number(o.total)||0)-(Number(o.refund_amount)||0)); },0);
+        var d=ev&&ev.start_at?new Date(ev.start_at):null; var ok=d&&!isNaN(d);
+        var pid=ev?showProd[ev.show_id]:null;
+        return {
+          id:eid,
+          date: ok?_vsMMDD(d):'—',
+          time: ok?d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(/\s+/g,''):'',
+          production:(pid&&prodName[pid])||list[0].show_name||'',
+          eventName:(ev&&(ev.name||ev.function_name))||list[0].event_label||'Event',
+          productType:'All Sales',
+          qty:list.length,
+          gross:+gross.toFixed(2),
+          commType:'%', commVal:rate,
+          settlementStatus:'Pending'
+        };
+      }).sort(function(a,b){ return (a.date==='—'?Infinity:new Date(a.date)) - (b.date==='—'?Infinity:new Date(b.date)); });
+      out.push({
+        id:'v'+String(v.id||v._id||vi),
+        name:v.name||code, category:v.category||'Vendor',
+        color:VS_COLORS[vi%VS_COLORS.length], contact:v.contact_name||'',
+        settlementStatus:'Pending', shows:showsArr
+      });
+    });
+    return out;
+  }
+  const VENDORS = buildSettlement();
+
+  /* Demo fixtures kept for reference only (not rendered). */
+  const VENDORS_DEMO = [
     {
       id: 'v001', name: 'Sunshine Concessions LLC', category: 'Concessions',
       color: '#2A9B85', contact: 'Rosa Martinez', settlementStatus: 'Paid',
@@ -800,6 +859,14 @@ select:focus{border-color:var(--p-border)}
     });
   }
 
+  /* populate production dropdown from the real attributed events */
+  function rebuildProductionOptions(){
+    const sel = document.getElementById('productionFilter');
+    const names = [...new Set(VENDORS.flatMap(v => v.shows.map(s => s.production)).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">All productions</option>' +
+      names.map(n => `<option>${n.replace(/[<>]/g,'')}</option>`).join('');
+  }
+
   /* rebuild a select from a sorted unique array, preserving selection if still valid */
   function rebuildSel(id, allLabel, values){
     const sel = document.getElementById(id);
@@ -908,6 +975,7 @@ select:focus{border-color:var(--p-border)}
 
   /* ── INIT ───────────────────────────────────────── */
   rebuildVendorOptions();
+  rebuildProductionOptions();
   rebuildEventFilters();
 
   function parseMMDDYYYY(str){ const [m,d,y]=str.split('/'); return new Date(+y,+m-1,+d); }
