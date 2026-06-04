@@ -166,7 +166,9 @@
       return {
         id:sh.id, showId:sh.production_id,
         city:(manualKid && manualKid.city) || cm.city,
-        state:cm.state,
+        // State from the event's real address (e.g. "…, San Jose, CA 95136" → CA),
+        // else an explicit state field, else the demo city default.
+        state:(manualKid && ((String(manualKid.address||'').match(/\b([A-Z]{2})\s+\d{5}(?:-\d{4})?\b/)||[])[1] || manualKid.state)) || cm.state,
         venue:(manualKid && manualKid.venue) || cm.venue,
         address:(manualKid && manualKid.address) || '',
         description:(manualKid && manualKid.description) || '',
