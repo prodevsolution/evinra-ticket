@@ -308,12 +308,70 @@
         var show = ev ? getShow(ev.showId) : null;
         var prod = show ? productions.filter(function (p) { return p.id === show.productionId; })[0] : null;
         var total = Number(o.total) || 0;
-        var def = TICKET_DEFS[n % TICKET_DEFS.length];
         // Reflect the order's REAL refund state (persisted from the order detail).
         var refunded = String(o.status || '').toLowerCase().indexOf('refund') >= 0;
         var dateStr = String(o.order_date || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*/, '$2/$3/$1') || '';
         var ch = (o.channel || '').toLowerCase();
-        var channel = ch.indexOf('box') >= 0 ? 'Box Office' : ch.indexOf('store') >= 0 ? 'Storefront' : ch.indexOf('third') >= 0 ? 'Third Party' : ch.indexOf('onsite') >= 0 ? 'Box Office' : 'Storefront';
+        var hasVendor = !!(o.vendor_code && String(o.vendor_code).trim());
+        var channel = hasVendor ? 'Third Party'
+                    : ch.indexOf('box') >= 0 ? 'Box Office'
+                    : ch.indexOf('store') >= 0 ? 'Storefront'
+                    : ch.indexOf('third') >= 0 ? 'Third Party'
+                    : ch.indexOf('onsite') >= 0 ? 'Box Office'
+                    : 'Storefront';
+
+        /* Build the REAL line items from the order's `items` payload
+           (tickets + rides/experiences add-ons + credit packages).
+           Order-level fee/discount/tips are allocated proportionally so the
+           detail-table totals reconcile with the order. */
+        var parsedItems = null;
+        try { parsedItems = (o.items && typeof o.items === 'object') ? o.items : (o.items ? JSON.parse(o.items) : null); }
+        catch (e) { parsedItems = null; }
+        var orderSubtotal = Number(o.subtotal) || 0;
+        var orderFee      = Number(o.fee) || 0;
+        var orderDisc     = Number(o.discount) || 0;
+        var orderTips     = Number(o.tips) || 0;
+        var lineDefs = [];
+        if (parsedItems) {
+          (parsedItems.tickets || []).forEach(function (t) {
+            lineDefs.push({ name: t.name || 'Ticket', qty: Number(t.qty) || 1, unit: Number(t.price) || 0, type: 'Ticket' });
+          });
+          (parsedItems.addons || []).forEach(function (a) {
+            var isExp = String(a.category || '').toLowerCase() === 'experience';
+            lineDefs.push({ name: a.name || (isExp ? 'Experience' : 'Ride'), qty: Number(a.qty) || 1, unit: Number(a.price) || 0, type: isExp ? 'Experience' : 'Ride' });
+          });
+          (parsedItems.creditPkgs || []).forEach(function (c) {
+            lineDefs.push({ name: c.name || 'Credit Package', qty: Number(c.qty) || 1, unit: Number(c.price != null ? c.price : c.amount) || 0, type: 'Credit' });
+          });
+        }
+        var ticketsArr;
+        if (lineDefs.length) {
+          var sumLines = lineDefs.reduce(function (s, l) { return s + l.unit * l.qty; }, 0);
+          var basis = sumLines > 0 ? sumLines : (orderSubtotal > 0 ? orderSubtotal : total);
+          ticketsArr = lineDefs.map(function (l, i) {
+            var lp = +(l.unit * l.qty).toFixed(2);
+            var frac = basis > 0 ? (lp / basis) : (1 / lineDefs.length);
+            return {
+              ticketId: oid(n * 13 + i),
+              name: l.name + (l.qty > 1 ? ' ×' + l.qty : ''),
+              seat: '#' + (i + 1),
+              type: l.type,
+              status: refunded ? 'Refunded' : 'Active', qty: l.qty,
+              grossVal: lp, fee: +(orderFee * frac).toFixed(2),
+              discount: +(orderDisc * frac).toFixed(2), tips: +(orderTips * frac).toFixed(2), price: lp
+            };
+          });
+        } else {
+          // Legacy fallback: one synthesized line from the order total.
+          var def = TICKET_DEFS[n % TICKET_DEFS.length];
+          ticketsArr = [{
+            ticketId: oid(n * 13), name: def.name,
+            seat: (100 + (ev ? ev.idx : 0)) + '-' + String.fromCharCode(65 + (n % 6)) + '-' + ((n % 20) + 1),
+            type: def.type, status: refunded ? 'Refunded' : 'Active', qty: 1,
+            grossVal: total, fee: +(total * 0.05).toFixed(2),
+            discount: +(o.discount || 0), tips: +(o.tips || 0), price: total
+          }];
+        }
         return {
           id:(o.id || oid(n)), orderNum: o.order_num || ('ORD-' + ('000' + n).slice(-4)),
           date: dateStr, time: (((n % 9) + 9) + ':' + ('0' + ((n * 7) % 60)).slice(-2) + 'am'),
@@ -326,13 +384,7 @@
           venue: ev ? ev.venue : '', cityState: ev ? ev.cityState : (o.event_label || ''), color: ev ? ev.color : '#888', capacity: ev ? ev.seats : 0,
           customer: o.customer_name || 'Guest', email: o.customer_email || '',
           payMethod: ORDER_PAYS[n % ORDER_PAYS.length],
-          tickets: [{
-            ticketId: oid(n * 13), name: def.name,
-            seat: (100 + (ev ? ev.idx : 0)) + '-' + String.fromCharCode(65 + (n % 6)) + '-' + ((n % 20) + 1),
-            type: def.type, status: refunded ? 'Refunded' : 'Active', qty: 1,
-            grossVal: total, fee: +(total * 0.05).toFixed(2),
-            discount: +(o.discount || 0), tips: +(o.tips || 0), price: total
-          }]
+          tickets: ticketsArr
         };
       });
     } else {
