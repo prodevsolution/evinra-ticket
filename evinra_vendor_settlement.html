@@ -534,7 +534,7 @@ select:focus{border-color:var(--p-border)}
     <div class="table-wrap">
       <table class="vsr-table" id="vsrTable">
         <colgroup>
-          <col/><col/><col/><col/><col/><col/><col/><col/><col/><col/>
+          <col/><col/><col/><col/><col/><col/><col/><col/><col/><col/><col/>
         </colgroup>
         <thead>
           <tr>
@@ -542,6 +542,7 @@ select:focus{border-color:var(--p-border)}
             <th>Date</th>
             <th>Time</th>
             <th>Event</th>
+            <th>Venue</th>
             <th>Product Type</th>
             <th class="num">Orders</th>
             <th class="num">Gross Sales</th>
@@ -609,12 +610,19 @@ select:focus{border-color:var(--p-border)}
         var gross=list.reduce(function(s,o){ return s+Math.max(0,(Number(o.total)||0)-(Number(o.refund_amount)||0)); },0);
         var d=ev&&ev.start_at?new Date(ev.start_at):null; var ok=d&&!isNaN(d);
         var pid=ev?showProd[ev.show_id]:null;
+        // Venue / City / State (state derived from the address, as elsewhere in the app).
+        var addr=String((ev&&ev.address)||'');
+        var stm=addr.match(/\b([A-Z]{2})\s+\d{5}(?:-\d{4})?\b/);
+        var state=(stm&&stm[1])||(ev&&ev.state)||'';
         return {
           id:eid,
           date: ok?_vsMMDD(d):'—',
           time: ok?d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(/\s+/g,''):'',
           production:(pid&&prodName[pid])||list[0].show_name||'',
           eventName:(ev&&(ev.name||ev.function_name))||list[0].event_label||'Event',
+          venue:(ev&&ev.venue)||'',
+          city:(ev&&ev.city)||'',
+          state:state,
           productType:'All Sales',
           qty:list.length,
           gross:+gross.toFixed(2),
@@ -748,7 +756,7 @@ select:focus{border-color:var(--p-border)}
       /* vendor header */
       const hRow = document.createElement('tr');
       hRow.className = 'vendor-header';
-      hRow.innerHTML = `<td colspan="10" style="border-top:2px solid ${vendor.color}30">
+      hRow.innerHTML = `<td colspan="11" style="border-top:2px solid ${vendor.color}30">
         <div class="vendor-header-inner">
           <div class="vendor-collapse${isCollapsed?' collapsed':''}" data-vid="${vendor.id}">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -784,13 +792,18 @@ select:focus{border-color:var(--p-border)}
         tr.dataset.production = show.production;
         tr.dataset.settle     = show.settlementStatus;
         tr.dataset.category   = vendor.category;
-        tr.dataset.search     = `${vendor.name} ${show.production} ${vendor.category} ${show.productType} ${show.date}`.toLowerCase();
+        tr.dataset.search     = `${vendor.name} ${show.production} ${vendor.category} ${show.productType} ${show.date} ${show.venue} ${show.city} ${show.state}`.toLowerCase();
 
+        const locSub = [show.city, show.state].filter(Boolean).join(', ');
         tr.innerHTML = `
           <td class="row-num">${rowNum}</td>
           <td><span class="date-chip">${show.date}</span></td>
           <td><span class="time-chip"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${show.time}</span></td>
           <td style="color:var(--text);font-size:12px;font-weight:500">${show.eventName}</td>
+          <td>
+            <div style="color:var(--text2);font-size:11.5px;font-weight:500">${show.venue || '—'}</div>
+            ${locSub ? `<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px">${locSub}</div>` : ''}
+          </td>
           <td>${ptBadge(show.productType)}</td>
           <td class="num" style="font-family:var(--mono);color:var(--text2)">${show.qty.toLocaleString()}</td>
           <td class="money gross num">${fmt$(show.gross)}</td>
@@ -804,7 +817,7 @@ select:focus{border-color:var(--p-border)}
       const stRow = document.createElement('tr');
       stRow.className = 'vendor-subtotal' + (isCollapsed ? ' hidden' : '');
       stRow.innerHTML = `
-        <td colspan="4" class="sub-label">${vendor.name} subtotal · ${vendor.shows.length} shows</td>
+        <td colspan="5" class="sub-label">${vendor.name} subtotal · ${vendor.shows.length} shows</td>
         <td></td>
         <td class="sub-val" style="text-align:right;font-family:var(--mono);color:var(--text2)">${vQty.toLocaleString()}</td>
         <td class="sub-val money gross">${fmt$(vGross)}</td>
@@ -818,7 +831,7 @@ select:focus{border-color:var(--p-border)}
     const gt = document.createElement('tr');
     gt.className = 'grand-total';
     gt.innerHTML = `
-      <td colspan="4" class="gt-label">Grand Total — ${vendors.length} vendor${vendors.length!==1?'s':''}</td>
+      <td colspan="5" class="gt-label">Grand Total — ${vendors.length} vendor${vendors.length!==1?'s':''}</td>
       <td></td>
       <td class="gt-val" style="color:var(--text2)">${gQty.toLocaleString()}</td>
       <td class="gt-val green">${fmt$(gGross)}</td>
