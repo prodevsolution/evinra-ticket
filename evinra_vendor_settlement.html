@@ -572,6 +572,77 @@ select:focus{border-color:var(--p-border)}
   </div>
 </div>
 
+<style>
+.vs-pay-btn{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 11px;border-radius:7px;border:1px solid var(--p);background:var(--p-dim);color:var(--p);font-size:11px;font-weight:600;font-family:var(--body);cursor:pointer;transition:background .14s,transform .1s;white-space:nowrap}
+.vs-pay-btn:hover{background:var(--p);color:#06120f}
+.vs-pay-btn:active{transform:scale(.97)}
+.vs-settled-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--p);font-family:var(--body)}
+.vs-markpaid{display:inline-flex;align-items:center;gap:4px;height:23px;padding:0 9px;border-radius:6px;border:1px solid var(--border2);background:var(--bg4);color:var(--text2);font-size:10px;font-weight:600;font-family:var(--body);cursor:pointer;transition:all .14s;white-space:nowrap}
+.vs-markpaid:hover{border-color:var(--p);background:var(--p-dim);color:var(--p)}
+.vs-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.vs-modal-overlay.open{display:flex}
+.vs-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:480px;max-width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden}
+.vs-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.vs-modal-ttl{display:flex;align-items:center;gap:9px;font-family:var(--display,inherit);font-size:14px;font-weight:700;color:var(--text)}
+.vs-modal-ttl svg{stroke:var(--p)}
+.vs-modal-x{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text3);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.vs-modal-x:hover{color:var(--text);border-color:var(--border2)}
+.vs-modal-body{padding:16px 20px;overflow-y:auto}
+.vs-pay-vendor{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.vs-pay-vendor small{display:block;font-size:11px;font-weight:400;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.vs-pay-info{font-size:10.5px;color:var(--text3);line-height:1.5;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 11px;margin:12px 0}
+.vs-pay-lines{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.vs-pay-line{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);cursor:pointer}
+.vs-pay-line input{width:16px;height:16px;accent-color:var(--p);cursor:pointer;flex-shrink:0}
+.vs-pay-line-main{flex:1;min-width:0}
+.vs-pay-line-ev{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs-pay-line-sub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.vs-pay-line-amt{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--p);flex-shrink:0}
+.vs-pay-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vs-pay-fields label{display:flex;flex-direction:column;gap:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
+.vs-pay-fields label.full{grid-column:1/-1}
+.vs-pay-fields input,.vs-pay-fields select{height:34px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:0 10px;outline:none}
+.vs-pay-fields input:focus,.vs-pay-fields select:focus{border-color:var(--p)}
+.vs-modal-ftr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;border-top:1px solid var(--border)}
+.vs-pay-total{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)}
+.vs-pay-total span{color:var(--p)}
+.vs-btn-ghost{height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:600;font-family:var(--body);cursor:pointer}
+.vs-btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.vs-btn-primary{height:34px;padding:0 16px;border-radius:8px;border:1px solid var(--p);background:var(--p);color:#06120f;font-size:12px;font-weight:700;font-family:var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.vs-btn-primary:hover{filter:brightness(1.08)}
+.vs-btn-primary:disabled{opacity:.45;cursor:not-allowed}
+</style>
+
+<!-- Record Payment modal -->
+<div class="vs-modal-overlay" id="vsPayOverlay">
+  <div class="vs-modal" role="dialog" aria-modal="true" aria-labelledby="vsPayTitle">
+    <div class="vs-modal-hdr">
+      <div class="vs-modal-ttl" id="vsPayTitle"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.5"/></svg>Record Vendor Payment</div>
+      <button class="vs-modal-x" id="vsPayClose" type="button">&times;</button>
+    </div>
+    <div class="vs-modal-body">
+      <div class="vs-pay-vendor" id="vsPayVendor"></div>
+      <div class="vs-pay-info">Select the events you're settling and record how the payout was made. This marks the commission as <strong>paid</strong> (bookkeeping) — it does not transfer any funds.</div>
+      <div class="vs-pay-lines" id="vsPayLines"></div>
+      <div class="vs-pay-fields">
+        <label>Method
+          <select id="vsPayMethod"><option>Bank Transfer</option><option>Check</option><option>Cash</option><option>PayPal</option><option>Other</option></select>
+        </label>
+        <label>Date <input type="date" id="vsPayDate"></label>
+        <label class="full">Reference <input type="text" id="vsPayRef" placeholder="Check # / transfer id (optional)"></label>
+        <label class="full">Note <input type="text" id="vsPayNote" placeholder="Optional note"></label>
+      </div>
+    </div>
+    <div class="vs-modal-ftr">
+      <div class="vs-pay-total" id="vsPayTotal">Total: <span>$0.00</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="vs-btn-ghost" id="vsPayCancel" type="button">Cancel</button>
+        <button class="vs-btn-primary" id="vsPayConfirm" type="button"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Confirm Payment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 
@@ -592,6 +663,9 @@ select:focus{border-color:var(--p-border)}
     var events=_vsGet('/events'); var evById={}; (events||[]).forEach(function(e){ if(showIds[e.show_id]) evById[String(e.id||e._id)]=e; });
     var vendors=_vsGet('/vendors?tenant_id=eq.'+encodeURIComponent(VS_TENANT));
     var orders=_vsGet('/orders?tenant_id=eq.'+encodeURIComponent(VS_TENANT));
+    // Existing settlement payments → keyed by vendorCode|eventId.
+    var settled=_vsGet('/settlements?tenant_id=eq.'+encodeURIComponent(VS_TENANT));
+    var paidSet={}; (settled||[]).forEach(function(s){ if(String(s.status||'').toLowerCase()==='paid') paidSet[(s.vendor_code||'')+'|'+(s.event_id||'')]=s; });
     // Group orders by vendor code (skip cancelled/voided; subtract refunds from gross).
     var byVendor={};
     (orders||[]).forEach(function(o){
@@ -614,8 +688,11 @@ select:focus{border-color:var(--p-border)}
         var addr=String((ev&&ev.address)||'');
         var stm=addr.match(/\b([A-Z]{2})\s+\d{5}(?:-\d{4})?\b/);
         var state=(stm&&stm[1])||(ev&&ev.state)||'';
+        var pr=paidSet[code+'|'+eid];
         return {
           id:eid,
+          eventId:eid,
+          vendorCode:code,
           date: ok?_vsMMDD(d):'—',
           time: ok?d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(/\s+/g,''):'',
           production:(pid&&prodName[pid])||list[0].show_name||'',
@@ -627,19 +704,28 @@ select:focus{border-color:var(--p-border)}
           qty:list.length,
           gross:+gross.toFixed(2),
           commType:'%', commVal:rate,
-          settlementStatus:'Pending'
+          settlementStatus: pr?'Paid':'Pending',
+          paidInfo: pr ? { method:pr.method||'', reference:pr.reference||'', paidAt:pr.paid_at||'', amount:Number(pr.amount)||0 } : null
         };
       }).sort(function(a,b){ return (a.date==='—'?Infinity:new Date(a.date)) - (b.date==='—'?Infinity:new Date(b.date)); });
+      var allPaid = showsArr.length>0 && showsArr.every(function(s){ return s.settlementStatus==='Paid'; });
       out.push({
         id:'v'+String(v.id||v._id||vi),
+        code: code,
         name:v.name||code, category:v.category||'Vendor',
         color:VS_COLORS[vi%VS_COLORS.length], contact:v.contact_name||'',
-        settlementStatus:'Pending', shows:showsArr
+        email:v.contact_email||'',
+        settlementStatus: allPaid?'Paid':'Pending', shows:showsArr
       });
     });
     return out;
   }
   const VENDORS = buildSettlement();
+  // POST a settlement payment record (bookkeeping — marks the payout as paid).
+  function _vsPost(body){
+    return fetch(_vsBase()+'/settlements',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){return{};}).then(function(d){ if(!r.ok) throw new Error((d&&d.error)||'POST failed'); return Array.isArray(d)?d[0]:d; }); });
+  }
 
   /* Demo fixtures kept for reference only (not rendered). */
   const VENDORS_DEMO = [
@@ -750,8 +836,13 @@ select:focus{border-color:var(--p-border)}
 
       const paidShows = vendor.shows.filter(r=>r.settlementStatus==='Paid');
       paidAmt += paidShows.reduce((s,r)=>s+commAmt(r), 0);
+      const vendorPending = vendor.shows.filter(r=>r.settlementStatus!=='Paid').reduce((s,r)=>s+commAmt(r),0);
 
       const isCollapsed = collapsed[vendor.id] || false;
+
+      const payCta = vendorPending>0.005
+        ? `<button class="vs-pay-btn" data-pay="${vendor.id}" title="Record a payment to this vendor"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Record Payment · ${fmt$(vendorPending)}</button>`
+        : `<span class="vs-settled-tag"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Settled</span>`;
 
       /* vendor header */
       const hRow = document.createElement('tr');
@@ -768,6 +859,7 @@ select:focus{border-color:var(--p-border)}
             <span class="settle-badge ${SETTLE_CFG[vendor.settlementStatus].cls}">
               <i class="ti ${SETTLE_CFG[vendor.settlementStatus].icon}"></i>${vendor.settlementStatus}
             </span>
+            ${payCta}
           </div>
         </div>
       </td>`;
@@ -809,7 +901,11 @@ select:focus{border-color:var(--p-border)}
           <td class="money gross num">${fmt$(show.gross)}</td>
           <td class="num">${commBadge(show)}</td>
           <td class="money net num">${fmt$(vendorRev)}</td>
-          <td class="num"><span class="settle-badge ${sc.cls}"><i class="ti ${sc.icon}"></i>${show.settlementStatus}</span></td>`;
+          <td class="num">${
+            show.settlementStatus==='Paid'
+              ? `<span class="settle-badge ${sc.cls}" title="${show.paidInfo?('Paid '+(show.paidInfo.paidAt||'')+(show.paidInfo.method?(' · '+show.paidInfo.method):'')+(show.paidInfo.reference?(' · ref '+show.paidInfo.reference):'')):'Paid'}"><i class="ti ${sc.icon}"></i>Paid</span>`
+              : `<button class="vs-markpaid" data-markpaid="1" data-vid="${vendor.id}" data-eid="${show.eventId}" title="Record payment for this event"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mark Paid</button>`
+          }</td>`;
         tbody.appendChild(tr);
       });
 
@@ -1080,6 +1176,77 @@ select:focus{border-color:var(--p-border)}
     const fill = document.getElementById('kpiProgressFill');
     if (fill) fill.style.transition = 'width 1.2s cubic-bezier(.16,1,.3,1)';
   }, 100);
+
+  /* ── RECORD PAYMENT (settlement) ───────────────────── */
+  var _payState = { vendorId:null };
+  function _vsToast(msg, ok){
+    var t=document.createElement('div');
+    t.textContent=msg;
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid '+(ok?'var(--p)':'#d4524a')+';border-left:4px solid '+(ok?'var(--p)':'#d4524a')+';color:var(--text);font-size:12.5px;padding:11px 18px;border-radius:9px;z-index:3000;box-shadow:0 10px 30px rgba(0,0,0,.4)';
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){t.remove();},420); }, 2600);
+  }
+  function _payRecalcTotal(){
+    var checks=document.querySelectorAll('#vsPayLines input[type="checkbox"]:checked');
+    var tot=0; checks.forEach(function(c){ tot+=parseFloat(c.dataset.amt||0); });
+    document.querySelector('#vsPayTotal span').textContent=fmt$(tot);
+    document.getElementById('vsPayConfirm').disabled = checks.length===0;
+  }
+  function vsOpenPay(vendorId, eventId){
+    var vendor=VENDORS.find(function(v){ return v.id===vendorId; }); if(!vendor) return;
+    var pend=vendor.shows.filter(function(s){ return s.settlementStatus!=='Paid'; });
+    if(!pend.length){ _vsToast('This vendor is already fully settled.', true); return; }
+    _payState.vendorId=vendorId;
+    document.getElementById('vsPayVendor').innerHTML = vendor.name.replace(/[<>]/g,'') + '<small>'+(vendor.code||'')+(vendor.email?(' · '+vendor.email):'')+'</small>';
+    document.getElementById('vsPayLines').innerHTML = pend.map(function(s){
+      var amt=commAmt(s);
+      var checked = (!eventId || s.eventId===eventId) ? 'checked' : '';
+      return '<label class="vs-pay-line"><input type="checkbox" data-eid="'+s.eventId+'" data-amt="'+amt.toFixed(2)+'" '+checked+'>'
+        +'<span class="vs-pay-line-main"><span class="vs-pay-line-ev">'+(s.eventName||'Event').replace(/[<>]/g,'')+'</span>'
+        +'<span class="vs-pay-line-sub">'+s.date+(s.venue?(' · '+s.venue.replace(/[<>]/g,'')):'')+' · '+s.commVal+'%</span></span>'
+        +'<span class="vs-pay-line-amt">'+fmt$(amt)+'</span></label>';
+    }).join('');
+    var n=new Date(); document.getElementById('vsPayDate').value = n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);
+    document.getElementById('vsPayRef').value=''; document.getElementById('vsPayNote').value='';
+    document.querySelectorAll('#vsPayLines input[type="checkbox"]').forEach(function(c){ c.addEventListener('change', _payRecalcTotal); });
+    _payRecalcTotal();
+    document.getElementById('vsPayOverlay').classList.add('open');
+  }
+  function vsClosePay(){ document.getElementById('vsPayOverlay').classList.remove('open'); _payState.vendorId=null; }
+  function vsConfirmPay(){
+    var vendor=VENDORS.find(function(v){ return v.id===_payState.vendorId; }); if(!vendor) return;
+    var checks=Array.prototype.slice.call(document.querySelectorAll('#vsPayLines input[type="checkbox"]:checked'));
+    if(!checks.length) return;
+    var method=document.getElementById('vsPayMethod').value;
+    var date=document.getElementById('vsPayDate').value||'';
+    var ref=document.getElementById('vsPayRef').value.trim();
+    var note=document.getElementById('vsPayNote').value.trim();
+    var btn=document.getElementById('vsPayConfirm'); btn.disabled=true;
+    var jobs=checks.map(function(c){
+      var eid=c.dataset.eid;
+      var show=vendor.shows.find(function(s){ return s.eventId===eid; });
+      var amt=parseFloat(c.dataset.amt||0);
+      var rec={ tenant_id:VS_TENANT, vendor_code:vendor.code||'', vendor_name:vendor.name||'',
+        event_id:eid, event_name:show?show.eventName:'', gross:show?show.gross:0,
+        commission_rate:show?show.commVal:0, amount:amt, method:method, reference:ref, note:note,
+        status:'Paid', paid_at:date };
+      return _vsPost(rec).then(function(){ if(show){ show.settlementStatus='Paid'; show.paidInfo={method:method,reference:ref,paidAt:date,amount:amt}; } });
+    });
+    Promise.all(jobs).then(function(){
+      vendor.settlementStatus = vendor.shows.every(function(s){return s.settlementStatus==='Paid';})?'Paid':'Pending';
+      vsClosePay(); applyFiltersAndPage();
+      _vsToast('Payment recorded — '+checks.length+' event'+(checks.length>1?'s':'')+' settled for '+vendor.name, true);
+    }).catch(function(e){ btn.disabled=false; _vsToast('Could not record payment: '+(e&&e.message||e), false); });
+  }
+  document.getElementById('tableBody').addEventListener('click', function(e){
+    var pb=e.target.closest('[data-pay]'); if(pb){ vsOpenPay(pb.getAttribute('data-pay')); return; }
+    var mp=e.target.closest('[data-markpaid]'); if(mp){ vsOpenPay(mp.getAttribute('data-vid'), mp.getAttribute('data-eid')); return; }
+  });
+  document.getElementById('vsPayClose').addEventListener('click', vsClosePay);
+  document.getElementById('vsPayCancel').addEventListener('click', vsClosePay);
+  document.getElementById('vsPayConfirm').addEventListener('click', vsConfirmPay);
+  document.getElementById('vsPayOverlay').addEventListener('click', function(e){ if(e.target===this) vsClosePay(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') vsClosePay(); });
 
 })();
 </script>
