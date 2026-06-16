@@ -548,6 +548,12 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
           <div class="form-hint">Admin / Staff (Ticket System)</div>
         </div>
       </div>
+      <!-- Box Office terminal assignment — only shown when a Box Office role is selected -->
+      <div class="form-field" id="editTerminalField" style="margin-top:14px;display:none">
+        <label class="form-label"><i class="bi bi-shop" style="margin-right:5px;color:var(--p)"></i>Box Office Terminal(s)</label>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Assign the Terminal location(s) this Box Office user operates</div>
+        <div id="editTerminalLocs"><!-- rendered by JS --></div>
+      </div>
     </div>
     <div class="modal-footer">
       <div style="font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-right:auto" id="roleSelCount">0 roles selected</div>
@@ -638,6 +644,12 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
             <!-- rendered by JS -->
           </div>
         </div>
+        <!-- Box Office terminal assignment — only shown when a Box Office role is selected -->
+        <div class="form-field" id="addTerminalField" style="display:none">
+          <label class="form-label"><i class="bi bi-shop" style="margin-right:5px;color:var(--p)"></i>Box Office Terminal(s)</label>
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Assign the Terminal location(s) this Box Office user operates</div>
+          <div id="addTerminalLocs"><!-- rendered by JS --></div>
+        </div>
       </div>
 
     </div>
@@ -706,6 +718,8 @@ var editingUserId     = null;
 var deactivatingUserId = null;
 var selectedRoles     = [];
 var addUserSelectedRoles = [];
+var selectedTerminalLocs    = []; // terminal op_location ids — edit modal
+var addSelectedTerminalLocs = []; // terminal op_location ids — add modal
 var emDirSelected     = [];
 var emDirQuery        = '';
 
@@ -725,6 +739,7 @@ var TS_ROLES = [
   { id:5,  name:'Ticketing Manager',     icon:'bi-ticket-fill',         color:'teal',   desc:'Manage tickets, promos & seating' },
   { id:6,  name:'Event Manager',         icon:'bi-calendar-event-fill', color:'blue',   desc:'Full event creation & control' },
   { id:7,  name:'Box Office Supervisor', icon:'bi-building',            color:'amber',  desc:'Orders, refunds & box office' },
+  { id:13, name:'Box Office User',       icon:'bi-cash-coin',           color:'amber',  desc:'Onsite ticket sales (no refunds)' },
   { id:8,  name:'Scan Only Operator',    icon:'bi-upc-scan',            color:'muted',  desc:'Entry scan access only' },
   { id:9,  name:'Hybrid Operator',       icon:'bi-person-gear',         color:'teal',   desc:'Scan + limited order creation' },
   { id:10, name:'Concessions Operator',  icon:'bi-cup-hot-fill',        color:'amber',  desc:'Food & beverage sales' },
@@ -740,6 +755,18 @@ function deriveAuthRole(appRoleIds){
   if(ids.indexOf(1)>=0 || ids.indexOf(3)>=0 || ids.indexOf(6)>=0) return 'admin'; // Org Owner / Ops / Event Mgr
   return 'staff';
 }
+
+// Box Office roles (Supervisor + User) get a Terminal-location assignment.
+var BOX_OFFICE_ROLE_IDS = [7, 13];
+function hasBoxOfficeRole(roleIds){
+  var ids = roleIds||[];
+  return BOX_OFFICE_ROLE_IDS.some(function(id){ return ids.indexOf(id) !== -1; });
+}
+// Terminal = op-locations belonging to box offices. Match the tenant's
+// location type by name so "Terminal" or "Box Office" both qualify.
+var TERMINAL_TYPE_RE = /terminal|box.?office/i;
+var TERMINAL_LOCATIONS = []; // op_locations of Terminal type for the current tenant
+function isTerminalLoc(l){ return l && TERMINAL_TYPE_RE.test(l.type||''); }
 
 var AVATAR_COLORS = ['#2DB89C','#6BA3E0','#E0A361','#9C82E0','#5AC8A0','#EAB044'];
 
@@ -979,6 +1006,7 @@ function openRoleModal(userId){
   if(!u) return;
   editingUserId = userId;
   selectedRoles = u.roles.slice();
+  selectedTerminalLocs = (u.locationIds||[]).slice();
 
   document.getElementById('roleModalAvatar').textContent      = getInitials(u);
   document.getElementById('roleModalAvatar').style.background = avatarColor(u);
@@ -988,6 +1016,7 @@ function openRoleModal(userId){
 
   renderRoleGrid('roleGrid', selectedRoles, function(roles){ selectedRoles = roles; updateRoleSelCount(); });
   updateRoleSelCount();
+  syncTerminalVisibility('edit');
   var pinEl=document.getElementById('editPin'); if(pinEl) pinEl.value = u.pin||'';
   var pwEl=document.getElementById('editPassword'); if(pwEl) pwEl.value = u.password||'';
   document.getElementById('roleModal').classList.add('open');
@@ -1005,7 +1034,9 @@ async function saveRoles(){
     u.roles = selectedRoles.slice();
     u.pin = (document.getElementById('editPin').value||'').trim();
     u.password = (document.getElementById('editPassword').value||'').trim();
-    if(DB && u._id) await DB.from('users').update({ app_roles:u.roles, role:deriveAuthRole(u.roles), pin:u.pin, password:u.password }).eq('_id',u._id);
+    // Terminal assignment only persists for box-office roles; cleared otherwise.
+    u.locationIds = hasBoxOfficeRole(u.roles) ? selectedTerminalLocs.slice() : [];
+    if(DB && u._id) await DB.from('users').update({ app_roles:u.roles, role:deriveAuthRole(u.roles), pin:u.pin, password:u.password, location_ids:u.locationIds }).eq('_id',u._id);
   }
   closeRoleModal();
   renderAll();
@@ -1043,10 +1074,58 @@ function toggleRoleOption(el, rid, containerId){
     if(isSel){ selectedRoles = selectedRoles.filter(function(x){ return x!==rid; }); }
     else      { if(selectedRoles.indexOf(rid)===-1) selectedRoles.push(rid); }
     updateRoleSelCount();
+    syncTerminalVisibility('edit');
   } else {
     if(isSel){ addUserSelectedRoles = addUserSelectedRoles.filter(function(x){ return x!==rid; }); }
     else      { if(addUserSelectedRoles.indexOf(rid)===-1) addUserSelectedRoles.push(rid); }
+    syncTerminalVisibility('add');
   }
+}
+
+/* ──────────────────────────────────────────────────────
+   BOX OFFICE TERMINAL ASSIGNMENT (op_locations of Terminal type)
+────────────────────────────────────────────────────── */
+// Show the terminal picker only when a Box Office role is selected, and (re)render it.
+function syncTerminalVisibility(scope){
+  var isEdit = scope === 'edit';
+  var roles  = isEdit ? selectedRoles : addUserSelectedRoles;
+  var field  = document.getElementById(isEdit ? 'editTerminalField' : 'addTerminalField');
+  if(!field) return;
+  var show = hasBoxOfficeRole(roles);
+  field.style.display = show ? '' : 'none';
+  if(show) renderTerminalLocs(isEdit ? 'editTerminalLocs' : 'addTerminalLocs', isEdit ? selectedTerminalLocs : addSelectedTerminalLocs, scope);
+}
+
+function renderTerminalLocs(containerId, selectedArr, scope){
+  var container = document.getElementById(containerId);
+  if(!container) return;
+  if(!TERMINAL_LOCATIONS.length){
+    container.innerHTML = '<div style="font-size:11px;font-family:var(--mono);color:var(--text3);padding:10px;border:1px dashed var(--line,#2a3330);border-radius:8px">'
+      + '<i class="bi bi-info-circle" style="margin-right:5px"></i>No Terminal locations yet. Add them in <strong>General → Locations</strong> (type “Terminal”).</div>';
+    return;
+  }
+  container.innerHTML = TERMINAL_LOCATIONS.map(function(l){
+    var lid = String(l.id||l._id);
+    var sel = selectedArr.map(String).indexOf(lid) !== -1;
+    var sub = [l.type, l.production].filter(Boolean).join(' · ');
+    return '<div class="role-option'+(sel?' selected':'')+'" data-lid="'+lid+'" onclick="toggleTerminalLoc(this,\''+lid+'\',\''+scope+'\')">'
+      + '<div class="role-option-icon" style="background:rgba(45,184,156,.18);color:#2DB89C"><i class="bi bi-shop"></i></div>'
+      + '<div class="role-option-body">'
+        + '<div class="role-option-name">'+(l.name||'Terminal')+'</div>'
+        + (sub ? '<div class="role-option-desc">'+sub+'</div>' : '')
+      + '</div>'
+      + '<div class="role-check"><i class="bi bi-check2" style="font-size:9px"></i></div>'
+    + '</div>';
+  }).join('');
+}
+
+function toggleTerminalLoc(el, lid, scope){
+  var arr   = scope === 'edit' ? selectedTerminalLocs : addSelectedTerminalLocs;
+  var isSel = el.classList.contains('selected');
+  el.classList.toggle('selected', !isSel);
+  if(isSel){ arr = arr.filter(function(x){ return String(x)!==String(lid); }); }
+  else     { if(arr.map(String).indexOf(String(lid))===-1) arr.push(lid); }
+  if(scope === 'edit') selectedTerminalLocs = arr; else addSelectedTerminalLocs = arr;
 }
 
 /* ──────────────────────────────────────────────────────
@@ -1054,6 +1133,7 @@ function toggleRoleOption(el, rid, containerId){
 ────────────────────────────────────────────────────── */
 function openAddUser(){
   addUserSelectedRoles = [];
+  addSelectedTerminalLocs = [];
   emDirSelected = [];
   emDirQuery    = '';
 
@@ -1076,6 +1156,7 @@ function openAddUser(){
   }
 
   renderRoleGrid('addUserRoleGrid', [], null);
+  syncTerminalVisibility('add');
   document.getElementById('addUserModal').classList.add('open');
 }
 
@@ -1196,7 +1277,8 @@ async function saveNewUser(){
   if(!currentTenantId){ alert('Select a tenant first.'); return; }
   var appRoles = addUserSelectedRoles.slice();
   var pwd = (document.getElementById('newPassword').value||'').trim();
-  var row = { tenant_id: currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin, password:pwd };
+  var locIds = hasBoxOfficeRole(appRoles) ? addSelectedTerminalLocs.slice() : [];
+  var row = { tenant_id: currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin, password:pwd, location_ids:locIds };
   if(DB){
     var res = await DB.from('users').insert(row);
     if(res.error){ alert('Could not create user (the email may already be in use).'); return; }
@@ -1257,6 +1339,7 @@ function dbRowToUser(r){
     email: r.email||'', source: r.source||'manual',
     status: (r.active!=0)?'active':'inactive',
     roles: Array.isArray(r.app_roles)?r.app_roles.slice():[],
+    locationIds: Array.isArray(r.location_ids)?r.location_ids.map(String):[],
     pin: r.pin||'', password: r.password||'', lastActive:'Synced'
   };
 }
@@ -1281,8 +1364,19 @@ async function loadUsers(){
   var res = await DB.from('users').select().eq('tenant_id', currentTenantId);
   USERS = (res.data||[]).map(dbRowToUser);
   EM_ACTIVE = !!(currentTenant && Array.isArray(currentTenant.modules) && currentTenant.modules.indexOf(EM_MODULE_NAME)>=0);
+  await loadTerminalLocations();
   updateEMUI();
   renderAll();
+}
+
+// Load this tenant's Terminal-type operational locations (box-office terminals).
+async function loadTerminalLocations(){
+  TERMINAL_LOCATIONS = [];
+  if(!DB || !currentTenantId) return;
+  try{
+    var res = await DB.from('op_locations').select().eq('tenant_id', currentTenantId);
+    TERMINAL_LOCATIONS = (res.data||[]).filter(isTerminalLoc);
+  }catch(e){ /* leave empty — picker shows the General → Locations hint */ }
 }
 window.evinraLogout = function(){ try{ localStorage.removeItem('evinra-tenant-id'); localStorage.removeItem('evinra-tenant-name'); }catch(e){} location.replace('evinra_login.html'); };
 function mountLogout(){
