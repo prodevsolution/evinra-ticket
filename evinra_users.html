@@ -245,9 +245,68 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
 .form-label{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text2);letter-spacing:.4px;text-transform:uppercase}
 .form-input{height:36px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--body);padding:0 12px;outline:none;transition:border-color .14s;width:100%}
 .form-input::placeholder{color:var(--text3)}
-.form-input:focus{border-color:var(--p-border)}
+.form-input:focus{border-color:var(--p);box-shadow:0 0 0 3px var(--p-dim)}
+.form-input.invalid{border-color:var(--red,#ed3237)}
+.form-input.invalid:focus{box-shadow:0 0 0 3px rgba(237,50,55,.15)}
 .form-hint{font-size:10px;color:var(--text3);font-family:var(--mono)}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.req{color:var(--red,#ed3237);margin-left:1px}
+.field-err{display:none;align-items:center;gap:5px;font-size:10.5px;font-family:var(--mono);color:var(--red,#ed3237);margin-top:1px}
+.field-err.show{display:flex}
+.field-err svg{width:12px;height:12px;flex-shrink:0}
+/* Section grouping inside the add-user form */
+.form-section{margin-bottom:18px}
+.form-section-hd{font-size:10px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+/* ── Add-user WIZARD (multi-step) ─────────────────────── */
+.wiz-layout{display:grid;grid-template-columns:200px 1fr;gap:0;margin:-4px -4px 0}
+.wiz-rail{border-right:1px solid var(--border);padding:6px 16px 6px 4px;display:flex;flex-direction:column;gap:2px}
+.wstep{display:flex;gap:11px;align-items:flex-start;padding:9px 8px;border-radius:9px;transition:background .15s}
+.wstep.active{background:var(--p-dim)}
+.wstep-ic{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0;background:var(--bg4);transition:all .2s}
+.wstep.active .wstep-ic{border-color:var(--p);color:var(--p);box-shadow:0 0 0 4px var(--p-dim)}
+.wstep.done .wstep-ic{background:var(--p);border-color:var(--p);color:var(--p-contrast)}
+.wstep-t{font-size:12.5px;font-weight:600;color:var(--text3);transition:color .2s}
+.wstep.active .wstep-t,.wstep.done .wstep-t{color:var(--text)}
+.wstep-d{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:1px}
+.wiz-main{padding:2px 2px 2px 22px;min-height:300px}
+.wiz-eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--p);font-weight:600}
+.wiz-title{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.01em;margin:4px 0 3px}
+.wiz-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:16px}
+.wiz-screen{display:none}
+.wiz-screen.on{display:block;animation:wizfade .25s ease-out}
+@keyframes wizfade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.wiz-screen.on{animation:none}}
+/* identity live avatar */
+.id-hero{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:16px}
+.id-av{width:46px;height:46px;border-radius:50%;background:var(--p-dim);color:var(--p);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:17px;flex-shrink:0;transition:all .2s}
+.id-av.filled{background:var(--p);color:var(--p-contrast)}
+.id-hero .ihn{font-weight:600;font-size:13px}
+.id-hero .ihe{font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:2px}
+/* sign-in contextual note */
+.wiz-ctx{display:flex;gap:8px;background:var(--blue-dim);border:1px solid rgba(107,163,224,.25);border-radius:9px;padding:10px 12px;font-size:11.5px;color:var(--text2);line-height:1.5;margin-bottom:16px}
+.wiz-ctx svg{color:var(--blue);flex-shrink:0;margin-top:1px}
+/* review */
+.wiz-rev{border:1px solid var(--border);border-radius:11px;overflow:hidden}
+.wiz-rev-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.wiz-rev-row:last-child{border-bottom:none}
+.wiz-rev-k{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-top:2px}
+.wiz-rev-v{font-size:12.5px;color:var(--text);font-weight:500;text-align:right}
+.wiz-rev-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}
+.wiz-rev-pill{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:20px;background:var(--p-dim);color:var(--p)}
+.wiz-foot-note{font-size:10.5px;font-family:var(--mono);color:var(--text3);margin-right:auto}
+/* Password show/hide */
+.pw-wrap{position:relative}
+.pw-wrap .form-input{padding-right:40px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--text3);cursor:pointer;border-radius:6px;transition:color .14s,background .14s}
+.pw-toggle:hover{color:var(--text);background:var(--bg3)}
+/* Disabled primary button (submit loading) */
+.btn-primary:disabled{opacity:.55;cursor:wait}
+/* Lightweight toast for Users page */
+#euToast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:11px 15px;font-size:12.5px;color:var(--text);box-shadow:0 8px 28px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s ease-out,transform .2s ease-out;z-index:2000;font-family:var(--body)}
+#euToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#euToast .eu-toast-ic{display:flex;color:var(--p)}
+#euToast.err .eu-toast-ic{color:var(--red,#ed3237)}
+@media (prefers-reduced-motion:reduce){#euToast{transition:opacity .15s}}
 
 /* ── Confirm modal ───────────────────────────────────── */
 .confirm-card{width:420px}
@@ -570,7 +629,7 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
      ADD USER MODAL
 ══════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="addUserModal" onclick="if(event.target===this)closeAddUser()">
-  <div class="modal-card" style="width:600px">
+  <div class="modal-card" style="width:720px;max-width:95vw">
     <div class="modal-header">
       <div class="modal-title-block">
         <div class="modal-title">
@@ -584,11 +643,11 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
     <div class="modal-body">
 
       <!-- Tab switcher (hidden when EM inactive) -->
-      <div class="add-tabs" id="addUserTabs">
-        <button class="add-tab-btn active" id="tabBtnEM" onclick="switchAddTab('em')">
+      <div class="add-tabs" id="addUserTabs" role="tablist" aria-label="Add user method">
+        <button class="add-tab-btn active" id="tabBtnEM" role="tab" aria-selected="true" onclick="switchAddTab('em')">
           <i class="bi bi-building" style="font-size:12px"></i>From EM Directory
         </button>
-        <button class="add-tab-btn" id="tabBtnManual" onclick="switchAddTab('manual')">
+        <button class="add-tab-btn" id="tabBtnManual" role="tab" aria-selected="false" onclick="switchAddTab('manual')">
           <i class="bi bi-person-fill" style="font-size:12px"></i>Create Manually
         </button>
       </div>
@@ -610,45 +669,88 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
         </div>
       </div>
 
-      <!-- ── Manual tab ── -->
+      <!-- ── Manual tab = guided wizard ── -->
       <div id="tabManual" style="display:none">
-        <div class="form-row-2">
-          <div class="form-field">
-            <label class="form-label">First Name *</label>
-            <input class="form-input" id="newFirstName" placeholder="e.g. Carlos">
+        <div class="wiz-layout">
+          <!-- Stepper rail -->
+          <aside class="wiz-rail" id="addWizRail" role="tablist" aria-label="Add user steps">
+            <div class="wstep active" data-ws="1"><div class="wstep-ic">1</div><div><div class="wstep-t">Identity</div><div class="wstep-d">Name &amp; email</div></div></div>
+            <div class="wstep" data-ws="2"><div class="wstep-ic">2</div><div><div class="wstep-t">Role &amp; access</div><div class="wstep-d">What they can do</div></div></div>
+            <div class="wstep" data-ws="3"><div class="wstep-ic">3</div><div><div class="wstep-t">Sign-in</div><div class="wstep-d">Credentials</div></div></div>
+            <div class="wstep" data-ws="4"><div class="wstep-ic">4</div><div><div class="wstep-t">Review</div><div class="wstep-d">Confirm &amp; create</div></div></div>
+          </aside>
+
+          <!-- Step content -->
+          <div class="wiz-main">
+            <div class="wiz-eyebrow" id="addWizEyebrow">Step 1 of 4</div>
+            <div class="wiz-title" id="addWizTitle">Who's joining the team?</div>
+            <div class="wiz-desc" id="addWizDesc">Start with their name and work email — this is how they'll sign in and get notifications.</div>
+
+            <!-- Step 1: Identity -->
+            <div class="wiz-screen on" data-wscreen="1">
+              <div class="id-hero">
+                <div class="id-av" id="addAvatar">+</div>
+                <div><div class="ihn" id="addAvName">New team member</div><div class="ihe" id="addAvEmail">name@company.com</div></div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-field" style="margin-bottom:0">
+                  <label class="form-label" for="newFirstName">First Name<span class="req" aria-hidden="true">*</span></label>
+                  <input class="form-input" id="newFirstName" autocomplete="given-name" placeholder="e.g. Carlos" aria-required="true" aria-describedby="err-newFirstName">
+                  <div class="field-err" id="err-newFirstName" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+                </div>
+                <div class="form-field" style="margin-bottom:0">
+                  <label class="form-label" for="newLastName">Last Name<span class="req" aria-hidden="true">*</span></label>
+                  <input class="form-input" id="newLastName" autocomplete="family-name" placeholder="e.g. Mendez" aria-required="true" aria-describedby="err-newLastName">
+                  <div class="field-err" id="err-newLastName" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+                </div>
+              </div>
+              <div class="form-field" style="margin-top:14px;margin-bottom:0">
+                <label class="form-label" for="newEmail">Email Address<span class="req" aria-hidden="true">*</span></label>
+                <input class="form-input" id="newEmail" type="email" autocomplete="email" placeholder="user@venue.com" aria-required="true" aria-describedby="err-newEmail newEmailHint">
+                <div class="field-err" id="err-newEmail" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+                <div class="form-hint" id="newEmailHint">Used for sign-in and notifications</div>
+              </div>
+            </div>
+
+            <!-- Step 2: Role & access -->
+            <div class="wiz-screen" data-wscreen="2">
+              <div class="role-grid" id="addUserRoleGrid"><!-- rendered by JS --></div>
+              <div class="form-field" id="addTerminalField" style="display:none;margin-top:16px;margin-bottom:0">
+                <label class="form-label"><i class="bi bi-shop" style="margin-right:5px;color:var(--p)"></i>Box Office Terminal(s)</label>
+                <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Assign the Terminal location(s) this Box Office user operates</div>
+                <div id="addTerminalLocs"><!-- rendered by JS --></div>
+              </div>
+            </div>
+
+            <!-- Step 3: Sign-in -->
+            <div class="wiz-screen" data-wscreen="3">
+              <div class="wiz-ctx"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span id="addWizCtx">Both are optional now and can be set later. We only show what the chosen roles need.</span></div>
+              <div class="form-row-2">
+                <div class="form-field" style="margin-bottom:0">
+                  <label class="form-label" for="newPin">PIN <span style="text-transform:none;letter-spacing:0;color:var(--text3)">(4–6 digits)</span></label>
+                  <input class="form-input" id="newPin" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="e.g. 1234" aria-describedby="err-newPin newPinHint">
+                  <div class="field-err" id="err-newPin" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+                  <div class="form-hint" id="newPinHint">Scanner / Wristband / Box office sign-in</div>
+                </div>
+                <div class="form-field" style="margin-bottom:0">
+                  <label class="form-label" for="newPassword">Password</label>
+                  <div class="pw-wrap">
+                    <input class="form-input" id="newPassword" type="password" autocomplete="new-password" placeholder="Console password" aria-describedby="newPwHint">
+                    <button type="button" class="pw-toggle" id="newPwToggle" aria-label="Show password" aria-pressed="false" onclick="euTogglePw()">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                  <div class="form-hint" id="newPwHint">Admin / Staff console sign-in</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Review -->
+            <div class="wiz-screen" data-wscreen="4">
+              <div class="wiz-rev" id="addWizReview"><!-- built by JS --></div>
+              <div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:13px;line-height:1.6">They'll be added to <span id="addWizCompany" style="color:var(--p)">this company</span> and can sign in immediately. Nothing is saved until you create the user.</div>
+            </div>
           </div>
-          <div class="form-field">
-            <label class="form-label">Last Name *</label>
-            <input class="form-input" id="newLastName" placeholder="e.g. Mendez">
-          </div>
-        </div>
-        <div class="form-field">
-          <label class="form-label">Email Address *</label>
-          <input class="form-input" id="newEmail" type="email" placeholder="user@venue.com">
-          <div class="form-hint">Used for login and notifications</div>
-        </div>
-        <div class="form-field">
-          <label class="form-label">PIN (4 digits)</label>
-          <input class="form-input" id="newPin" inputmode="numeric" maxlength="6" placeholder="e.g. 1234">
-          <div class="form-hint">Required for Scanner / Wristband sign-in (Mobile Scan)</div>
-        </div>
-        <div class="form-field">
-          <label class="form-label">Password</label>
-          <input class="form-input" id="newPassword" type="text" placeholder="Console password">
-          <div class="form-hint">Required for Admin / Staff sign-in to the Ticket System</div>
-        </div>
-        <div class="form-field" style="margin-bottom:6px">
-          <label class="form-label">Initial TS Roles</label>
-          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Roles can be assigned or changed later</div>
-          <div class="role-grid" id="addUserRoleGrid">
-            <!-- rendered by JS -->
-          </div>
-        </div>
-        <!-- Box Office terminal assignment — only shown when a Box Office role is selected -->
-        <div class="form-field" id="addTerminalField" style="display:none">
-          <label class="form-label"><i class="bi bi-shop" style="margin-right:5px;color:var(--p)"></i>Box Office Terminal(s)</label>
-          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Assign the Terminal location(s) this Box Office user operates</div>
-          <div id="addTerminalLocs"><!-- rendered by JS --></div>
         </div>
       </div>
 
@@ -662,14 +764,24 @@ html,body{height:100%;font-family:var(--body);font-size:14px;line-height:1.55;ba
         <i class="bi bi-person-check-fill" style="font-size:13px"></i>Add Selected Users
       </button>
     </div>
-    <!-- Footer: Manual -->
+    <!-- Footer: Manual wizard nav -->
     <div class="modal-footer" id="footerManual" style="display:none">
+      <button class="btn btn-ghost" id="addWizBack" onclick="addWizGo(addWizStep-1)" style="visibility:hidden">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Back
+      </button>
+      <span class="wiz-foot-note" id="addWizNote">Step 1 of 4</span>
       <button class="btn btn-ghost" onclick="closeAddUser()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveNewUser()">
-        <i class="bi bi-person-check" style="font-size:13px"></i>Create User
+      <button class="btn btn-primary" id="createUserBtn" onclick="addWizPrimary()">
+        <span>Continue</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
   </div>
+</div>
+
+<!-- Toast (success/error feedback) -->
+<div id="euToast" role="status" aria-live="polite">
+  <span class="eu-toast-ic" id="euToastIc"></span>
+  <span id="euToastMsg"></span>
 </div>
 
 
@@ -1137,10 +1249,12 @@ function openAddUser(){
   emDirSelected = [];
   emDirQuery    = '';
 
-  document.getElementById('newFirstName').value = '';
-  document.getElementById('newLastName').value  = '';
-  document.getElementById('newEmail').value     = '';
-  document.getElementById('emDirSearch').value  = '';
+  ['newFirstName','newLastName','newEmail','newPin','newPassword','emDirSearch'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  // Reset password field to hidden + clear any prior validation state.
+  var pw=document.getElementById('newPassword'); if(pw) pw.type='password';
+  var pwt=document.getElementById('newPwToggle'); if(pwt){ pwt.setAttribute('aria-pressed','false'); pwt.setAttribute('aria-label','Show password'); }
+  euClearAllErrors();
+  euWireAddForm();
 
   var subtitle = document.getElementById('addUserModalSubtitle');
 
@@ -1160,6 +1274,116 @@ function openAddUser(){
   document.getElementById('addUserModal').classList.add('open');
 }
 
+// Attach inline-validation + PIN-digit-filter + live-avatar listeners once.
+function euWireAddForm(){
+  if(euWireAddForm._done) return; euWireAddForm._done = true;
+  ['newFirstName','newLastName','newEmail','newPin'].forEach(function(id){
+    var el=document.getElementById(id); if(!el) return;
+    el.addEventListener('blur', function(){ euValidateField(id); });
+    el.addEventListener('input', function(){ if(el.classList.contains('invalid')) euValidateField(id); });
+  });
+  ['newFirstName','newLastName','newEmail'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.addEventListener('input', euRefreshAvatar);
+  });
+  var pin=document.getElementById('newPin');
+  if(pin) pin.addEventListener('input', function(){ pin.value=pin.value.replace(/\D/g,'').slice(0,6); });
+}
+function euRefreshAvatar(){
+  var f=(document.getElementById('newFirstName').value||'').trim();
+  var l=(document.getElementById('newLastName').value||'').trim();
+  var e=(document.getElementById('newEmail').value||'').trim();
+  var ini=((f[0]||'')+(l[0]||'')).toUpperCase();
+  var av=document.getElementById('addAvatar');
+  if(av){ av.textContent=ini||'+'; av.classList.toggle('filled', !!ini); }
+  var nm=document.getElementById('addAvName'); if(nm) nm.textContent=(f||l)?((f+' '+l).trim()):'New team member';
+  var em=document.getElementById('addAvEmail'); if(em) em.textContent=e||'name@company.com';
+}
+
+/* ── Add-user WIZARD navigation ──────────────────────────── */
+var addWizStep = 1;
+var ADD_WIZ_COPY = {
+  1:['Step 1 of 4',"Who's joining the team?",'Start with their name and work email — this is how they’ll sign in and get notifications.'],
+  2:['Step 2 of 4','What can they access?','Pick one or more roles. Each role unlocks the right parts of the system — you can change this later.'],
+  3:['Step 3 of 4','How will they sign in?','We only ask for what their roles need. Both are optional now and can be set later.'],
+  4:['Step 4 of 4','Looking good — ready to add?','Review the details below. Nothing is saved until you create the user.']
+};
+function addWizGo(n){
+  n = Math.max(1, Math.min(4, n));
+  addWizStep = n;
+  // rail state
+  document.querySelectorAll('#addWizRail .wstep').forEach(function(el){
+    var s=+el.getAttribute('data-ws');
+    el.classList.toggle('active', s===n);
+    el.classList.toggle('done', s<n);
+    var ic=el.querySelector('.wstep-ic');
+    ic.innerHTML = (s<n) ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : String(s);
+  });
+  // screens
+  document.querySelectorAll('#tabManual .wiz-screen').forEach(function(el){
+    el.classList.toggle('on', +el.getAttribute('data-wscreen')===n);
+  });
+  var c=ADD_WIZ_COPY[n];
+  document.getElementById('addWizEyebrow').textContent=c[0];
+  document.getElementById('addWizTitle').textContent=c[1];
+  document.getElementById('addWizDesc').textContent=c[2];
+  document.getElementById('addWizNote').textContent=c[0];
+  document.getElementById('addWizBack').style.visibility = n===1 ? 'hidden' : 'visible';
+  // primary button label
+  var btn=document.getElementById('createUserBtn'); var span=btn.querySelector('span');
+  if(n===4){ span.textContent='Create User'; btn.querySelector('svg').outerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; }
+  else { span.textContent='Continue'; }
+  if(n===3) addWizSyncCtx();
+  if(n===4) addWizBuildReview();
+  // focus first input of the step
+  setTimeout(function(){
+    var sel = n===1 ? '#newFirstName' : (n===3 ? '#newPin' : null);
+    var f = sel ? document.querySelector(sel) : null; if(f) f.focus();
+  }, 60);
+}
+function addWizPrimary(){
+  if(addWizStep===1){
+    euClearAllErrors();
+    var bad=null; ['newFirstName','newLastName','newEmail'].forEach(function(id){ if(!euValidateField(id) && !bad) bad=id; });
+    if(bad){ document.getElementById(bad).focus(); return; }
+  }
+  if(addWizStep<4){ addWizGo(addWizStep+1); return; }
+  saveNewUser(); // step 4 → persist (re-validates + toast + close)
+}
+function addWizSyncCtx(){
+  var r=addUserSelectedRoles||[];
+  var box=hasBoxOfficeRole(r);
+  var scan=r.indexOf(8)>=0||r.indexOf(9)>=0||r.indexOf(12)>=0;
+  var admin=r.indexOf(1)>=0||r.indexOf(3)>=0||r.indexOf(6)>=0;
+  var msg='Both are optional now and can be set later. We only show what the chosen roles need.';
+  if(box) msg='Box office staff sign in to the console with a password, and to Mobile Scan with a 4–6 digit PIN.';
+  else if(scan && !admin) msg='Scan / wristband operators sign in to Mobile Scan with a 4–6 digit PIN.';
+  else if(admin) msg='Admin & staff sign in to the Ticket System console with a password.';
+  var el=document.getElementById('addWizCtx'); if(el) el.textContent=msg;
+}
+function addWizBuildReview(){
+  var f=(document.getElementById('newFirstName').value||'').trim();
+  var l=(document.getElementById('newLastName').value||'').trim();
+  var e=(document.getElementById('newEmail').value||'').trim();
+  var pin=(document.getElementById('newPin').value||'').trim();
+  var pwd=(document.getElementById('newPassword').value||'').trim();
+  var roleNames=(addUserSelectedRoles||[]).map(function(id){ var r=getRoleById(id); return r?r.name:('Role '+id); });
+  var rolesHtml = roleNames.length ? '<span class="wiz-rev-pills">'+roleNames.map(function(n){return '<span class="wiz-rev-pill">'+n+'</span>';}).join('')+'</span>' : '<span style="color:var(--text3);font-size:12px">No roles yet</span>';
+  var rows = [
+    ['Name', (f+' '+l).trim()||'—'],
+    ['Email', e||'—'],
+    ['Roles', rolesHtml]
+  ];
+  if(hasBoxOfficeRole(addUserSelectedRoles)){
+    var terms=(addSelectedTerminalLocs||[]).map(function(id){ var t=TERMINAL_LOCATIONS.find(function(x){return String(x.id||x._id)===String(id);}); return t?(t.name||'Terminal'):null; }).filter(Boolean);
+    rows.push(['Terminal', terms.length?terms.join(', '):'<span style="color:var(--text3)">None selected</span>']);
+  }
+  rows.push(['Sign-in', [pin?'PIN set':'', pwd?'Password set':''].filter(Boolean).join(' · ')||'<span style="color:var(--text3)">None yet</span>']);
+  document.getElementById('addWizReview').innerHTML = rows.map(function(r){
+    return '<div class="wiz-rev-row"><span class="wiz-rev-k">'+r[0]+'</span><span class="wiz-rev-v">'+r[1]+'</span></div>';
+  }).join('');
+  var co=document.getElementById('addWizCompany'); if(co) co.textContent = (currentTenant && currentTenant.name) || 'this company';
+}
+
 function closeAddUser(){
   document.getElementById('addUserModal').classList.remove('open');
 }
@@ -1170,8 +1394,17 @@ function switchAddTab(tab){
   document.getElementById('tabManual').style.display    = isEM ? 'none' : '';
   document.getElementById('footerEM').style.display     = isEM ? '' : 'none';
   document.getElementById('footerManual').style.display = isEM ? 'none' : '';
-  document.getElementById('tabBtnEM').className     = 'add-tab-btn' + (isEM ? ' active' : '');
-  document.getElementById('tabBtnManual').className = 'add-tab-btn' + (!isEM ? ' active' : '');
+  var bEM=document.getElementById('tabBtnEM'), bM=document.getElementById('tabBtnManual');
+  bEM.className='add-tab-btn'+(isEM?' active':''); bM.className='add-tab-btn'+(!isEM?' active':'');
+  bEM.setAttribute('aria-selected', isEM?'true':'false');
+  bM.setAttribute('aria-selected', !isEM?'true':'false');
+  if(!isEM){
+    euClearAllErrors();
+    euRefreshAvatar();
+    addWizGo(1);   // always start the wizard at step 1 (also focuses First Name)
+  } else {
+    setTimeout(function(){ var s=document.getElementById('emDirSearch'); if(s) s.focus(); }, 40);
+  }
 }
 
 /* ──────────────────────────────────────────────────────
@@ -1253,7 +1486,10 @@ function filterEMDir(q){
 
 async function addFromEMDirectory(){
   if(emDirSelected.length === 0) return;
-  if(!currentTenantId){ alert('Select a tenant first.'); return; }
+  if(!currentTenantId){ euToast('Select a company first.', true); return; }
+  var n = emDirSelected.length;
+  var btn=document.getElementById('addFromEMBtn'); var bhtml=btn?btn.innerHTML:'';
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split" style="font-size:13px"></i>Adding…'; }
   for(var i=0;i<emDirSelected.length;i++){
     var d = EM_DIRECTORY.find(function(x){ return x.id === emDirSelected[i]; });
     if(!d) continue;
@@ -1262,31 +1498,93 @@ async function addFromEMDirectory(){
     if(DB){ var res = await DB.from('users').insert(row); var rec = res.data && res.data[0]; USERS.push(dbRowToUser(rec||row)); }
     else USERS.push(dbRowToUser(row));
   }
+  if(btn){ btn.disabled=false; btn.innerHTML=bhtml; }
   closeAddUser();
   renderAll();
   updateEMUI(); // refresh directory count in banner
+  euToast(n+' user'+(n!==1?'s':'')+' added to Ticket System');
+}
+
+/* ── Add-user form feedback helpers ─────────────────────── */
+var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function euToast(msg, isError){
+  var t=document.getElementById('euToast'); if(!t) return;
+  document.getElementById('euToastMsg').textContent = msg;
+  document.getElementById('euToastIc').innerHTML = isError
+    ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  t.classList.toggle('err', !!isError);
+  t.classList.add('show');
+  clearTimeout(euToast._t); euToast._t = setTimeout(function(){ t.classList.remove('show'); }, isError?4000:3000);
+}
+function euSetFieldError(id, msg){
+  var inp=document.getElementById(id); var box=document.getElementById('err-'+id);
+  if(inp) inp.classList.add('invalid');
+  if(box){ box.querySelector('span').textContent = msg; box.classList.add('show'); }
+}
+function euClearFieldError(id){
+  var inp=document.getElementById(id); var box=document.getElementById('err-'+id);
+  if(inp) inp.classList.remove('invalid');
+  if(box) box.classList.remove('show');
+}
+function euClearAllErrors(){ ['newFirstName','newLastName','newEmail','newPin'].forEach(euClearFieldError); }
+// Validate a single field; returns true if valid. mode 'blur' skips empty-required noise on optional fields.
+function euValidateField(id){
+  var v=(document.getElementById(id).value||'').trim();
+  if(id==='newFirstName'||id==='newLastName'){
+    if(!v){ euSetFieldError(id, (id==='newFirstName'?'First':'Last')+' name is required'); return false; }
+  }
+  if(id==='newEmail'){
+    if(!v){ euSetFieldError(id,'Email is required'); return false; }
+    if(!EMAIL_RE.test(v)){ euSetFieldError(id,'Enter a valid email address'); return false; }
+  }
+  if(id==='newPin'){
+    if(v && !/^\d{4,6}$/.test(v)){ euSetFieldError(id,'PIN must be 4–6 digits'); return false; }
+  }
+  euClearFieldError(id);
+  return true;
+}
+function euTogglePw(){
+  var i=document.getElementById('newPassword'); var b=document.getElementById('newPwToggle');
+  var show = i.type==='password'; i.type = show?'text':'password';
+  b.setAttribute('aria-pressed', show?'true':'false');
+  b.setAttribute('aria-label', show?'Hide password':'Show password');
 }
 
 async function saveNewUser(){
-  var first = document.getElementById('newFirstName').value.trim();
-  var last  = document.getElementById('newLastName').value.trim();
-  var email = document.getElementById('newEmail').value.trim();
-  var pin   = (document.getElementById('newPin').value||'').trim();
-  if(!first || !last){ alert('First and last name are required.'); return; }
-  if(!email){ alert('Email address is required.'); return; }
-  if(!currentTenantId){ alert('Select a tenant first.'); return; }
-  var appRoles = addUserSelectedRoles.slice();
-  var pwd = (document.getElementById('newPassword').value||'').trim();
-  var locIds = hasBoxOfficeRole(appRoles) ? addSelectedTerminalLocs.slice() : [];
-  var row = { tenant_id: currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin, password:pwd, location_ids:locIds };
-  if(DB){
-    var res = await DB.from('users').insert(row);
-    if(res.error){ alert('Could not create user (the email may already be in use).'); return; }
-    var rec = res.data && res.data[0];
-    USERS.push(dbRowToUser(rec||row));
-  } else USERS.push(dbRowToUser(row));
-  closeAddUser();
-  renderAll();
+  if(!currentTenantId){ euToast('Select a company first.', true); return; }
+  // Inline validation — collect, mark fields, focus the first invalid.
+  euClearAllErrors();
+  var order=['newFirstName','newLastName','newEmail','newPin'];
+  var firstBad=null;
+  order.forEach(function(id){ if(!euValidateField(id) && !firstBad) firstBad=id; });
+  if(firstBad){ document.getElementById(firstBad).focus(); return; }
+
+  var first=document.getElementById('newFirstName').value.trim();
+  var last =document.getElementById('newLastName').value.trim();
+  var email=document.getElementById('newEmail').value.trim();
+  var pin  =(document.getElementById('newPin').value||'').trim();
+  var pwd  =(document.getElementById('newPassword').value||'').trim();
+  var appRoles=addUserSelectedRoles.slice();
+  var locIds=hasBoxOfficeRole(appRoles)?addSelectedTerminalLocs.slice():[];
+  var row={ tenant_id:currentTenantId, name:(first+' '+last).trim(), email:email, source:'manual', app_roles:appRoles, role:deriveAuthRole(appRoles), active:1, pin:pin, password:pwd, location_ids:locIds };
+
+  // Submit feedback: lock the button while the insert is in flight.
+  var btn=document.getElementById('createUserBtn'); var lbl=btn?btn.querySelector('span'):null; var orig=lbl?lbl.textContent:'';
+  if(btn){ btn.disabled=true; } if(lbl){ lbl.textContent='Creating…'; }
+  try{
+    if(DB){
+      var res=await DB.from('users').insert(row);
+      if(res.error){ euSetFieldError('newEmail','This email may already be in use'); document.getElementById('newEmail').focus(); return; }
+      var rec=res.data && res.data[0];
+      USERS.push(dbRowToUser(rec||row));
+    } else USERS.push(dbRowToUser(row));
+    closeAddUser();
+    renderAll();
+    euToast((first+' '+last).trim()+' added');
+  } finally {
+    if(btn){ btn.disabled=false; } if(lbl){ lbl.textContent=orig||'Create User'; }
+  }
 }
 
 /* ──────────────────────────────────────────────────────
