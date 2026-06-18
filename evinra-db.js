@@ -25,11 +25,15 @@
  *   <script>window.EVINRA_DB_URL = 'http://192.168.1.10:4000';</script>
  * ============================================================ */
 (function (global) {
-  // Auto-detect: explicit override → Railway (production) → localhost (dev)
+  // Auto-detect: explicit override → Railway (production) → localhost (dev).
+  // file:// (opened from disk) has an empty hostname → treat as local so the
+  // dashboard still talks to the local DB service on :4000 instead of Railway.
   const RAILWAY_URL = 'https://web-production-93df6.up.railway.app';
-  const isLocal = typeof window !== 'undefined'
-    ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    : true;
+  const host = (typeof window !== 'undefined' && window.location) ? window.location.hostname : '';
+  const isFile = (typeof window !== 'undefined' && window.location) ? window.location.protocol === 'file:' : false;
+  const isLocal = typeof window === 'undefined'
+    ? true
+    : (host === 'localhost' || host === '127.0.0.1' || host === '' || isFile);
   const SERVICE =
     (global.EVINRA_DB_URL && String(global.EVINRA_DB_URL).replace(/\/+$/, '')) ||
     (isLocal ? 'http://localhost:4000' : RAILWAY_URL);
@@ -131,9 +135,35 @@
       if (!res.ok) throw new Error('getOrders failed: ' + res.status);
       return res.json();
     },
+
+    // Upload an image (base64 data URL) to bunny.net via the shared service and
+    // get back a public CDN URL to store in the document (instead of base64).
+    // `folder` groups assets (e.g. 'events', 'products', 'logos'). `app` selects
+    // the bunny zone; defaults to window.EVINRA_APP, else the server default.
+    // If `dataUrl` is already an http(s) URL it is returned unchanged.
+    async uploadImage(dataUrl, folder, app) {
+      if (!dataUrl) return '';
+      if (/^https?:\/\//i.test(dataUrl)) return dataUrl;
+      const res = await fetch(SERVICE + '/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: dataUrl,
+          folder: folder || 'misc',
+          app: app || global.EVINRA_APP || undefined,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((json && json.error) || ('upload failed: ' + res.status));
+      return json.url;
+    },
   };
 
   global.EvinraDB = EvinraDB;
+  // Convenience global mirroring gdbPost/gdbPatch style helpers used in the apps.
+  global.gdbUploadImage = function (dataUrl, folder, app) {
+    return EvinraDB.uploadImage(dataUrl, folder, app);
+  };
 
   // Supabase compatibility shim (only if a real client isn't already loaded).
   if (!global.supabase || typeof global.supabase.createClient !== 'function') {

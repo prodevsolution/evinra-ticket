@@ -2081,6 +2081,17 @@ async function evDbPost(table, body){
   if (!r.ok) throw new Error((d && d.error) || ('POST ' + table + ' failed'));
   return Array.isArray(d) ? d[0] : d; // the CRUD API returns the created doc(s) as an array
 }
+// Upload an image (base64 data URL) to bunny.net via the shared service and get
+// back a public CDN URL to store instead of the raw base64. http(s) URLs pass through.
+async function evUploadImage(dataUrl, folder){
+  if (!dataUrl) return '';
+  if (/^https?:\/\//i.test(dataUrl)) return dataUrl;
+  var base = evDbBase().replace(/\/api\/db$/, '');
+  var r = await fetch(base + '/api/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ data: dataUrl, folder: folder || 'events', app: 'ticket' }) });
+  var d = await r.json().catch(function(){ return {}; });
+  if (!r.ok) throw new Error((d && d.error) || 'image upload failed');
+  return d.url;
+}
 function _to24(t){ // "7:00 PM" / "19:00" → "19:00"
   t = String(t || '').trim(); if (!t) return '';
   var m = t.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])?$/); if (!m) return t;
@@ -2096,6 +2107,10 @@ function _isoDateTime(usDate, time){ // "MM/DD/YYYY","7:00 PM" → "YYYY-MM-DDT1
 async function persistManualEvent(o){
   try {
     var pds = _manualPDs.slice();
+    // Upload the event banner to bunny.net once; reuse the CDN URL on every event.
+    if (o.image && o.image.indexOf('data:') === 0) {
+      o.image = await evUploadImage(o.image, 'events');
+    }
     // Attach to the EXISTING show of the selected production (don't create a show).
     var shows = await fetch(evDbBase() + '/shows').then(function(r){ return r.json(); }).catch(function(){ return []; });
     var match = (shows || []).filter(function(s){ return String(s.production_id) === String(o.productionId); });

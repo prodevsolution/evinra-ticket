@@ -250,7 +250,14 @@
       if(!DB || !tid){ status('No company / offline'); return; }
       this.disabled=true; status('Saving…');
       try{
-        var r=await DB.from('tenants').update({ storefront_primary:$('brandPrimary').value, storefront_secondary:$('brandSecondary').value, storefront_logo:CUR_LOGO }).eq('_id', tid);
+        // Upload a freshly selected logo (base64) to bunny.net; store the CDN URL.
+        var logo = CUR_LOGO;
+        if(logo && logo.indexOf('data:')===0 && window.EvinraDB){
+          status('Uploading logo…');
+          logo = await EvinraDB.uploadImage(logo, 'logos');
+          CUR_LOGO = logo; $('brandLogoUrl').value=''; updateThumb(logo);
+        }
+        var r=await DB.from('tenants').update({ storefront_primary:$('brandPrimary').value, storefront_secondary:$('brandSecondary').value, storefront_logo:logo }).eq('_id', tid);
         status(r && r.error ? ('Error: '+r.error.message) : 'Saved ✓');
       }catch(e){ status('Error: '+e.message); }
       this.disabled=false;

@@ -2853,20 +2853,31 @@ function saveProduct(){
   const finalCode = code || pEditCode || ('LOC'+Date.now());
   const body = { name:name, code:finalCode, main_cat:mainCat, cat:cat, sub_cat:subCat, price:price, active:active?1:0, image:image };
   const persist = function(){
-    if(pEditCode){
-      const p=GEN_PRODUCTS.find(x=>x.code===pEditCode);
-      const srcId = p ? p._srcId : null;
-      if(!srcId){ alert('Could not save: missing record id'); return; }
-      window.gdbPatch('products', srcId, body).then(function(){
-        if(p) Object.assign(p,{name,code:finalCode,mainCat,cat,subCat,price,active,image:image||p.image||''});
-        closeProductModal(); renderProductsTable();
-      }).catch(function(e){ alert('Could not save product: '+e.message); });
+    // Upload a freshly selected image (base64) to bunny.net first, then store
+    // the returned CDN URL instead of the raw base64 in the document.
+    const doSave = function(imgUrl){
+      body.image = imgUrl || '';
+      if(pEditCode){
+        const p=GEN_PRODUCTS.find(x=>x.code===pEditCode);
+        const srcId = p ? p._srcId : null;
+        if(!srcId){ alert('Could not save: missing record id'); return; }
+        window.gdbPatch('products', srcId, body).then(function(){
+          if(p) Object.assign(p,{name,code:finalCode,mainCat,cat,subCat,price,active,image:body.image||p.image||''});
+          closeProductModal(); renderProductsTable();
+        }).catch(function(e){ alert('Could not save product: '+e.message); });
+      } else {
+        window.gdbPost('products', body).then(function(created){
+          const id = created && (created.id||created._id);
+          GEN_PRODUCTS.push({_srcId:id, code:finalCode, name:name, mainCat:mainCat, cat:cat, subCat:subCat, price:price, active:active, image:body.image, inherited:false});
+          closeProductModal(); renderProductsTable();
+        }).catch(function(e){ alert('Could not create product: '+e.message); });
+      }
+    };
+    if(image && image.indexOf('data:')===0){
+      window.gdbUploadImage(image, 'products').then(doSave)
+        .catch(function(e){ alert('Could not upload image: '+e.message); });
     } else {
-      window.gdbPost('products', body).then(function(created){
-        const id = created && (created.id||created._id);
-        GEN_PRODUCTS.push({_srcId:id, code:finalCode, name:name, mainCat:mainCat, cat:cat, subCat:subCat, price:price, active:active, image:image, inherited:false});
-        closeProductModal(); renderProductsTable();
-      }).catch(function(e){ alert('Could not create product: '+e.message); });
+      doSave(image);
     }
   };
   window.gsConfirm({
