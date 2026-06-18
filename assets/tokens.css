@@ -6,8 +6,8 @@
 
 /* ── Type families ─────────────────────────────────────────── */
 :root{
-  --display:'Syne',sans-serif;
-  --body:'Outfit',sans-serif;
+  --display:'Plus Jakarta Sans',sans-serif;
+  --body:'Inter',sans-serif;
   --mono:'JetBrains Mono',monospace;
 }
 
