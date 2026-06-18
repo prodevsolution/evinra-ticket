@@ -7,7 +7,7 @@
   <title>Evinra | Ticket System — Storefront Branding</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/tokens.css">
   <script src="evinra-db.js"></script>
   <script src="assets/theme.js"></script>
@@ -23,7 +23,7 @@
     .crumb{font-size:13px;color:var(--text3,#6E827E)}
     .crumb b{color:var(--text);font-weight:600}
     .tsbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-    .company{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--p-border);background:var(--p-dim);color:var(--p);font-size:12px;font-weight:600;font-family:var(--mono,monospace)}
+    .company{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--p-border);background:var(--p-dim);color:var(--p);font-size:12px;font-weight:600;font-family:var(--mono,sans-serif)}
     .icon-btn{width:34px;height:34px;display:grid;place-items:center;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer}
     .icon-btn:hover{color:var(--text)}
     /* ── Layout ── */
@@ -61,7 +61,7 @@
     .color-cell{flex:1}
     .swatch-row{display:flex;align-items:center;gap:8px}
     input[type=color]{width:42px;height:42px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);cursor:pointer;padding:3px}
-    .hexin{flex:1;height:42px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--mono,monospace);font-size:13px;padding:0 11px;text-transform:lowercase}
+    .hexin{flex:1;height:42px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--mono,sans-serif);font-size:13px;padding:0 11px;text-transform:lowercase}
     .hexin:focus{outline:none;border-color:var(--p-border);box-shadow:0 0 0 3px var(--p-dim)}
     /* actions */
     .actions{display:flex;align-items:center;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
@@ -73,7 +73,7 @@
     .browser{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#0a1326;box-shadow:0 14px 40px rgba(0,0,0,.35)}
     .browser-bar{display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;background:#0E1E3D;border-bottom:1px solid rgba(255,255,255,.07)}
     .browser-bar i{width:9px;height:9px;border-radius:50%;background:#33415c}
-    .browser-bar .url{margin-left:10px;font-family:var(--mono,monospace);font-size:10px;color:#5b7099;background:#0a1326;border-radius:6px;padding:3px 10px}
+    .browser-bar .url{margin-left:10px;font-family:var(--mono,sans-serif);font-size:10px;color:#5b7099;background:#0a1326;border-radius:6px;padding:3px 10px}
     /* the mock storefront — uses --pv-* set by JS */
     .pv{--pv-primary:#209991;--pv-secondary:#3A4B70;background:#07112A;color:#E8EFF7;font-family:var(--body,'Inter')}
     .pv-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#0C1C3C}
