@@ -2274,7 +2274,8 @@ async function saveEvent(){
     patch.addons  = RIDES_EXP;
     patch.fees    = FEES;
     patch.taxes   = TAXES;
-    patch.layout  = _evCollectLayout();
+    // Layout / seat map is PER-INSTANCE (each date/time owns its own chart copy), so it
+    // is NOT in the shared patch — only the edited instance's layout is written below.
     // Visibility "On Sale" toggle → per-instance status
     var visBtn = document.getElementById('evVisOnSale');
     var instStatus = visBtn ? (visBtn.classList.contains('on') ? 'on sale' : 'draft') : null;
@@ -2286,6 +2287,8 @@ async function saveEvent(){
       if (!kid_id) continue;
       var body = Object.assign({}, patch);
       if (String(kid_id) === String(instId)) {
+        // This instance's own layout + per-event chart copy (other instances keep theirs)
+        var _lay = _evCollectLayout(); if (_lay) body.layout = _lay;
         // Combine the edited date with the instance's existing time of day
         if (startD) body.start_at = startD + (currentPlayDate.start ? ('T' + _to24(currentPlayDate.start)) : '');
         if (endD)   body.end_at   = endD   + (currentPlayDate.end   ? ('T' + _to24(currentPlayDate.end))   : '');
@@ -2296,7 +2299,8 @@ async function saveEvent(){
     // Reflect saved values locally so re-renders / re-opens stay correct
     if (currentEvent) {
       currentEvent.tickets = _evCloneCfg(TICKETS); currentEvent.addons = _evCloneCfg(RIDES_EXP);
-      currentEvent.fees = _evCloneCfg(FEES); currentEvent.taxes = _evCloneCfg(TAXES); currentEvent.layout = _evCollectLayout();
+      currentEvent.fees = _evCloneCfg(FEES); currentEvent.taxes = _evCloneCfg(TAXES);
+      currentEvent.layout = currentLayout ? { selected: currentLayout } : null; // group keeps only the template; chart copies are per-instance
     }
     if (currentPlayDate) {
       if (startD) currentPlayDate.date = startD.split('-')[1] + '/' + startD.split('-')[2] + '/' + startD.split('-')[0];
@@ -2712,14 +2716,39 @@ function evsmShowError(msg){
 // events. Idempotent: copies once per (event, layout); reuses the saved copy after.
 async function evEnsureEventChart(){
   if(!currentLayout) return '';
-  if(evCurrentChartKey && evChartLayoutId===currentLayout) return evCurrentChartKey; // already have this event's copy
+  var rowId = (currentPlayDate && currentPlayDate._kidId) || '';
+  // Per-instance: read THIS specific date/time's saved chart and reuse it (so edits
+  // made in the designer survive a reopen). Each instance has its own copy.
+  if(rowId){
+    try{
+      var rows = await fetch(evDbBase()+'/events?_id=eq.'+encodeURIComponent(rowId)).then(function(r){return r.json();});
+      var row = Array.isArray(rows)?rows[0]:null;
+      if(row && row.layout && row.layout.chartKey && String(row.layout.selected)===String(currentLayout)){
+        evCurrentChartKey=row.layout.chartKey; evChartLayoutId=currentLayout;
+        if(currentPlayDate) currentPlayDate.layout=row.layout;
+        return evCurrentChartKey;
+      }
+    }catch(e){}
+  } else if(evCurrentChartKey && evChartLayoutId===currentLayout){
+    return evCurrentChartKey; // no specific instance — reuse in-memory copy
+  }
+  // No saved chart for this instance+layout yet → copy the template's master chart.
   var L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
   var master = L && L.key;
   if(!master) return '';
   try{
     var r=await fetch(evSeatsioBase()+'/charts/'+encodeURIComponent(master)+'/copy',{method:'POST'});
     var j=await r.json().catch(function(){return {};});
-    if(r.ok && j.chartKey){ evCurrentChartKey=j.chartKey; evChartLayoutId=currentLayout; }
+    if(r.ok && j.chartKey){
+      evCurrentChartKey=j.chartKey; evChartLayoutId=currentLayout;
+      // Persist the chart key to THIS instance row immediately, so it sticks even if
+      // the user only edits the seat map and never clicks "Save Event".
+      if(rowId){
+        var cfg={selected:currentLayout, chartKey:j.chartKey};
+        try{ await fetch(evDbBase()+'/events?_id=eq.'+encodeURIComponent(rowId),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({layout:cfg})}); }catch(e){}
+        if(currentPlayDate) currentPlayDate.layout=cfg;
+      }
+    }
   }catch(e){}
   return evCurrentChartKey;
 }
