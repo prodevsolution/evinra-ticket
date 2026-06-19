@@ -2280,7 +2280,7 @@ async function saveEvent(){
     var visBtn = document.getElementById('evVisOnSale');
     var instStatus = visBtn ? (visBtn.classList.contains('on') ? 'on sale' : 'draft') : null;
     // The opened instance's row (for the per-instance start/end date + visibility)
-    var instId = (currentPlayDate && currentPlayDate._kidId) || '';
+    var instId = evCurrentRowId();
     var n = 0;
     for (var i = 0; i < kids.length; i++) {
       var kid_id = kids[i]._id || kids[i].id;
@@ -2714,9 +2714,24 @@ function evsmShowError(msg){
 // Ensure THIS event has its OWN seats.io chart — a copy of the assigned layout's
 // master chart — so per-event seat edits never touch the shared template or other
 // events. Idempotent: copies once per (event, layout); reuses the saved copy after.
+// Resolve the events-table row id of the currently-open date/time instance by
+// matching the play date (MM/DD/YYYY + time) against the event's DB rows. The
+// list passes only {date,start,end} (no row id), so we look it up in _kids.
+function evCurrentRowId(){
+  if(!currentEvent || !currentPlayDate) return '';
+  var kids = currentEvent._kids || [];
+  var iso = currentPlayDate.date ? _mdyToISO(currentPlayDate.date) : '';
+  if(!iso) return (kids[0] && (kids[0]._id||kids[0].id)) || '';
+  var t = currentPlayDate.start ? _to24(currentPlayDate.start) : '';
+  var want = iso + (t ? ('T'+t) : '');
+  var k = (t && kids.find(function(x){ return String(x.start_at||'').slice(0,want.length)===want; }))
+       || kids.find(function(x){ return String(x.start_at||'').indexOf(iso)===0; });
+  return k ? (k._id||k.id) : '';
+}
+
 async function evEnsureEventChart(){
   if(!currentLayout) return '';
-  var rowId = (currentPlayDate && currentPlayDate._kidId) || '';
+  var rowId = evCurrentRowId();
   // Per-instance: read THIS specific date/time's saved chart and reuse it (so edits
   // made in the designer survive a reopen). Each instance has its own copy.
   if(rowId){
@@ -2753,15 +2768,39 @@ async function evEnsureEventChart(){
   return evCurrentChartKey;
 }
 
+// A human label for the open date/time instance (e.g. "06/16/2026 · 1:00 PM").
+function evsmInstanceLabel(){
+  if(!currentPlayDate) return '';
+  return (currentPlayDate.date||'') + (currentPlayDate.start?(' · '+currentPlayDate.start):'');
+}
+
 // Sync the panel with the layout dropdown (called from onLayoutChange).
 function evsmSync(){
   evsmDestroy();
   var L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
   if(!currentLayout || !L){ evsmShow('empty'); return; }
-  var nm=document.getElementById('evsmReadyName'); if(nm) nm.textContent = L.name||'Layout';
+  var inst = evsmInstanceLabel();
+  var nm=document.getElementById('evsmReadyName'); if(nm) nm.textContent = (L.name||'Layout') + (inst?(' · '+inst):'');
   var sb=document.getElementById('evsmReadySub');
-  if(sb) sb.textContent = (L.seats>0?(L.seats.toLocaleString()+' seats · '):'') + (evCurrentChartKey?'This event’s seat map.':'Opens this event’s own copy.');
+  if(sb) sb.textContent = inst
+    ? ('This date/time gets its own editable copy of “'+(L.name||'this layout')+'”. Changes affect only this event.')
+    : ('Opens this event’s own copy of “'+(L.name||'this layout')+'”.');
   evsmShow('ready');
+  evsmReflectInstance();  // async: reflect whether this instance already has its own chart
+}
+
+// If the open instance already owns a chart copy, surface it in the Ready subtitle.
+async function evsmReflectInstance(){
+  var rowId = evCurrentRowId(); if(!rowId) return;
+  try{
+    var rows = await fetch(evDbBase()+'/events?_id=eq.'+encodeURIComponent(rowId)).then(function(r){return r.json();});
+    var row = Array.isArray(rows)?rows[0]:null;
+    var sb=document.getElementById('evsmReadySub');
+    if(row && row.layout && row.layout.chartKey && String(row.layout.selected)===String(currentLayout) && sb){
+      var inst=evsmInstanceLabel();
+      sb.innerHTML = '✓ This event'+(inst?(' ('+inst+')'):'')+' already has its <strong>own seat map</strong> — Open Designer to keep editing it.';
+    }
+  }catch(e){}
 }
 
 async function evsmOpen(){
