@@ -1434,7 +1434,7 @@ function renderSegContent(tab){
           <div id="evsmAdv" style="display:none;padding:0 18px 14px;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:6px">
               <label for="evsmSecret" style="font-size:10px;font-family:var(--display);font-weight:600;color:var(--text3);white-space:nowrap">Secret key</label>
-              <input id="evsmSecret" class="evsm-input" type="password" autocomplete="off" placeholder="Override workspace secret" style="width:200px">
+              <input id="evsmSecret" class="evsm-input" type="password" autocomplete="new-password" name="evsm-seatsio-secret" data-1p-ignore data-lpignore="true" placeholder="Override workspace secret" style="width:200px">
             </div>
             <div style="display:flex;align-items:center;gap:6px">
               <label for="evsmChart" style="font-size:10px;font-family:var(--display);font-weight:600;color:var(--text3);white-space:nowrap">Chart key</label>
@@ -2737,7 +2737,12 @@ function evsmSync(){
 
 async function evsmOpen(){
   await evsmLoadConfig();
-  var secret = (((document.getElementById('evsmSecret')||{}).value||'').trim()) || evsmSecret;
+  // Server-provided secret wins; the Advanced field is only a fallback (and is
+  // ignored unless it looks like a real seats.io key, so browser password autofill
+  // — which can inject the app login password — never reaches the designer).
+  var advSecret = (((document.getElementById('evsmSecret')||{}).value||'').trim());
+  if(advSecret && advSecret.indexOf('-')<0 && advSecret.length<30) advSecret=''; // not a seats.io key (e.g. autofilled password)
+  var secret = evsmSecret || advSecret;
   if(!secret){ evsmShowError('No seats.io workspace key available. Add it under Advanced, or set SEATSIO_SECRET_KEY on the server.'); return; }
   if(typeof seatsio==='undefined'){ evsmShowError('The seats.io SDK failed to load — check your connection and try again.'); return; }
   evsmShow('loading');
