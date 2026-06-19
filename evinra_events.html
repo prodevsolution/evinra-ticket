@@ -2679,7 +2679,9 @@ function evsmShow(state){
   ['Empty','Ready','Loading','Error'].forEach(function(s){
     var el=document.getElementById('evsm'+s); if(el) el.style.display = (s.toLowerCase()===state)?'flex':'none';
   });
-  var dz=document.getElementById('evsmDesigner'); if(dz) dz.style.display = (state==='live')?'block':'none';
+  // The mount point must have real dimensions BEFORE seats.io renders into it,
+  // so keep it visible during 'loading' too (the loading overlay sits on top).
+  var dz=document.getElementById('evsmDesigner'); if(dz) dz.style.display = (state==='live'||state==='loading')?'block':'none';
   var act=document.getElementById('evsmActions'); if(act) act.style.display = (state==='live')?'flex':'none';
 }
 
@@ -2720,7 +2722,10 @@ async function evsmOpen(){
     evsmDesigner = new seatsio.SeatingChartDesigner({
       divId:'evsmDesigner', secretKey:secret, chartKey:chartKey, region:evsmRegion||'na',
       onExitRequested: function(){ evsmClose(); },
-      onDesignerRenderingFailed: function(){ evsmShowError('The designer failed to render — verify the workspace secret key is correct.'); }
+      onDesignerRenderingFailed: function(err){
+        var detail=''; try{ detail = err ? (err.message || err.errorCode || (typeof err==='string'?err:JSON.stringify(err))) : ''; }catch(e){}
+        evsmShowError('The seats.io designer could not load'+(detail?(' — '+detail):'')+'. Open Advanced to verify the workspace, or retry.');
+      }
     });
     evsmDesigner.render();
     evsmShow('live');
