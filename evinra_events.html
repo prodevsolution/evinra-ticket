@@ -2013,8 +2013,12 @@ function _evInstISO(which){
 // ── Per-event tab config helpers (Tickets / Add-Ons / Fees / Taxes / Layout) ──
 function _evCloneCfg(arr){ return (arr||[]).map(function(o){ return Object.assign({}, o); }); }
 function _evNextId(arr){ var m=0; (arr||[]).forEach(function(o){ if(+o.id>m) m=+o.id; }); return m+1; }
-function _evApplyLayout(cfg){ currentLayout = (cfg && cfg.selected) || ''; }
-function _evCollectLayout(){ return currentLayout ? { selected: currentLayout } : null; }
+function _evApplyLayout(cfg){
+  currentLayout    = (cfg && cfg.selected) || '';
+  evCurrentChartKey= (cfg && cfg.chartKey) || '';
+  evChartLayoutId  = evCurrentChartKey ? currentLayout : '';
+}
+function _evCollectLayout(){ return currentLayout ? { selected: currentLayout, chartKey: evCurrentChartKey || '' } : null; }
 // Seed every tab's working copy from the opened event's saved config (or template defaults)
 function _evSeedTabs(){
   TICKETS   = _evCloneCfg((currentEvent && currentEvent.tickets && currentEvent.tickets.length) ? currentEvent.tickets : DEFAULT_TICKETS);   ticketNextId = _evNextId(TICKETS);
@@ -2259,6 +2263,9 @@ async function saveEvent(){
   if (!kids.length) { evNotify('Saved locally — this demo event has no database rows yet', true); return; }
   evNotify('Saving…', true);
   try {
+    // Ensure this event owns a per-event copy of the assigned layout's chart, so its
+    // seat map is independent of the template (created once, then reused).
+    await evEnsureEventChart();
     // Event-level fields → applied to every instance of this event
     var patch = { venue: venue, city: city, address: address, description: descrip, image: image };
     if (seats) patch.seats = seats;
@@ -2612,14 +2619,24 @@ const ZONE_COLOR={'GA':'var(--p)','Reserved':'var(--blue)','VIP':'var(--violet)'
 
 /* Layouts come from Settings → Layout Management (persisted, tenant-scoped, published only) */
 let EV_LAYOUTS = [];
+let evCurrentChartKey = '';   // THIS event's own seats.io chart (a copy of the assigned layout's master)
+let evChartLayoutId   = '';   // which layout (id) the per-event chart was copied from
 async function evFillLayoutSelect(){
   const sel=document.getElementById('layoutSelect'); if(!sel) return;
+  var all=[];
   try{
     const tid=(window.EVINRA&&EVINRA.tenantId)||(localStorage.getItem('evinra-tenant-id'))||'';
     const r=await fetch(evDbBase()+'/layouts?tenant_id=eq.'+encodeURIComponent(tid)+'&status=eq.published');
-    EV_LAYOUTS=await r.json(); if(!Array.isArray(EV_LAYOUTS)) EV_LAYOUTS=[];
-  }catch(e){ EV_LAYOUTS=[]; }
+    all=await r.json(); if(!Array.isArray(all)) all=[];
+  }catch(e){ all=[]; }
   if(typeof evsmLoadConfig==='function'){ evsmLoadConfig(); } // preload seats.io secret (gated)
+  // Scope to THIS event's production — layouts are tagged with the production name.
+  var prod = (currentEvent && currentEvent.production) || '';
+  EV_LAYOUTS = prod ? all.filter(function(l){ return String(l.production||'')===String(prod); }) : all;
+  if(!EV_LAYOUTS.length){
+    sel.innerHTML='<option value="">'+(prod?('No layouts for "'+prod+'"'):'No layouts yet')+'</option>';
+    return;
+  }
   sel.innerHTML='<option value="">-- Select a layout --</option>'+EV_LAYOUTS.map(function(l){
     var cap=(l.seats>0)?(' — '+(l.seats).toLocaleString()+' seats'):'';
     return '<option value="'+(l.id||l._id)+'">'+(l.name||'Layout')+cap+'</option>';
@@ -2690,12 +2707,21 @@ function evsmShowError(msg){
   evsmShow('error');
 }
 
-// Chart key comes from the selected layout (or the Advanced override).
-function evsmChartKey(){
-  var ov=((document.getElementById('evsmChart')||{}).value||'').trim();
-  if(ov) return ov;
+// Ensure THIS event has its OWN seats.io chart — a copy of the assigned layout's
+// master chart — so per-event seat edits never touch the shared template or other
+// events. Idempotent: copies once per (event, layout); reuses the saved copy after.
+async function evEnsureEventChart(){
+  if(!currentLayout) return '';
+  if(evCurrentChartKey && evChartLayoutId===currentLayout) return evCurrentChartKey; // already have this event's copy
   var L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
-  return (L && L.key) ? L.key : '';
+  var master = L && L.key;
+  if(!master) return '';
+  try{
+    var r=await fetch(evSeatsioBase()+'/charts/'+encodeURIComponent(master)+'/copy',{method:'POST'});
+    var j=await r.json().catch(function(){return {};});
+    if(r.ok && j.chartKey){ evCurrentChartKey=j.chartKey; evChartLayoutId=currentLayout; }
+  }catch(e){}
+  return evCurrentChartKey;
 }
 
 // Sync the panel with the layout dropdown (called from onLayoutChange).
@@ -2705,18 +2731,24 @@ function evsmSync(){
   if(!currentLayout || !L){ evsmShow('empty'); return; }
   var nm=document.getElementById('evsmReadyName'); if(nm) nm.textContent = L.name||'Layout';
   var sb=document.getElementById('evsmReadySub');
-  if(sb) sb.textContent = (L.seats>0?(L.seats.toLocaleString()+' seats · '):'') + 'Ready to design.';
+  if(sb) sb.textContent = (L.seats>0?(L.seats.toLocaleString()+' seats · '):'') + (evCurrentChartKey?'This event’s seat map.':'Opens this event’s own copy.');
   evsmShow('ready');
 }
 
 async function evsmOpen(){
   await evsmLoadConfig();
   var secret = (((document.getElementById('evsmSecret')||{}).value||'').trim()) || evsmSecret;
-  var chartKey = evsmChartKey();
-  if(!chartKey){ evsmShowError('Select a layout above (or enter a chart key under Advanced) to open the designer.'); return; }
   if(!secret){ evsmShowError('No seats.io workspace key available. Add it under Advanced, or set SEATSIO_SECRET_KEY on the server.'); return; }
   if(typeof seatsio==='undefined'){ evsmShowError('The seats.io SDK failed to load — check your connection and try again.'); return; }
   evsmShow('loading');
+  // Resolve the chart to edit: Advanced override → else THIS event's own copy
+  // (created from the assigned layout's master on first open).
+  var chartKey = ((document.getElementById('evsmChart')||{}).value||'').trim();
+  if(!chartKey){
+    if(!currentLayout){ evsmShowError('Select a layout above to design this event’s seat map.'); return; }
+    chartKey = await evEnsureEventChart();
+    if(!chartKey){ evsmShowError('Could not prepare this event’s seat map — verify the layout has a seats.io chart.'); return; }
+  }
   evsmDestroy();
   try{
     evsmDesigner = new seatsio.SeatingChartDesigner({
