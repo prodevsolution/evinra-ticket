@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Finances — clearer mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#209991; --teal-d:#1c8a82; --teal-50:#e7f5f4; --teal-100:#c5e8e4;
+    --ink:#1f2d30; --ink2:#5a6b6e; --ink3:#8a999c; --label:#51646a; --line:#e7edee;
+    --amber-50:#fff7ed; --amber-700:#b45309; --amber-200:#fed7aa;
+    --shade:#f3f6f8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef2f4;font-family:'Outfit',sans-serif;color:var(--ink);padding:18px}
+  .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px}
+
+  /* Header */
+  .hero{padding:14px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .crumb{font-size:11px;color:var(--label)}
+  .hero h1{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin:3px 0 2px}
+  .hero h1 span{color:var(--teal)}
+  .hero .sub{font-size:12px;color:var(--ink3)}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer}
+  .btn-primary{background:var(--teal);border-color:var(--teal);color:#fff}
+
+  .body{padding:16px 18px}
+
+  /* toolbar */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+  .field-inline{display:flex;align-items:center;gap:8px}
+  .field-inline label{font-size:12px;color:var(--label);font-weight:600}
+  .pd-select{border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-size:13px;min-width:150px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .cash-begin{display:flex;align-items:center;gap:8px}
+  .cash-begin label{font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--label);text-transform:uppercase}
+  .cash-begin .box{border:1px solid var(--teal);border-radius:8px;padding:6px 10px;min-width:120px;text-align:right;box-shadow:0 0 0 3px rgba(32,153,145,.12)}
+
+  /* Sales grid */
+  table{width:100%;border-collapse:collapse}
+  thead th{background:#eef0fb;color:var(--ink2);font-size:11px;letter-spacing:.3px;text-transform:uppercase;font-weight:700;padding:10px 12px;text-align:right}
+  thead th:first-child{text-align:left;border-top-left-radius:10px}
+  thead th:last-child{border-top-right-radius:10px}
+  tbody td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);font-size:13px}
+  tbody td:first-child{text-align:left;font-weight:700;color:var(--ink);font-size:12.5px}
+  .muted{color:var(--ink3)}
+  .addbtn{width:30px;height:30px;border-radius:8px;background:var(--teal);color:#fff;border:none;font-size:18px;line-height:1;cursor:pointer}
+  tr.total td{background:#f3f8f7;font-weight:700;color:var(--ink)}
+  tr.total td .num{font-weight:700}
+
+  /* Reconcile bottom block */
+  .recon{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .panel{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .panel-h{display:flex;align-items:center;gap:8px;padding:9px 14px;font-weight:700;font-size:12px;letter-spacing:.3px;text-transform:uppercase}
+  .panel--enter .panel-h{background:var(--teal-50);color:var(--teal-d)}
+  .panel--calc .panel-h{background:var(--shade);color:var(--ink2)}
+  .panel-h .hint{font-weight:500;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink3)}
+  .line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-top:1px solid var(--line);min-height:46px}
+  .line .lbl{font-size:13px;color:var(--ink2)}
+  .inp{width:140px;text-align:right;border:1px solid #cfd9da;border-radius:8px;padding:8px 10px;font-size:13px}
+  .inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(32,153,145,.15)}
+  .calcval{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:700;color:var(--ink)}
+  .lock{width:13px;height:13px;opacity:.5}
+  .line.result{background:#f3f8f7}
+  .line.result .lbl{font-family:'Syne',sans-serif;font-weight:700;color:var(--ink)}
+  .line.result .calcval{font-size:16px;color:var(--teal-d)}
+  .addmini{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:var(--teal);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;margin-left:6px;vertical-align:middle}
+
+  .ctas{display:flex;gap:10px;margin-top:18px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="card hero">
+  <div>
+    <div class="crumb">Venues › Fair Expo Pickleball › Finances</div>
+    <h1>Fair Expo Pickleball — <span>Finances</span></h1>
+    <div class="sub">Sales &amp; expenses per play date for this venue.</div>
+  </div>
+  <button class="btn">Back to list</button>
+</div>
+
+<!-- MAIN -->
+<div class="card body">
+  <div class="toolbar">
+    <div class="field-inline">
+      <label>Play Date</label>
+      <div class="pd-select"><span>06/04/2026</span><span class="muted">▾</span></div>
+    </div>
+    <div class="cash-begin">
+      <label>Cash beginning</label>
+      <div class="box num">$0.00</div>
+    </div>
+  </div>
+
+  <!-- SALES GRID -->
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th><th>Gross Sales</th><th>Commission</th><th>Net Sales</th>
+        <th>Per Cap.</th><th>Online / C.Card</th><th>Cash on Hand</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Box Office</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td><button class="addbtn">+</button></td></tr>
+      <tr><td>Midway</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td><button class="addbtn">+</button></td></tr>
+      <tr><td>Concession</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td><button class="addbtn">+</button></td></tr>
+      <tr><td>Novelties</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td><button class="addbtn">+</button></td></tr>
+      <tr><td>Parking</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td><button class="addbtn">+</button></td></tr>
+      <tr><td>Other</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td class="num muted">$0.00</td><td><button class="addbtn">+</button></td></tr>
+      <tr class="total"><td>Total</td><td class="num">$0.00</td><td class="num">$0.00</td><td class="num">$0.00</td><td class="num">$0.00</td><td class="num">$0.00</td><td class="num">$0.00</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <!-- RECONCILE: two clearly labeled columns -->
+  <div class="recon">
+    <!-- You enter -->
+    <div class="panel panel--enter">
+      <div class="panel-h">You enter <span class="hint">— type these in</span></div>
+      <div class="line"><span class="lbl">Expenses <button class="addmini" title="Add expense">+</button></span><input class="inp num" value="0.00"></div>
+      <div class="line"><span class="lbl">Sales Taxes</span><input class="inp num" value="0.00"></div>
+      <div class="line"><span class="lbl">Drop Count</span><input class="inp num" value="0"></div>
+      <div class="line"><span class="lbl">Deposits / Transfers</span><input class="inp num" value="0.00"></div>
+    </div>
+
+    <!-- Calculated -->
+    <div class="panel panel--calc">
+      <div class="panel-h">Calculated <span class="hint">— filled by the system</span></div>
+      <div class="line"><span class="lbl">Cash Expenses</span><span class="calcval num">$0.00 <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="#8a999c" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span></div>
+      <div class="line result"><span class="lbl">Net Income</span><span class="calcval num">$0.00</span></div>
+      <div class="line"><span class="lbl">Cash Available</span><span class="calcval num">$0.00 <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="#8a999c" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span></div>
+      <div class="line result"><span class="lbl">Cash Ending Balance</span><span class="calcval num">$0.00</span></div>
+    </div>
+  </div>
+
+  <div class="ctas">
+    <button class="btn btn-primary">Save</button>
+    <button class="btn btn-primary">Close Finance</button>
+  </div>
+</div>
+
+</body>
+</html>

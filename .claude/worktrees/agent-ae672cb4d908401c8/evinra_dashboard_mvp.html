@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="color-scheme" content="dark light"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — Dashboard MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<style>
+/* ── TOKENS ─────────────────────────────────────── */
+html[data-theme="dark"],html:not([data-theme]){
+  --display:'Syne',sans-serif;--body:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+  --bg:#0B0F0E;--bg2:#131A18;--bg3:#1B2421;--bg4:#222B28;
+  --card:#141A18;--card2:#192320;
+  --p:#2DB89C;--p-dim:rgba(45,184,156,.14);--p-border:rgba(45,184,156,.30);
+  --p-glow:rgba(45,184,156,.08);--p-contrast:#06120F;
+  --amber:#E0A361;--amber-dim:rgba(224,163,97,.14);--amber-border:rgba(224,163,97,.30);
+  --red:#E06363;--red-dim:rgba(224,99,99,.14);--red-border:rgba(224,99,99,.30);
+  --blue:#6BA3E0;--blue-dim:rgba(107,163,224,.14);--blue-border:rgba(107,163,224,.30);
+  --violet:#9C82E0;--violet-dim:rgba(156,130,224,.14);--violet-border:rgba(156,130,224,.30);
+  --gold:#EAB044;--gold-dim:rgba(234,176,68,.14);--gold-border:rgba(234,176,68,.30);
+  --tips:#5AC8A0;
+  --text:#ECF2F0;--text2:#A6B6B3;--text3:#7E928E;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+}
+html[data-theme="light"]{
+  --display:'Syne',sans-serif;--body:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+  --bg:#F7F7F4;--bg2:#FFFFFF;--bg3:#F0F0EB;--bg4:#E6E6E0;
+  --card:#FFFFFF;--card2:#FAFAF7;
+  --p:#1E8A75;--p-dim:rgba(30,138,117,.10);--p-border:rgba(30,138,117,.32);
+  --p-glow:rgba(30,138,117,.06);--p-contrast:#FFFFFF;
+  --amber:#B8772E;--amber-dim:rgba(184,119,46,.10);--amber-border:rgba(184,119,46,.32);
+  --red:#B83C3C;--red-dim:rgba(184,60,60,.10);--red-border:rgba(184,60,60,.32);
+  --blue:#3A78C2;--blue-dim:rgba(58,120,194,.10);--blue-border:rgba(58,120,194,.32);
+  --violet:#6F50C2;--violet-dim:rgba(111,80,194,.10);--violet-border:rgba(111,80,194,.32);
+  --gold:#B8862A;--gold-dim:rgba(184,134,42,.10);--gold-border:rgba(184,134,42,.32);
+  --tips:#2E9A75;
+  --text:#0E1614;--text2:#4F5E5B;--text3:#5E6E6A;
+  --border:rgba(14,22,20,.08);--border2:rgba(14,22,20,.14);
+}
+
+/* ── BASE ────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--body);background:var(--bg);color:var(--text);
+  font-size:14px;line-height:1.5;
+  transition:background-color .25s ease,color .25s ease;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--text3);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text2)}
+
+/* ── ICON THEME TOGGLE ───────────────────────────── */
+[data-theme="dark"]  .icon-sun {display:none!important}
+[data-theme="dark"]  .icon-moon{display:inline-block!important}
+[data-theme="light"] .icon-sun {display:inline-block!important}
+[data-theme="light"] .icon-moon{display:none!important}
+
+/* ── EV-ICON ─────────────────────────────────────── */
+.ev-icon{display:inline-flex;align-items:center;justify-content:center;width:1em;height:1em;flex-shrink:0;vertical-align:middle}
+.ev-icon svg{width:100%;height:100%;display:block;overflow:visible;stroke-width:1.8!important}
+svg[stroke="currentColor"]{stroke:currentColor!important}
+
+/* ── BOOTSTRAP OVERRIDES ─────────────────────────── */
+.bg-primary{background-color:var(--p)!important}
+.text-primary{color:var(--p)!important}
+.card{background-color:var(--bg2)!important;border-color:var(--border)!important}
+
+/* ── SHELL ───────────────────────────────────────── */
+.shell{display:flex;min-height:calc(100vh - 60px)}
+
+/* ── SIDEBAR ─────────────────────────────────────── */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-section{padding:10px 10px 4px}
+.sb-group{font-size:10px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:8px 10px 6px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;color:var(--text2);font-size:12px;font-weight:500;line-height:1.2;cursor:pointer;transition:all .14s;margin-bottom:1px;font-family:var(--body);text-decoration:none}
+.sb-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.sb-item.active{background:var(--p-dim);color:var(--text);border:1px solid var(--p-border)}
+.sb-item .ev-icon{width:16px;height:16px}
+.sb-item svg{stroke:var(--text2)!important}
+.sb-item:hover svg{stroke:var(--text)!important}
+.sb-item.active svg{stroke:var(--p)!important}
+.sb-item .sb-badge{margin-left:auto;font-size:10px;font-family:var(--mono);background:var(--p-dim);color:var(--p);padding:1px 6px;border-radius:4px}
+
+/* ── HEADER ──────────────────────────────────────── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;height:auto;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:20px}
+.header-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+.header-logo{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.header-logo-label{font-size:8px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;line-height:1;white-space:nowrap;font-weight:600}
+.header-content{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;margin-left:24px}
+.header-page-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
+.header-breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-right{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .14s}
+.header-user:hover{background:rgba(255,255,255,.04)}
+[data-theme="light"] .header-user:hover{background:rgba(14,22,20,.04)}
+.header-user-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.header-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.header-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .14s}
+.header-icon-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── MAIN + TOPBAR ───────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+
+/* ── CONTENT ─────────────────────────────────────── */
+.content{padding:20px 28px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+
+/* ── BENTO ───────────────────────────────────────── */
+.bento{display:grid;gap:10px}
+.bento-4{grid-template-columns:repeat(4,1fr)}
+
+/* ── BASE CARD ───────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card-corner{position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 12px 0 60px;opacity:.04}
+.c-title{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.c-title::before{content:'';display:inline-block;flex-shrink:0;width:7px;height:7px;border-radius:1px;background:var(--p);transform:rotate(45deg);opacity:.85}
+
+/* ── KPI CARDS ───────────────────────────────────── */
+.kpi{padding:18px 20px}
+.kpi .c-title{margin-bottom:6px}
+.kpi-value{font-family:var(--display);font-weight:700;font-size:clamp(24px,2.2vw,34px);line-height:1.05;letter-spacing:-.5px;color:var(--text);margin-bottom:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.kpi-value.accent{color:var(--p)}
+.kpi-delta{display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);font-weight:500;margin-bottom:12px}
+.kpi-delta.up{color:var(--p)}
+.kpi-delta.down{color:var(--red)}
+.kpi-delta.neu{color:var(--text3)}
+.kpi-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;background:var(--p);transition:width 1s cubic-bezier(.16,1,.3,1)}
+.kpi-sparkwrap{margin-top:10px;height:36px;position:relative}
+.card.accent-p{border-color:var(--p-border);background:linear-gradient(135deg,var(--card) 60%,rgba(42,155,133,.04))}
+.card.accent-a{border-color:rgba(212,136,74,.18);background:linear-gradient(135deg,var(--card) 60%,rgba(212,136,74,.03))}
+.card.accent-b{border-color:rgba(107,163,224,.18);background:linear-gradient(135deg,var(--card) 60%,rgba(107,163,224,.03))}
+.card.accent-v{border-color:rgba(156,130,224,.18);background:linear-gradient(135deg,var(--card) 60%,rgba(156,130,224,.03))}
+
+/* ── LIVE BADGE ──────────────────────────────────── */
+.live-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);font-weight:700;color:var(--p);letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:6px;border:1px solid var(--p-border);background:var(--p-dim)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--p);flex-shrink:0;animation:ldot 1.8s ease-in-out infinite}
+@keyframes ldot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.6)}}
+.topbar-date{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.topbar-sep{width:1px;height:20px;background:var(--border2);flex-shrink:0}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn{height:32px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn .ev-icon{width:14px;height:14px}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:#0B0F0E}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#0B0F0E}
+.btn-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.btn-blue:hover{background:var(--blue);color:#0B0F0E}
+.btn-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.btn-violet:hover{background:var(--violet);color:#fff}
+
+/* ── BADGES ──────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.badge-teal{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.badge-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.badge-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.badge-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.badge-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.badge-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.badge-mvp{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold);font-size:9px;font-weight:700;letter-spacing:.5px}
+
+/* ── 30-DAY CHART CARD ───────────────────────────── */
+.rev30-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.rev30-total{font-family:var(--display);font-weight:700;font-size:44px;line-height:1.05;letter-spacing:-1px;color:var(--p);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rev30-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px}
+.rev30-meta{display:flex;gap:20px}
+.rev30-meta-item{font-size:11px;font-family:var(--mono)}
+.rev30-meta-item .rl{color:var(--text3)}
+.rev30-meta-item .rv{color:var(--text);font-weight:500}
+.rev30-chart{height:100px;position:relative;margin-top:4px}
+
+/* ── QUICK ACTIONS ───────────────────────────────── */
+.qa-list{display:flex;flex-direction:column;gap:7px}
+.qa-btn{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:9px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .14s;text-decoration:none;width:100%}
+.qa-btn:hover{border-color:var(--border2);background:var(--bg4)}
+.qa-btn.primary{border-color:var(--p-border);background:var(--p-dim)}
+.qa-btn.primary:hover{background:var(--p)}
+.qa-btn.primary:hover .qa-icon{background:rgba(6,18,15,.25)}
+.qa-btn.primary:hover .qa-label{color:#0B0F0E}
+.qa-btn.primary:hover .qa-arrow{color:#0B0F0E}
+.qa-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg4);transition:all .14s}
+.qa-btn.primary .qa-icon{background:rgba(45,184,156,.15)}
+.qa-body{flex:1;min-width:0}
+.qa-label{font-size:12px;font-weight:600;color:var(--text);transition:color .14s;font-family:var(--body)}
+.qa-btn.primary .qa-label{color:var(--p)}
+.qa-desc{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.qa-arrow{font-size:12px;color:var(--text3);flex-shrink:0;transition:color .14s}
+.qa-divider{height:1px;background:var(--border);margin:6px 0}
+.qa-insight{padding:11px 14px;border-radius:9px;border:1px solid var(--amber-border);background:var(--amber-dim)}
+.qa-insight-label{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--amber);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
+.qa-insight-text{font-size:11px;color:var(--text2);line-height:1.45}
+.qa-insight-text span{color:var(--amber);font-weight:600}
+
+/* ── UPCOMING SHOWS ──────────────────────────────── */
+.shows-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.shows-table-head{display:grid;grid-template-columns:1fr 96px 108px 80px 96px;align-items:center;gap:10px;padding:0 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.shows-th{font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.show-row{display:grid;grid-template-columns:1fr 96px 108px 80px 96px;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);transition:background .12s}
+.show-row:last-child{border-bottom:none}
+.show-row:hover{background:var(--bg3);margin:0 -20px;padding-left:20px;padding-right:20px;border-radius:0}
+.show-name-wrap{display:flex;align-items:center;gap:8px;min-width:0}
+.show-pip{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.show-name{font-size:12.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.show-city{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:1px}
+.city-tag{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);white-space:nowrap;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.show-date-cell{display:flex;flex-direction:column;gap:2px}
+.show-date{font-size:11px;font-family:var(--mono);color:var(--text);font-weight:500}
+.show-time{font-size:10px;font-family:var(--mono);color:var(--text3)}
+.cap-wrap{display:flex;flex-direction:column;gap:4px}
+.cap-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.cap-fill{height:100%;border-radius:2px;background:var(--p);transition:width 1s cubic-bezier(.16,1,.3,1)}
+.cap-pct{font-size:10px;font-family:var(--mono);color:var(--text3)}
+.show-revenue{font-size:12px;font-family:var(--mono);font-weight:500;color:var(--p);text-align:right}
+.show-revenue.muted{color:var(--text3)}
+
+
+/* ── LOAD ANIMATIONS ─────────────────────────────── */
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.bento-4 .card:nth-child(1){animation:slideUp .4s .04s both}
+.bento-4 .card:nth-child(2){animation:slideUp .4s .10s both}
+.bento-4 .card:nth-child(3){animation:slideUp .4s .16s both}
+.bento-4 .card:nth-child(4){animation:slideUp .4s .22s both}
+.row-b-l{animation:slideUp .4s .30s both}
+.row-b-r{animation:slideUp .4s .36s both}
+.row-c-l{animation:slideUp .4s .42s both}
+
+/* ── A11Y: visible focus ─────────────────────────── */
+a:focus-visible,button:focus-visible,.btn:focus-visible,.qa-btn:focus-visible,
+.sb-item:focus-visible,.header-icon-btn:focus-visible,.header-user:focus-visible,
+.hdr-menu-btn:focus-visible{outline:2px solid var(--p);outline-offset:2px;border-radius:8px}
+/* skip link */
+.skip-link{position:absolute;left:8px;top:-48px;z-index:1100;background:var(--p);color:var(--p-contrast);
+  padding:8px 14px;border-radius:8px;font-family:var(--mono);font-size:12px;font-weight:600;
+  text-decoration:none;transition:top .15s}
+.skip-link:focus{top:8px}
+/* trim long bar fills (was 1s) */
+.kpi-bar-fill,.cap-fill{transition:width .55s cubic-bezier(.16,1,.3,1)}
+
+/* ── A11Y: reduced motion ────────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+
+/* ── TOUCH targets (coarse pointers) ─────────────── */
+@media (pointer:coarse){
+  .btn{height:40px}
+  .header-icon-btn{width:44px;height:44px}
+  .sb-item{padding-top:11px;padding-bottom:11px}
+  a.qa-btn{padding-top:13px;padding-bottom:13px}
+}
+
+/* ── MOBILE NAV DRAWER ───────────────────────────── */
+.hdr-menu-btn{display:none;width:36px;height:36px;flex-shrink:0;border:1px solid var(--border);
+  border-radius:8px;background:var(--bg3);color:var(--text2);align-items:center;justify-content:center;cursor:pointer}
+.hdr-menu-btn:hover{border-color:var(--border2);color:var(--text)}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999}
+.sb-backdrop.open{display:block}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width:1024px){
+  .bento-4{grid-template-columns:repeat(2,1fr)}
+  .row-b-l{grid-template-columns:1fr!important}
+}
+@media (max-width:720px){
+  .hdr-menu-btn{display:inline-flex}
+  .app-header{padding:10px 16px;gap:12px;flex-wrap:wrap}
+  .header-content{margin-left:12px}
+  .topbar{height:auto;flex-wrap:wrap;gap:8px;padding:8px 16px}
+  .content{padding:16px}
+  .bento-4{grid-template-columns:1fr}
+  .kpi-value{font-size:30px!important}
+  .rev30-total{font-size:34px}
+  .rev30-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .rev30-meta{gap:14px;flex-wrap:wrap}
+  /* sidebar → slide-in drawer */
+  .sidebar{position:fixed;left:0;top:0;height:100dvh;width:240px;transform:translateX(-100%);
+    transition:transform .25s ease;z-index:1000;box-shadow:0 0 40px rgba(0,0,0,.45)}
+  .sidebar.open{transform:none}
+  /* shows table → hide City + Capacity columns, keep Show/Date/Revenue */
+  .shows-table-head,.show-row{grid-template-columns:1fr 92px 90px}
+  .shows-table-head>:nth-child(2),.shows-table-head>:nth-child(4),
+  .show-row>:nth-child(2),.show-row>:nth-child(4){display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
+<div class="sb-backdrop" id="sbBackdrop" onclick="toggleSidebar()" aria-hidden="true"></div>
+
+<!-- ── HEADER ─────────────────────────────────────── -->
+<header class="app-header">
+  <div class="header-left">
+    <button type="button" class="hdr-menu-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="header-logo">
+      <svg style="height:38px;width:auto;display:block" viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+<path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+<path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+<path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+<path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+<path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+<path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+<path d="M219.307 76.6345V74.2444H231.761V76.6345H226.936V89.9841H224.131V76.6345H219.307Z" style="fill:var(--text3)"/>
+<path d="M236.989 74.2444V89.9841H234.162V74.2444H236.989Z" style="fill:var(--text3)"/>
+<path d="M253.413 79.555H250.562C250.481 79.0836 250.331 78.666 250.112 78.3023C249.894 77.9334 249.622 77.6208 249.297 77.3646C248.971 77.1085 248.601 76.9163 248.184 76.7882C247.772 76.655 247.328 76.5884 246.85 76.5884C246.002 76.5884 245.249 76.8036 244.594 77.234C243.939 77.6593 243.425 78.2843 243.054 79.1092C242.683 79.929 242.498 80.9307 242.498 82.1143C242.498 83.3183 242.683 84.3328 243.054 85.1577C243.43 85.9775 243.944 86.5974 244.594 87.0176C245.249 87.4326 245.999 87.6401 246.842 87.6401C247.31 87.6401 247.747 87.5786 248.153 87.4556C248.565 87.3275 248.933 87.1405 249.259 86.8946C249.589 86.6487 249.866 86.3464 250.089 85.9877C250.318 85.6291 250.476 85.2192 250.562 84.758L253.413 84.7734C253.306 85.5215 253.075 86.2234 252.719 86.8792C252.368 87.5351 251.908 88.114 251.339 88.6161C250.77 89.1131 250.105 89.5025 249.342 89.7843C248.58 90.061 247.734 90.1993 246.804 90.1993C245.432 90.1993 244.208 89.8791 243.131 89.2387C242.053 88.5982 241.205 87.6734 240.585 86.4642C239.965 85.255 239.655 83.805 239.655 82.1143C239.655 80.4183 239.968 78.9683 240.593 77.7643C241.218 76.5551 242.069 75.6303 243.146 74.9898C244.223 74.3494 245.443 74.0292 246.804 74.0292C247.673 74.0292 248.481 74.1521 249.228 74.3981C249.975 74.644 250.641 75.0052 251.225 75.4817C251.809 75.9531 252.29 76.5321 252.666 77.2186C253.047 77.9001 253.296 78.6789 253.413 79.555Z" style="fill:var(--text3)"/>
+<path d="M256.002 89.9841V74.2444H258.83V81.4764H259.02L265.11 74.2444H268.563L262.526 81.3073L268.616 89.9841H265.217L260.56 83.2363L258.83 85.296V89.9841H256.002Z" style="fill:var(--text3)"/>
+<path d="M270.527 89.9841V74.2444H280.68V76.6345H273.355V80.9076H280.154V83.2978H273.355V87.594H280.741V89.9841H270.527Z" style="fill:var(--text3)"/>
+<path d="M282.879 76.6345V74.2444H295.333V76.6345H290.508V89.9841H287.703V76.6345H282.879Z" style="fill:var(--text3)"/>
+<path d="M300.561 74.2444V89.9841H297.734V74.2444H300.561Z" style="fill:var(--text3)"/>
+<path d="M316.451 74.2444V89.9841H313.936L306.581 79.263H306.451V89.9841H303.623V74.2444H306.154L313.501 84.9732H313.639V74.2444H316.451Z" style="fill:var(--text3)"/>
+<path d="M329.989 79.2706C329.862 78.8556 329.687 78.4842 329.463 78.1562C329.245 77.8232 328.981 77.5389 328.671 77.3032C328.366 77.0675 328.015 76.8907 327.619 76.7729C327.223 76.6499 326.791 76.5884 326.323 76.5884C325.485 76.5884 324.738 76.801 324.082 77.2263C323.427 77.6516 322.911 78.2767 322.535 79.1016C322.164 79.9213 321.979 80.9204 321.979 82.0989C321.979 83.2876 322.164 84.2944 322.535 85.1193C322.906 85.9442 323.422 86.5718 324.082 87.0022C324.743 87.4275 325.51 87.6401 326.384 87.6401C327.177 87.6401 327.863 87.4864 328.442 87.179C329.026 86.8715 329.476 86.436 329.791 85.8724C330.106 85.3037 330.264 84.6376 330.264 83.8742L330.904 83.9741H326.666V81.7453H333V83.636C333 84.9835 332.715 86.1491 332.146 87.1329C331.577 88.1166 330.795 88.8749 329.799 89.4077C328.803 89.9355 327.66 90.1993 326.369 90.1993C324.931 90.1993 323.668 89.874 322.581 89.2233C321.499 88.5675 320.653 87.6375 320.043 86.4335C319.438 85.2243 319.136 83.7897 319.136 82.1296C319.136 80.859 319.314 79.7241 319.669 78.725C320.03 77.7259 320.533 76.8779 321.178 76.1811C321.824 75.4792 322.581 74.9463 323.45 74.5825C324.319 74.2136 325.264 74.0292 326.285 74.0292C327.149 74.0292 327.954 74.1572 328.701 74.4134C329.448 74.6645 330.111 75.0232 330.691 75.4894C331.275 75.9557 331.755 76.509 332.131 77.1495C332.507 77.7899 332.754 78.497 332.87 79.2706H329.989Z" style="fill:var(--text3)"/>
+</svg>
+    </div>
+    <div class="header-content">
+      <div class="header-page-title" role="heading" aria-level="1">
+        Dashboard
+        <span class="badge badge-mvp" style="font-size:8px;padding:2px 7px;letter-spacing:.8px">MVP</span>
+      </div>
+      <div class="header-breadcrumb">Home / Dashboard (MVP View)</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ──────────────────────────────────── -->
+  <nav class="sidebar" id="sidebar" aria-label="Primary">
+    <div class="sb-section">
+      <div class="sb-group">Main</div>
+      <a href="evinra_dashboard_mvp.html" class="sb-item active"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg></span>Dashboard <span class="sb-badge">MVP</span></a>
+      <a href="evinra_events.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events</a>
+<a href="evinra_order_detail.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Orders</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Reports</div>
+      <a href="evinra_sales_overview.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg></span>Sales Overview</a>
+      <a href="evinra_event_sales_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Sales Report</a>
+      <a href="evinra_attendance_scan_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg></span>Attendance &amp; Scan</a>
+      <a href="evinra_refund_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Refund Report</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Settings</div>
+      <a href="evinra_general.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>General</a>
+      <a href="evinra_shows.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Shows</a>
+      <a href="evinra_seating_map.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Layout Management</a>
+      <a href="evinra_discounts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo Codes</a>
+      <a href="evinra_credit_plans.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Plans</a>
+      <a href="evinra_experience_tickets.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Experience Ticketing</a>
+      <a href="evinra_other_vendors.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Others Vendors</a>
+      <a href="evinra_vendor_sales_links.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Vendor Referral Links</a>
+      <a href="evinra_fees_taxes.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Fees &amp; Taxes</a>
+      <a href="evinra_users.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</a>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ────────────────────────────────────── -->
+  <main class="main" id="mainContent">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="live-badge"><span class="live-dot"></span>Live</div>
+        <div class="topbar-sep"></div>
+        <span class="topbar-date" id="todayDate">Sat, May 23 2026</span>
+        <div class="topbar-sep"></div>
+        <span class="topbar-date" style="color:var(--text2)"><span id="tbActiveShows">3</span> active shows &nbsp;·&nbsp; <span style="color:var(--p)">3,847</span> tickets today</span>
+      </div>
+      <div class="topbar-right">
+        <a href="evinra_dashboard_v2.html" class="btn btn-ghost">
+          <span class="ev-icon" style="width:13px;height:13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          Analytics v2
+        </a>
+        <a href="evinra_events.html" class="btn btn-primary">
+          <span class="ev-icon" style="width:13px;height:13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          New Event
+        </a>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ── ROW A — 4 Hero KPIs ───────────────────── -->
+      <div class="bento bento-4">
+
+        <!-- KPI 1 — Revenue (Period) -->
+        <div class="card kpi accent-p">
+          <div class="card-corner" style="background:var(--p)"></div>
+          <div class="c-title" role="heading" aria-level="2" style="color:var(--p)">Period Revenue</div>
+          <div class="kpi-value accent">$186,400</div>
+          <div class="kpi-delta up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="18 15 12 9 6 15"/></svg>
+            +12.8% vs last period
+          </div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-rev-bar" style="width:0%"></div></div>
+          <div class="kpi-sparkwrap"><canvas id="spk1" role="img" aria-label="Revenue sparkline"></canvas></div>
+        </div>
+
+        <!-- KPI 2 — Tickets Today -->
+        <div class="card kpi accent-b">
+          <div class="card-corner" style="background:var(--blue)"></div>
+          <div class="c-title" role="heading" aria-level="2" style="color:var(--blue)">Tickets Today</div>
+          <div class="kpi-value" style="color:var(--blue)" id="ticketsToday">3,847</div>
+          <div class="kpi-delta up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="18 15 12 9 6 15"/></svg>
+            +241 vs yesterday
+          </div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-tick-bar" style="width:0%;background:var(--blue)"></div></div>
+          <div class="kpi-sparkwrap"><canvas id="spk2" role="img" aria-label="Tickets sparkline"></canvas></div>
+        </div>
+
+        <!-- KPI 3 — Active Shows -->
+        <div class="card kpi accent-v">
+          <div class="card-corner" style="background:var(--violet)"></div>
+          <div class="c-title" role="heading" aria-level="2" style="color:var(--violet)">Active Shows</div>
+          <div class="kpi-value" style="color:var(--violet)" id="kpiActiveShows">3</div>
+          <div class="kpi-delta up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="18 15 12 9 6 15"/></svg>
+            2 new this week
+          </div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-show-bar" style="width:0%;background:var(--violet)"></div></div>
+          <div class="kpi-sparkwrap"><canvas id="spk3" role="img" aria-label="Shows sparkline"></canvas></div>
+        </div>
+
+        <!-- KPI 4 — Scan Success Rate -->
+        <div class="card kpi accent-a">
+          <div class="card-corner" style="background:var(--amber)"></div>
+          <div class="c-title" role="heading" aria-level="2" style="color:var(--amber)">Scan Success</div>
+          <div class="kpi-value">94<span style="font-size:22px;color:var(--text2)">%</span></div>
+          <div class="kpi-delta neu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Stable — no change
+          </div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-scan-bar" style="width:0%;background:var(--amber)"></div></div>
+          <div class="kpi-sparkwrap"><canvas id="spk4" role="img" aria-label="Scan rate sparkline"></canvas></div>
+        </div>
+
+      </div><!-- /bento-4 -->
+
+      <!-- ── ROW B — 30-Day Revenue + Quick Actions ─── -->
+      <div class="bento row-b-l" style="grid-template-columns:2fr 1fr;gap:10px">
+
+        <!-- 30-Day Revenue Area Chart -->
+        <div class="card" style="padding:20px 22px">
+          <div class="rev30-header">
+            <div>
+              <div class="c-title" role="heading" aria-level="2" style="margin-bottom:6px">30-Day Revenue</div>
+              <div class="rev30-total">$186K</div>
+              <div class="rev30-sub">May 2026 — running total</div>
+            </div>
+            <div class="rev30-meta">
+              <div class="rev30-meta-item"><span class="rl">Peak &nbsp;</span><span class="rv">$12,400</span></div>
+              <div class="rev30-meta-item"><span class="rl">Daily Avg &nbsp;</span><span class="rv">$8,104</span></div>
+              <div class="rev30-meta-item"><span class="rl">vs Last Mo &nbsp;</span><span class="rv" style="color:var(--p)">+12.8%</span></div>
+            </div>
+          </div>
+          <div class="rev30-chart">
+            <canvas id="rev30Chart" role="img" aria-label="30-day revenue area chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card row-b-r" style="padding:18px 18px">
+          <div class="c-title" role="heading" aria-level="2">Quick Actions</div>
+          <div class="qa-list">
+            <a href="evinra_events.html" class="qa-btn primary">
+              <div class="qa-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--p)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <div class="qa-body">
+                <div class="qa-label">Create New Event</div>
+                <div class="qa-desc">Add shows, venues &amp; play dates</div>
+              </div>
+              <svg class="qa-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+
+            <a href="evinra_sales_overview.html" class="qa-btn">
+              <div class="qa-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke:var(--text3)"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg>
+              </div>
+              <div class="qa-body">
+                <div class="qa-label" style="color:var(--text2)">Sales Overview</div>
+                <div class="qa-desc">Full revenue &amp; trends</div>
+              </div>
+              <svg class="qa-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+
+            <a href="evinra_attendance_scan_report.html" class="qa-btn">
+              <div class="qa-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke:var(--text3)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg>
+              </div>
+              <div class="qa-body">
+                <div class="qa-label" style="color:var(--text2)">Attendance &amp; Scan</div>
+                <div class="qa-desc">Gate operations &amp; scan log</div>
+              </div>
+              <svg class="qa-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+
+            <a href="evinra_order_detail.html" class="qa-btn">
+              <div class="qa-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke:var(--text3)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+              </div>
+              <div class="qa-body">
+                <div class="qa-label" style="color:var(--text2)">Order Transactions</div>
+                <div class="qa-desc">Browse all orders &amp; receipts</div>
+              </div>
+              <svg class="qa-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+
+            <div class="qa-divider"></div>
+
+            <div class="qa-insight">
+              <div class="qa-insight-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;display:inline-block;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Insight
+              </div>
+              <div class="qa-insight-text">
+                <span>Evinra Circus 2026 — Tampa</span> is tracking <span>78% capacity</span> — consider a flash promo for the remaining 22%.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /row-b -->
+
+      <!-- ── ROW C — Upcoming Shows + Activity Feed ─── -->
+      <div class="bento row-c-l" style="grid-template-columns:1fr;gap:10px">
+
+        <!-- Upcoming Shows -->
+        <div class="card" style="padding:18px 20px">
+          <div class="shows-header">
+            <div class="c-title" role="heading" aria-level="2" style="margin-bottom:0">Upcoming Shows</div>
+            <a href="evinra_events.html" style="font-size:11px;font-family:var(--mono);color:var(--p);text-decoration:none;display:flex;align-items:center;gap:4px">
+              View All
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <div class="shows-table-head">
+            <div class="shows-th">Show / City</div>
+            <div class="shows-th">City</div>
+            <div class="shows-th">Next Date</div>
+            <div class="shows-th">Capacity</div>
+            <div class="shows-th" style="text-align:right">Revenue</div>
+          </div>
+
+          <div id="dashShowsBody"></div>
+          <!-- Circus of Dreams -->
+          <div class="show-row">
+            <div class="show-name-wrap">
+              <span class="show-pip" style="background:var(--p)"></span>
+              <div>
+                <div class="show-name">Circus of Dreams</div>
+                <div class="show-city">AmericanAirlines Arena</div>
+              </div>
+              <span class="badge badge-teal" style="margin-left:6px;font-size:9px">On Sale</span>
+            </div>
+            <span class="city-tag">Miami</span>
+            <div class="show-date-cell">
+              <div class="show-date">Apr 28</div>
+              <div class="show-time">7:00 PM</div>
+            </div>
+            <div class="cap-wrap">
+              <div class="cap-bar"><div class="cap-fill" id="cap1" style="width:0%" data-w="52"></div></div>
+              <div class="cap-pct">52%</div>
+            </div>
+            <div class="show-revenue">$55,000</div>
+          </div>
+
+          <!-- Flying Lions -->
+          <div class="show-row">
+            <div class="show-name-wrap">
+              <span class="show-pip" style="background:var(--amber)"></span>
+              <div>
+                <div class="show-name">Flying Lions</div>
+                <div class="show-city">Amway Center</div>
+              </div>
+              <span class="badge badge-teal" style="margin-left:6px;font-size:9px">On Sale</span>
+            </div>
+            <span class="city-tag">Orlando</span>
+            <div class="show-date-cell">
+              <div class="show-date">May 20</div>
+              <div class="show-time">7:30 PM</div>
+            </div>
+            <div class="cap-wrap">
+              <div class="cap-bar"><div class="cap-fill" id="cap2" style="width:0%;background:var(--amber)" data-w="78"></div></div>
+              <div class="cap-pct">78%</div>
+            </div>
+            <div class="show-revenue">$96,200</div>
+          </div>
+
+          <!-- Acrobat Fever -->
+          <div class="show-row">
+            <div class="show-name-wrap">
+              <span class="show-pip" style="background:var(--violet)"></span>
+              <div>
+                <div class="show-name">Acrobat Fever</div>
+                <div class="show-city">Amalie Arena</div>
+              </div>
+              <span class="badge badge-teal" style="margin-left:6px;font-size:9px">On Sale</span>
+            </div>
+            <span class="city-tag">Tampa</span>
+            <div class="show-date-cell">
+              <div class="show-date">Jun 15</div>
+              <div class="show-time">8:00 PM</div>
+            </div>
+            <div class="cap-wrap">
+              <div class="cap-bar"><div class="cap-fill" id="cap3" style="width:0%;background:var(--violet)" data-w="34"></div></div>
+              <div class="cap-pct">34%</div>
+            </div>
+            <div class="show-revenue">$32,300</div>
+          </div>
+
+          <!-- Fire & Silk -->
+          <div class="show-row">
+            <div class="show-name-wrap">
+              <span class="show-pip" style="background:var(--red)"></span>
+              <div>
+                <div class="show-name">Fire &amp; Silk</div>
+                <div class="show-city">VyStar Veterans Arena</div>
+              </div>
+              <span class="badge badge-teal" style="margin-left:6px;font-size:9px">On Sale</span>
+            </div>
+            <span class="city-tag">Jacksonville</span>
+            <div class="show-date-cell">
+              <div class="show-date">Jul 1</div>
+              <div class="show-time">7:00 PM</div>
+            </div>
+            <div class="cap-wrap">
+              <div class="cap-bar"><div class="cap-fill" id="cap4" style="width:0%;background:var(--red)" data-w="12"></div></div>
+              <div class="cap-pct">12%</div>
+            </div>
+            <div class="show-revenue">$8,440</div>
+          </div>
+
+          <!-- Night Cirque -->
+          <div class="show-row">
+            <div class="show-name-wrap">
+              <span class="show-pip" style="background:var(--blue)"></span>
+              <div>
+                <div class="show-name">Night Cirque</div>
+                <div class="show-city">Van Wezel Performing Arts</div>
+              </div>
+              <span class="badge badge-muted" style="margin-left:6px;font-size:9px">Coming Soon</span>
+            </div>
+            <span class="city-tag">Sarasota</span>
+            <div class="show-date-cell">
+              <div class="show-date">Jul 22</div>
+              <div class="show-time">7:30 PM</div>
+            </div>
+            <div class="cap-wrap">
+              <div class="cap-bar"><div class="cap-fill" id="cap5" style="width:0%;background:var(--blue)" data-w="0"></div></div>
+              <div class="cap-pct" style="color:var(--text3)">—</div>
+            </div>
+            <div class="show-revenue muted">—</div>
+          </div>
+
+        </div><!-- /upcoming shows -->
+
+      </div><!-- /row-c -->
+
+    </div><!-- /content -->
+  </main><!-- /main -->
+</div><!-- /shell -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+  /* ── HELPERS ─────────────────────────────────── */
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  /* ── DATE ────────────────────────────────────── */
+  (function(){
+    var d = new Date(2026,4,23);
+    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var el = document.getElementById('todayDate');
+    if(el) el.textContent = days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear();
+  })();
+
+  /* ── CHARTS ──────────────────────────────────── */
+  var charts = [];
+  function destroyAll(){ while(charts.length){ var c=charts.pop(); try{c.destroy();}catch(e){} } }
+
+  function alphaHex(hex,a){
+    var m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if(!m) return hex;
+    return 'rgba('+parseInt(m[1],16)+','+parseInt(m[2],16)+','+parseInt(m[3],16)+','+a/100+')';
+  }
+
+  function buildCharts(){
+    destroyAll();
+    var C = {
+      text:   cssVar('--text'),   text2:  cssVar('--text2'),  text3:  cssVar('--text3'),
+      border: cssVar('--border'), bg3:    cssVar('--bg3'),     bg4:    cssVar('--bg4'),
+      p:      cssVar('--p'),      pBorder:cssVar('--p-border'),
+      amber:  cssVar('--amber'),  blue:   cssVar('--blue'),
+      violet: cssVar('--violet'), red:    cssVar('--red'),
+    };
+
+    Chart.defaults.color = C.text3;
+    Chart.defaults.font.family = "'JetBrains Mono',monospace";
+    Chart.defaults.font.size = 10;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      Chart.defaults.animation = false;
+    }
+
+    var tip = { backgroundColor:C.bg3, borderColor:C.pBorder, borderWidth:1,
+                titleColor:C.text, bodyColor:C.text2, padding:8 };
+
+    /* sparklines */
+    function spk(id, data, color){
+      var el = document.getElementById(id); if(!el) return;
+      charts.push(new Chart(el,{
+        type:'line',
+        data:{labels:data.map(function(_,i){return i}),
+          datasets:[{data:data,borderColor:color,borderWidth:1.5,pointRadius:0,tension:.4,fill:false}]},
+        options:{responsive:true,maintainAspectRatio:false,animation:{duration:900},
+          plugins:{legend:{display:false},tooltip:{enabled:false}},
+          scales:{x:{display:false},y:{display:false}}}
+      }));
+    }
+    spk('spk1',[80,95,88,105,98,112,108,120,115,130,125,142,186], C.p);
+    spk('spk2',[2800,3200,2600,3600,3400,3900,3100,3700,3500,4100,3600,3847], C.blue);
+    spk('spk3',[3,3,4,4,4,5,5,5,5,5,5,5], C.violet);
+    spk('spk4',[90,92,91,93,93,94,92,95,94,93,94,94], C.amber);
+
+    /* 30-day area chart */
+    var rev30El = document.getElementById('rev30Chart');
+    if(rev30El){
+      var rev30Data = [4200,5800,3900,6700,8200,5100,4400,7300,9800,6200,5500,8900,11200,7800,6400,5700,9200,10800,8300,7100,6800,9500,12400];
+      var labels30 = rev30Data.map(function(_,i){ return (i+1)+''; });
+      charts.push(new Chart(rev30El,{
+        type:'line',
+        data:{
+          labels:labels30,
+          datasets:[{
+            label:'Revenue',
+            data:rev30Data,
+            borderColor:C.p,
+            backgroundColor:function(ctx){
+              var g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
+              g.addColorStop(0, alphaHex(C.p,22));
+              g.addColorStop(1, alphaHex(C.p,0));
+              return g;
+            },
+            borderWidth:2, pointRadius:0, fill:true, tension:.4
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          animation:{duration:1100,easing:'easeOutQuart'},
+          plugins:{
+            legend:{display:false},
+            tooltip:{...tip, callbacks:{label:function(c){return '$'+c.parsed.y.toLocaleString()}}}
+          },
+          scales:{
+            x:{grid:{display:false}, ticks:{maxTicksLimit:8, font:{size:9}, color:C.text3}},
+            y:{grid:{color:C.border}, ticks:{callback:function(v){return '$'+(v/1000)+'K'}, font:{size:9}, color:C.text3}}
+          }
+        }
+      }));
+    }
+  }
+
+  buildCharts();
+  window.addEventListener('themechange', buildCharts);
+
+  /* ── KPI BAR ANIMATIONS ──────────────────────── */
+  setTimeout(function(){
+    function setW(id,w){ var el=document.getElementById(id); if(el) el.style.width=w; }
+    setW('kpi-rev-bar','78%');
+    setW('kpi-tick-bar','64%');
+    setW('kpi-show-bar','50%');
+    setW('kpi-scan-bar','94%');
+  }, 350);
+
+  /* ── CAPACITY BAR ANIMATIONS ─────────────────── */
+  setTimeout(function(){
+    document.querySelectorAll('.cap-fill[data-w]').forEach(function(el){
+      el.style.width = el.dataset.w + '%';
+    });
+  }, 500);
+
+  /* ── MOBILE NAV DRAWER ───────────────────────── */
+  function toggleSidebar(){
+    var sb=document.getElementById('sidebar'),
+        bd=document.getElementById('sbBackdrop'),
+        btn=document.querySelector('.hdr-menu-btn');
+    if(!sb) return;
+    var open=sb.classList.toggle('open');
+    if(bd) bd.classList.toggle('open', open);
+    if(btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  window.toggleSidebar = toggleSidebar;
+  function closeSidebar(){
+    var sb=document.getElementById('sidebar'); if(!sb||!sb.classList.contains('open')) return;
+    sb.classList.remove('open');
+    var bd=document.getElementById('sbBackdrop'); if(bd) bd.classList.remove('open');
+    var btn=document.querySelector('.hdr-menu-btn'); if(btn) btn.setAttribute('aria-expanded','false');
+  }
+  document.querySelectorAll('#sidebar .sb-item').forEach(function(a){
+    a.addEventListener('click', function(){ if(window.matchMedia('(max-width:720px)').matches) closeSidebar(); });
+  });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeSidebar(); });
+
+  /* ── UPCOMING SHOWS + KPIs from canonical dataset (assets/data.js) ── */
+  if (window.EVINRA) {
+    var t = EVINRA.totals;
+    var as = document.getElementById('kpiActiveShows'); if (as) as.textContent = t.activeShows;
+    var tb = document.getElementById('tbActiveShows');  if (tb) tb.textContent = t.activeShows;
+
+    var body = document.getElementById('dashShowsBody');
+    if (body) {
+      var ups = EVINRA.events.filter(function(e){ return e.status !== 'Completed'; })
+        .sort(function(a,b){ return a.firstDate.iso < b.firstDate.iso ? -1 : 1; });
+      body.innerHTML = ups.map(function(e){
+        var badge = e.status === 'On Sale' ? 'badge-teal' : 'badge-muted';
+        var cap = e.soldPct > 0
+          ? '<div class="cap-bar"><div class="cap-fill" style="width:'+e.soldPct+'%;background:'+e.color+'"></div></div><div class="cap-pct">'+e.soldPct+'%</div>'
+          : '<div class="cap-bar"><div class="cap-fill" style="width:0%;background:'+e.color+'"></div></div><div class="cap-pct" style="color:var(--text3)">—</div>';
+        var rev = e.soldPct > 0 ? '<div class="show-revenue">'+EVINRA.fmtMoney(e.revenue)+'</div>' : '<div class="show-revenue muted">—</div>';
+        return '<div class="show-row">'
+          + '<div class="show-name-wrap"><span class="show-pip" style="background:'+e.color+'"></span>'
+          + '<div><div class="show-name">'+e.showName+'</div><div class="show-city">'+e.venue+'</div></div>'
+          + '<span class="badge '+badge+'" style="margin-left:6px;font-size:9px">'+e.status+'</span></div>'
+          + '<span class="city-tag">'+e.city+'</span>'
+          + '<div class="show-date-cell"><div class="show-date">'+e.firstDate.short+'</div><div class="show-time">1:00 PM</div></div>'
+          + '<div class="cap-wrap">'+cap+'</div>'
+          + rev + '</div>';
+      }).join('');
+      // remove the static placeholder rows (direct children of the card)
+      var card = body.closest('.card');
+      if (card) card.querySelectorAll(':scope > .show-row').forEach(function(n){ n.remove(); });
+    }
+  }
+
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

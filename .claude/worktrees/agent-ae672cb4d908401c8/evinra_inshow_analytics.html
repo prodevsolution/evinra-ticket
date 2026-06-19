@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="color-scheme" content="dark light"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — In-Show Purchase Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="assets/theme.js"></script>
+<style>/* CRITICAL: Scrollbar styling */
+::-webkit-scrollbar{width:8px!important;height:8px!important}
+::-webkit-scrollbar-track{background:#0B0F0E!important}
+::-webkit-scrollbar-thumb{background:#6E827E!important;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3!important}
+/* Icon toggle for theme switch */
+[data-theme="dark"] .icon-sun{display:none!important}
+/* SVG icon styling - base rules */
+.ev-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ev-icon svg{width:14px;height:14px}
+svg[stroke="currentColor"]{stroke:currentColor!important}
+/* Button SVG colors */
+.sb-item svg{stroke:var(--text2)!important}
+.sb-item:hover svg{stroke:var(--text)!important}
+.sb-item.active svg{stroke:var(--p)!important}
+/* Icon fallbacks - show Unicode symbols instead of broken font icons */
+[class*="hgi-"]::before{content:"⋯";display:inline-flex;align-items:center;justify-content:center}
+[class*="hgi-"]{display:inline-flex!important;align-items:center;justify-content:center;font-size:1em;width:1em;height:1em;line-height:1}
+.hgi-dashboard::before{content:"■"}
+.hgi-menu::before{content:"☰"}
+.hgi-arrow-down-02::before{content:"▼"}
+.hgi-search-01::before{content:"🔍"}
+.hgi-settings-01::before{content:"⚙"}
+.hgi-notification-01::before{content:"🔔"}
+.hgi-arrow-right-02::before{content:"→"}
+.hgi-sun-01::before{content:"☀"}
+.hgi-moon-02::before{content:"☾"}
+/* tokens → assets/tokens.css */
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--body)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#0B0F0E;cursor:default}
+::-webkit-scrollbar-thumb{background:#6E827E;border-radius:4px;transition:all .2s}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3}
+.shell{display:flex;height:100vh}
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px);}
+.sb-section{padding:0 0 8px}
+.sb-group{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.10em;color:var(--text3);text-transform:uppercase;padding:8px 16px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-family:var(--body);font-size:12.5px;font-weight:400;color:var(--text2);text-decoration:none;border-radius:0;transition:background .12s,color .12s;position:relative;white-space:nowrap;}
+.sb-item i{font-size:14px;flex-shrink:0}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--p-dim);color:var(--p);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--p);border-radius:0 2px 2px 0;}
+.sb-bottom{margin-top:auto;padding:14px 10px;border-top:1px solid var(--border)}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px}
+.sb-user-name{font-size:12px;font-weight:500;color:var(--text)}
+.sb-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.tb-icon{width:32px;padding:0}
+.content{flex:1;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;gap:14px}
+/* FILTER STRIP */
+/* SUMMARY ROW */
+.summary-row{display:grid;grid-template-columns:260px 1fr;gap:12px;flex-shrink:0;align-items:stretch}
+.kpi-col{display:flex;flex-direction:column;gap:10px}
+.kpi-row{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.cat-chart-card{flex:1}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;position:relative;overflow:hidden;flex:1}
+.kpi-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;background:var(--kc-glow,transparent);filter:blur(20px);pointer-events:none}
+.kpi-lbl{font-size:9.5px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:5px}
+.kpi-lbl i{}
+.kpi-val{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-1px;line-height:1}
+.kpi-foot{display:flex;align-items:center;gap:6px}
+.kpi-sub{font-size:10px;font-family:var(--mono);color:var(--text3);flex:1}
+.kpi-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;width:44px;flex-shrink:0}
+.kpi-bar-fill{height:100%;border-radius:2px;width:0%;transition:width 1.1s cubic-bezier(.16,1,.3,1)}
+/* CHART CARD */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card-title{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:7px}
+.card-title i{font-size:14px;color:var(--p)}
+/* Revenue by category */
+.cat-bars{display:flex;flex-direction:column;gap:10px}
+.cat-row{display:flex;align-items:center;gap:8px}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cat-label{font-size:10.5px;font-family:var(--mono);color:var(--text2);width:96px;flex-shrink:0}
+.cat-track{flex:1;height:7px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.cat-fill{height:100%;border-radius:4px;width:0%;transition:width 1s cubic-bezier(.16,1,.3,1)}
+.cat-val{font-size:10px;font-family:var(--mono);color:var(--text2);width:56px;text-align:right;flex-shrink:0}
+.cat-pct{font-size:9px;font-family:var(--mono);color:var(--text3);width:28px;text-align:right;flex-shrink:0}
+/* TABLE */
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0}
+.table-header-row{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.table-title{font-size:11px;font-weight:600;font-family:var(--mono);color:var(--text2);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:7px}
+.table-title i{font-size:14px;color:var(--p)}
+.table-filters-right{display:flex;align-items:center;gap:8px}
+.isp-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.isp-table colgroup col:nth-child(1){width:40px}
+.isp-table colgroup col:nth-child(2){width:72px}
+.isp-table colgroup col:nth-child(3){width:90px}
+.isp-table colgroup col:nth-child(4){width:auto}
+.isp-table colgroup col:nth-child(5){width:108px}
+.isp-table colgroup col:nth-child(6){width:56px}
+.isp-table colgroup col:nth-child(7){width:88px}
+.isp-table colgroup col:nth-child(8){width:96px}
+.isp-table thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 12px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.7px;text-align:left;white-space:nowrap}
+.isp-table thead th.num{text-align:right}
+.isp-table tbody tr{transition:background .12s;cursor:pointer}
+.isp-table tbody tr:hover td{background:rgba(255,255,255,.02)}
+.isp-table tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.isp-table tbody tr:last-child td{border-bottom:none}
+.isp-table td.num{text-align:right;font-family:var(--mono)}
+/* event group headers */
+tr.evt-hdr td{background:var(--bg3);border-top:1px solid var(--border2);border-bottom:1px solid var(--border);padding:8px 16px}
+.evt-hdr-inner{display:flex;align-items:center;gap:10px}
+.evt-hdr-pip{width:3px;height:14px;border-radius:2px;background:var(--p);flex-shrink:0}
+.evt-hdr-name{font-size:12px;font-weight:700;font-family:var(--display);color:var(--text)}
+.evt-hdr-date{font-size:10px;font-family:var(--mono);color:var(--text3)}
+.evt-hdr-meta{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:10px;font-family:var(--mono);color:var(--text3)}
+.evt-hdr-meta strong{color:var(--p);font-size:11px}
+/* badges */
+.chan-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
+.chan-badge i{font-size:10px}
+.ch-qr{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.ch-mobile{border-color:rgba(74,139,212,.3);background:rgba(74,139,212,.1);color:#4A8BD4}
+.ch-kiosk{border-color:rgba(139,107,212,.3);background:rgba(139,107,212,.1);color:#8B6BD4}
+.ch-staff{border-color:rgba(212,136,74,.3);background:rgba(212,136,74,.1);color:#D4884A}
+.cat-badge{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-family:var(--mono);padding:2px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
+.cb-food{border-color:rgba(212,136,74,.3);background:rgba(212,136,74,.1);color:#D4884A}
+.cb-bev{border-color:rgba(74,139,212,.3);background:rgba(74,139,212,.1);color:#4A8BD4}
+.cb-merch{border-color:rgba(139,107,212,.3);background:rgba(139,107,212,.1);color:#8B6BD4}
+.cb-upsell{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.cb-pkg{border-color:rgba(90,200,160,.3);background:rgba(90,200,160,.1);color:#5AC8A0}
+.upsell-flag{font-size:9px;font-family:var(--mono);padding:2px 6px;border-radius:4px;border:1px solid rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.seat-chip{display:inline-block;font-size:10px;font-family:var(--mono);color:var(--text);background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 7px}
+.rn{font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center}
+/* ── GLOBAL APP HEADER ──────────────────────────── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;height:auto;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:20px}
+.header-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+.header-logo{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.header-logo-label{font-size:8px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;line-height:1;white-space:nowrap;font-weight:600}
+.header-content{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;margin-left:90px}
+.header-page-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.header-breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-right{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .14s}
+.header-user:hover{background:rgba(255,255,255,.04)}
+.header-user-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-user-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.header-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.header-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.header-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .14s}
+.header-icon-btn:hover{border-color:var(--border2);color:var(--text)}
+.act-wrap{display:flex;gap:4px}
+
+.filter-sep{width:1px;height:24px;background:var(--border2);align-self:center}
+.search-input::placeholder{color:var(--text3)}
+.btn{height:30px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn i{}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:#0B0F0E}
+.btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#0B0F0E}
+.btn-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.btn-violet:hover{background:var(--violet);color:#fff}
+.btn-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 12px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+.tbl thead th.sortable{cursor:pointer}
+.tbl thead th.sortable:hover{color:var(--text2)}
+.tbl tbody tr{transition:background .12s;cursor:pointer}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.badge i{font-size:10px}
+.badge-teal{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.badge-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.badge-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.badge-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.badge-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.badge-gold{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold)}
+.badge-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.act-wrap{display:flex;gap:4px}
+.act-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s;color:var(--text3)}
+.act-btn i{}
+.act-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.act-btn.red:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.act-btn.amber:hover{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn .ev-icon{width:14px;height:14px}
+.page-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:var(--mono);color:var(--text2);transition:all .14s}
+.page-btn:hover{border-color:var(--border2);color:var(--text)}
+.page-btn.active{background:var(--p);border-color:var(--p);color:#0B0F0E;font-weight:700}
+
+
+/* Filter dropdown styling */
+select{appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px}
+select:focus{border-color:var(--p-border)}
+.filter-dropdown{position:relative}
+.filter-dropdown svg{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);width:11px;height:11px}
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;flex-shrink:0}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;width:13px;height:13px}
+/* DATE FILTER PILLS */
+.date-filter-group{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.date-pill{height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.date-pill:hover{border-color:var(--border2);color:var(--text)}
+.date-pill.on{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.date-range-wrap{display:none;align-items:center;gap:5px}
+.date-range-wrap.show{display:flex}
+.date-input{height:30px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11px;font-family:var(--mono);padding:0 9px;outline:none;cursor:pointer;min-width:110px}
+.date-input:focus{border-color:var(--red-border);color:var(--text)}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg style="height:38px;width:auto;display:block" viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+<path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+<path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+<path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+<path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+<path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+<path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+<path d="M219.307 76.6345V74.2444H231.761V76.6345H226.936V89.9841H224.131V76.6345H219.307Z" style="fill:var(--text3)"/>
+<path d="M236.989 74.2444V89.9841H234.162V74.2444H236.989Z" style="fill:var(--text3)"/>
+<path d="M253.413 79.555H250.562C250.481 79.0836 250.331 78.666 250.112 78.3023C249.894 77.9334 249.622 77.6208 249.297 77.3646C248.971 77.1085 248.601 76.9163 248.184 76.7882C247.772 76.655 247.328 76.5884 246.85 76.5884C246.002 76.5884 245.249 76.8036 244.594 77.234C243.939 77.6593 243.425 78.2843 243.054 79.1092C242.683 79.929 242.498 80.9307 242.498 82.1143C242.498 83.3183 242.683 84.3328 243.054 85.1577C243.43 85.9775 243.944 86.5974 244.594 87.0176C245.249 87.4326 245.999 87.6401 246.842 87.6401C247.31 87.6401 247.747 87.5786 248.153 87.4556C248.565 87.3275 248.933 87.1405 249.259 86.8946C249.589 86.6487 249.866 86.3464 250.089 85.9877C250.318 85.6291 250.476 85.2192 250.562 84.758L253.413 84.7734C253.306 85.5215 253.075 86.2234 252.719 86.8792C252.368 87.5351 251.908 88.114 251.339 88.6161C250.77 89.1131 250.105 89.5025 249.342 89.7843C248.58 90.061 247.734 90.1993 246.804 90.1993C245.432 90.1993 244.208 89.8791 243.131 89.2387C242.053 88.5982 241.205 87.6734 240.585 86.4642C239.965 85.255 239.655 83.805 239.655 82.1143C239.655 80.4183 239.968 78.9683 240.593 77.7643C241.218 76.5551 242.069 75.6303 243.146 74.9898C244.223 74.3494 245.443 74.0292 246.804 74.0292C247.673 74.0292 248.481 74.1521 249.228 74.3981C249.975 74.644 250.641 75.0052 251.225 75.4817C251.809 75.9531 252.29 76.5321 252.666 77.2186C253.047 77.9001 253.296 78.6789 253.413 79.555Z" style="fill:var(--text3)"/>
+<path d="M256.002 89.9841V74.2444H258.83V81.4764H259.02L265.11 74.2444H268.563L262.526 81.3073L268.616 89.9841H265.217L260.56 83.2363L258.83 85.296V89.9841H256.002Z" style="fill:var(--text3)"/>
+<path d="M270.527 89.9841V74.2444H280.68V76.6345H273.355V80.9076H280.154V83.2978H273.355V87.594H280.741V89.9841H270.527Z" style="fill:var(--text3)"/>
+<path d="M282.879 76.6345V74.2444H295.333V76.6345H290.508V89.9841H287.703V76.6345H282.879Z" style="fill:var(--text3)"/>
+<path d="M300.561 74.2444V89.9841H297.734V74.2444H300.561Z" style="fill:var(--text3)"/>
+<path d="M316.451 74.2444V89.9841H313.936L306.581 79.263H306.451V89.9841H303.623V74.2444H306.154L313.501 84.9732H313.639V74.2444H316.451Z" style="fill:var(--text3)"/>
+<path d="M329.989 79.2706C329.862 78.8556 329.687 78.4842 329.463 78.1562C329.245 77.8232 328.981 77.5389 328.671 77.3032C328.366 77.0675 328.015 76.8907 327.619 76.7729C327.223 76.6499 326.791 76.5884 326.323 76.5884C325.485 76.5884 324.738 76.801 324.082 77.2263C323.427 77.6516 322.911 78.2767 322.535 79.1016C322.164 79.9213 321.979 80.9204 321.979 82.0989C321.979 83.2876 322.164 84.2944 322.535 85.1193C322.906 85.9442 323.422 86.5718 324.082 87.0022C324.743 87.4275 325.51 87.6401 326.384 87.6401C327.177 87.6401 327.863 87.4864 328.442 87.179C329.026 86.8715 329.476 86.436 329.791 85.8724C330.106 85.3037 330.264 84.6376 330.264 83.8742L330.904 83.9741H326.666V81.7453H333V83.636C333 84.9835 332.715 86.1491 332.146 87.1329C331.577 88.1166 330.795 88.8749 329.799 89.4077C328.803 89.9355 327.66 90.1993 326.369 90.1993C324.931 90.1993 323.668 89.874 322.581 89.2233C321.499 88.5675 320.653 87.6375 320.043 86.4335C319.438 85.2243 319.136 83.7897 319.136 82.1296C319.136 80.859 319.314 79.7241 319.669 78.725C320.03 77.7259 320.533 76.8779 321.178 76.1811C321.824 75.4792 322.581 74.9463 323.45 74.5825C324.319 74.2136 325.264 74.0292 326.285 74.0292C327.149 74.0292 327.954 74.1572 328.701 74.4134C329.448 74.6645 330.111 75.0232 330.691 75.4894C331.275 75.9557 331.755 76.509 332.131 77.1495C332.507 77.7899 332.754 78.497 332.87 79.2706H329.989Z" style="fill:var(--text3)"/>
+</svg>
+    </div>
+    
+<div class="header-content">
+      <div class="header-page-title" id="headerTitle">In-Show Analytics</div>
+      <div class="header-breadcrumb" id="headerBreadcrumb">Reports / In-Show Analytics</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:inline-block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+    <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-group">Main</div>
+      <a href="evinra_dashboard_mvp.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg></span>Dashboard <span class="sb-badge">MVP</span></a>
+      <a href="evinra_dashboard_v2.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Dashboard v2</a>
+      <a href="evinra_events.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Layout</div>
+      <a href="evinra_seating_map.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Layout Management</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Reports</div>
+      <a href="evinra_sales_overview.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg></span>Sales Overview</a>
+      <a href="evinra_event_sales_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Sales Report</a>
+      <a href="evinra_order_detail.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Order Transactions</a>
+      <a href="evinra_inshow_analytics.html" class="sb-item active"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>In-Show Analytics</a>
+      <a href="evinra_attendance_scan_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg></span>Attendance / Scan</a>
+      <a href="evinra_vendor_settlement.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Vendor Settlement</a>
+      <a href="evinra_refund_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Refund Report</a>
+      <a href="evinra_promo_discount_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo &amp; Discounts</a>
+      <a href="evinra_split_dist.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></span>Split Distribution</a>
+      <a href="evinra_credit_txn.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Credit Transactions</a>
+      <a href="evinra_payouts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Payouts</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Settings</div>
+      <a href="evinra_general.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>General</a>
+      <a href="evinra_users.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</a>
+      <a href="evinra_experience_tickets.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Experience Ticketing</a>
+      <a href="evinra_credit_plans.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Plans</a>
+      <a href="evinra_scan_roles.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>Roles</a>
+      <a href="evinra_fees_taxes.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Fees &amp; Taxes</a>
+      <a href="evinra_discounts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo Codes</a>
+      <a href="evinra_shows.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Shows</a>
+      <a href="evinra_other_vendors.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Others Vendors</a>
+      <a href="evinra_vendor_sales_links.html" class="sb-item" style="padding-left:26px;font-size:11.5px"><span class="ev-icon" style="width:14px;height:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 0 10h-3m-6 0H6A5 5 0 0 1 6 7h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Vendor Sales Links</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="content">
+
+      <!-- FILTERS -->
+      <div class="filter-bar">
+        <div style="position:relative">
+          <select style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Production</option><option>Flying Lions</option><option>Circus of Dreams</option></select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div style="position:relative">
+          <select style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Event</option><option>WPB Evening Show I</option><option>WPB Evening Show II</option></select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="date-filter-group">
+  <button class="date-pill" data-dp="range">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Range
+  </button>
+  <button class="date-pill" data-dp="today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Today
+  </button>
+  <button class="date-pill" data-dp="curr-week">Current Week</button>
+  <button class="date-pill" data-dp="week">Last Week</button>
+  <button class="date-pill" data-dp="month">Last Month</button>
+  <div class="date-range-wrap" id="dateRangeWrap">
+    <input type="date" id="dateFrom" class="date-input">
+    <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">–</span>
+    <input type="date" id="dateTo" class="date-input">
+  </div>
+</div>
+        <div style="position:relative">
+          <select id="eventTimeFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Event Time</option><option value="">All times</option></select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="filter-sep"></div>
+        <div style="position:relative">
+          <select id="catFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Category</option><option value="">All categories</option><option>Concessions</option><option>Novelties</option><option>Rides</option><option>Show Experience</option></select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+      </div>
+
+      <!-- SUMMARY ROW: KPIs + Revenue by Category -->
+      <div class="summary-row">
+        <div class="kpi-col">
+          <div class="kpi-row" id="kpiRow"></div>
+        </div>
+        <div class="chart-card cat-chart-card">
+          <div class="card-title">◆Revenue by Category</div>
+          <div class="cat-bars" id="catBars"></div>
+        </div>
+      </div>
+
+      <!-- PURCHASE LOG TABLE -->
+      <div class="table-card">
+        <div class="table-header-row">
+          <div class="table-title">◆Purchase Log</div>
+          <div class="table-filters-right">
+            <div style="position:relative;flex:1;max-width:220px">
+              <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+              <input type="text" id="searchInput" placeholder="Search seat, item, order…" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 10px 6px 30px;outline:none">
+            </div>
+          </div>
+        </div>
+        <table class="isp-table">
+          <colgroup><col/><col/><col/><col/><col/><col/><col/><col/></colgroup>
+          <thead><tr>
+            <th>#</th><th>Purchase Time</th><th>Date</th><th>Item</th>
+            <th>Category</th><th class="num">Qty</th>
+            <th class="num">Amount</th><th>Order</th>
+          </tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+/* DATA */
+const EVENTS = [
+  { name:'WPB Evening Show I',   date:'12/12/2025', time:'4:30pm', production:'Flying Lions' },
+  { name:'WPB Evening Show II',  date:'12/12/2025', time:'7:30pm', production:'Flying Lions' },
+  { name:'WPB Matinee I',        date:'12/13/2025', time:'1:30pm', production:'Flying Lions' },
+  { name:'WPB Afternoon I',      date:'12/13/2025', time:'4:30pm', production:'Flying Lions' },
+  { name:'WPB Evening III',      date:'12/13/2025', time:'7:30pm', production:'Flying Lions' },
+  { name:'North Port Show I',    date:'12/18/2025', time:'4:30pm', production:'Circus of Dreams' },
+  { name:'North Port Show II',   date:'12/18/2025', time:'7:30pm', production:'Circus of Dreams' },
+];
+
+const PURCHASES = [
+  /* Pre-Show */
+  { id:1,  time:'3:42pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'103-J-14', item:'Hot Dog Combo',           cat:'Concessions',    chan:'QR Scan',   qty:2, amt:18.00,  interval:'Pre-Show',    order:'ISP-0001', upsell:false },
+  { id:2,  time:'3:48pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'104-A-6',  item:'Soda & Popcorn',          cat:'Concessions',    chan:'Mobile App',qty:1, amt:12.50,  interval:'Pre-Show',    order:'ISP-0002', upsell:false },
+  { id:3,  time:'3:55pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-B-3',  item:'Circus Souvenir Set',     cat:'Novelties',      chan:'QR Scan',   qty:1, amt:35.00,  interval:'Pre-Show',    order:'ISP-0003', upsell:false },
+  { id:4,  time:'4:12pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'107-C-1',  item:'Beer Bundle x2',          cat:'Concessions',    chan:'Kiosk',     qty:2, amt:22.00,  interval:'Pre-Show',    order:'ISP-0004', upsell:false },
+  { id:5,  time:'4:22pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'103-J-14', item:'VIP Experience Upgrade',  cat:'Show Experience',chan:'QR Scan',   qty:1, amt:85.00,  interval:'Pre-Show',    order:'ISP-0005', upsell:true  },
+  /* Act 1 */
+  { id:6,  time:'4:38pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-A-1',  item:'Nachos Platter',          cat:'Concessions',    chan:'QR Scan',   qty:3, amt:36.00,  interval:'Act 1',       order:'ISP-0006', upsell:false },
+  { id:7,  time:'4:44pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'104-A-9',  item:'Water + Snack Pack',      cat:'Concessions',    chan:'Mobile App',qty:2, amt:14.00,  interval:'Act 1',       order:'ISP-0007', upsell:false },
+  { id:8,  time:'4:51pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'107-C-2',  item:'Light-Up Spinner Toy',    cat:'Novelties',      chan:'QR Scan',   qty:2, amt:28.00,  interval:'Act 1',       order:'ISP-0008', upsell:false },
+  { id:9,  time:'4:58pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'103-J-14', item:'Ringside Backstage Pass', cat:'Show Experience',chan:'Mobile App',qty:1, amt:120.00, interval:'Act 1',       order:'ISP-0009', upsell:true  },
+  { id:10, time:'5:04pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-B-1',  item:'Wine x2',                 cat:'Concessions',    chan:'Staff',     qty:2, amt:32.00,  interval:'Act 1',       order:'ISP-0010', upsell:false },
+  { id:11, time:'5:10pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'104-A-12', item:'Circus Photo Frame',      cat:'Novelties',      chan:'Mobile App',qty:1, amt:22.00,  interval:'Act 1',       order:'ISP-0011', upsell:false },
+  /* Intermission */
+  { id:12, time:'5:17pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'103-J-14', item:'Drinks Round x4',         cat:'Concessions',    chan:'QR Scan',   qty:4, amt:48.00,  interval:'Intermission',order:'ISP-0012', upsell:false },
+  { id:13, time:'5:19pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-A-2',  item:'Roller Coaster x3',       cat:'Rides',          chan:'QR Scan',   qty:3, amt:45.00,  interval:'Intermission',order:'ISP-0013', upsell:false },
+  { id:14, time:'5:22pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'104-B-3',  item:'Funnel Cake',             cat:'Concessions',    chan:'Kiosk',     qty:2, amt:18.00,  interval:'Intermission',order:'ISP-0014', upsell:false },
+  { id:15, time:'5:25pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'107-C-3',  item:'Meet & Greet Experience', cat:'Show Experience',chan:'Mobile App',qty:1, amt:200.00, interval:'Intermission',order:'ISP-0015', upsell:true  },
+  { id:16, time:'5:28pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-B-2',  item:'Cotton Candy x3',         cat:'Concessions',    chan:'QR Scan',   qty:3, amt:15.00,  interval:'Intermission',order:'ISP-0016', upsell:false },
+  { id:17, time:'5:31pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'104-A-10', item:'Ferris Wheel Pass x2',    cat:'Rides',          chan:'Mobile App',qty:2, amt:30.00,  interval:'Intermission',order:'ISP-0017', upsell:false },
+  { id:18, time:'5:38pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'103-J-14', item:'Ride Bundle 5x',          cat:'Rides',          chan:'QR Scan',   qty:1, amt:75.00,  interval:'Intermission',order:'ISP-0018', upsell:false },
+  { id:19, time:'5:44pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-A-3',  item:'Lemonade x3',             cat:'Concessions',    chan:'Staff',     qty:3, amt:18.00,  interval:'Intermission',order:'ISP-0019', upsell:false },
+  /* Act 2 */
+  { id:20, time:'5:52pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-A-4',  item:'Pretzel + Cheese',        cat:'Concessions',    chan:'QR Scan',   qty:2, amt:16.00,  interval:'Act 2',       order:'ISP-0020', upsell:false },
+  { id:21, time:'6:01pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'104-A-9',  item:'LED Glow Necklace x3',    cat:'Novelties',      chan:'Mobile App',qty:3, amt:36.00,  interval:'Act 2',       order:'ISP-0021', upsell:false },
+  { id:22, time:'6:08pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'107-C-1',  item:'VIP Closer Seat Upgrade', cat:'Show Experience',chan:'QR Scan',   qty:1, amt:60.00,  interval:'Act 2',       order:'ISP-0022', upsell:true  },
+  { id:23, time:'6:15pm', date:'12/12/2025', eventName:'WPB Evening Show I', seat:'105-B-4',  item:'Cocktail x2',             cat:'Concessions',    chan:'Kiosk',     qty:2, amt:28.00,  interval:'Act 2',       order:'ISP-0023', upsell:false },
+];
+
+const TOTAL_REV  = PURCHASES.reduce((s,p)=>s+p.amt*p.qty, 0);
+const TOTAL_TXN  = PURCHASES.length;
+const UPSELL_TXN = PURCHASES.filter(p=>p.upsell).length;
+const QR_TXN     = PURCHASES.filter(p=>p.chan==='QR Scan').length;
+const MOB_TXN    = PURCHASES.filter(p=>p.chan==='Mobile App').length;
+const AVG_ORDER  = (TOTAL_REV / TOTAL_TXN).toFixed(2);
+const UPSELL_REV = PURCHASES.filter(p=>p.upsell).reduce((s,p)=>s+p.amt*p.qty,0);
+
+const fmt$ = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* KPIs */
+const KPI_DEFS = [
+  { lbl:'Total Revenue',      val:fmt$(TOTAL_REV),     sub:'in-show purchases',       color:'var(--p)',     bar:100,              icon:'ti-currency-dollar', glow:'rgba(42,155,133,.15)'    },
+  { lbl:'Purchases',       val:TOTAL_TXN,  sub:`${AVG_ORDER} avg order`,                  color:'var(--blue)', bar:Math.round(TOTAL_TXN/3),                     icon:'ti-shopping-cart',   glow:'rgba(74,139,212,.15)'  },
+];
+
+const kpiRow = document.getElementById('kpiRow');
+KPI_DEFS.forEach(k => {
+  const d = document.createElement('div');
+  d.className = 'kpi-card';
+  d.style.setProperty('--kc-glow', k.glow);
+  d.innerHTML = `<div class="kpi-lbl"><i class="ti ${k.icon}" style="color:${k.color}"></i>${k.lbl}</div>
+    <div class="kpi-val" style="color:${k.color}">${k.val}</div>
+    <div class="kpi-foot"><span class="kpi-sub">${k.sub}</span>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="background:${k.color}" data-w="${k.bar}"></div></div>
+    </div>`;
+  kpiRow.appendChild(d);
+});
+setTimeout(()=>document.querySelectorAll('.kpi-bar-fill[data-w]').forEach(el=>el.style.width=el.dataset.w+'%'), 300);
+
+/* Category bars */
+const cats = [
+  { name:'Intermission', color:'var(--amber)',  rev:4620, pct:100 },
+  { name:'Act 1',        color:'var(--p)',       rev:2841, pct:62  },
+  { name:'Pre-Show',     color:'var(--blue)',    rev:1249, pct:27  },
+  { name:'Act 2',        color:'var(--violet)',  rev:1980, pct:43  },
+  { name:'Post-Show',    color:'var(--tips)',    rev:781,  pct:17  },
+];
+// Build by category instead
+const catData = [
+  { name:'Concessions',    color:'var(--amber)',  rev: PURCHASES.filter(p=>p.cat==='Concessions').reduce((s,p)=>s+p.amt*p.qty,0) },
+  { name:'Show Experience',color:'var(--p)',       rev: PURCHASES.filter(p=>p.cat==='Show Experience').reduce((s,p)=>s+p.amt*p.qty,0) },
+  { name:'Rides',          color:'var(--blue)',    rev: PURCHASES.filter(p=>p.cat==='Rides').reduce((s,p)=>s+p.amt*p.qty,0) },
+  { name:'Novelties',      color:'var(--violet)',  rev: PURCHASES.filter(p=>p.cat==='Novelties').reduce((s,p)=>s+p.amt*p.qty,0) },
+];
+const catMax = Math.max(...catData.map(c=>c.rev));
+const catWrap = document.getElementById('catBars');
+catData.sort((a,b)=>b.rev-a.rev).forEach(c=>{
+  const pct = Math.round(c.rev/catMax*100);
+  const row = document.createElement('div'); row.className='cat-row';
+  row.innerHTML=`<div class="cat-dot" style="background:${c.color}"></div>
+    <span class="cat-label">${c.name}</span>
+    <div class="cat-track"><div class="cat-fill" style="background:${c.color}" data-w="${pct}"></div></div>
+    <span class="cat-val">${fmt$(c.rev)}</span>
+    <span class="cat-pct">${pct}%</span>`;
+  catWrap.appendChild(row);
+});
+setTimeout(()=>document.querySelectorAll('.cat-fill[data-w]').forEach(el=>el.style.width=el.dataset.w+'%'), 400);
+
+/* Table */
+const CHAN_CFG = {
+  'QR Scan':   { cls:'ch-qr',     icon:'ti-qrcode'         },
+  'Mobile App':{ cls:'ch-mobile', icon:'ti-device-mobile'  },
+  'Kiosk':     { cls:'ch-kiosk',  icon:'ti-device-desktop' },
+  'Staff':     { cls:'ch-staff',  icon:'ti-user'           },
+};
+const CAT_CFG = {
+  'Concessions':    { cls:'cb-food',   icon:'ti-cup'              },
+  'Novelties':      { cls:'cb-merch',  icon:'ti-sparkles'         },
+  'Rides':          { cls:'cb-bev',    icon:'ti-roller-coaster'   },
+  'Show Experience':{ cls:'cb-upsell', icon:'ti-star'             },
+};
+const INT_CFG = {
+  'Pre-Show':    '#4A8BD4',
+  'Act 1':       '#2A9B85',
+  'Intermission':'#D4884A',
+  'Act 2':       '#8B6BD4',
+};
+
+let lastData = PURCHASES;
+
+function renderTable(data){
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  let rowNum = 0, lastEvent = '';
+  data.forEach((p,i)=>{
+    if (p.eventName !== lastEvent){
+      lastEvent = p.eventName;
+      const evtRev = data.filter(x=>x.eventName===p.eventName).reduce((s,x)=>s+x.amt*x.qty,0);
+      const evtTxn = data.filter(x=>x.eventName===p.eventName).length;
+      const hdr = document.createElement('tr'); hdr.className='evt-hdr';
+      hdr.innerHTML=`<td colspan="8"><div class="evt-hdr-inner">
+        <div class="evt-hdr-pip"></div>
+        <span class="evt-hdr-name">${p.eventName}</span>
+        <span class="evt-hdr-date">${p.date}</span>
+        <div class="evt-hdr-meta">
+          <span>${evtTxn} purchases</span>
+          <strong>${fmt$(evtRev)}</strong>
+        </div>
+      </div></td>`;
+      tbody.appendChild(hdr);
+    }
+    const ch = CHAN_CFG[p.chan]||CHAN_CFG['Staff'];
+    const ct = CAT_CFG[p.cat]||CAT_CFG['Merchandise'];
+    const tr = document.createElement('tr');
+    tr.dataset.interval = p.interval;
+    tr.dataset.cat      = p.cat;
+    tr.dataset.chan     = p.chan;
+    tr.dataset.search   = `${p.seat} ${p.item} ${p.order} ${p.chan} ${p.cat} ${p.interval}`.toLowerCase();
+    tr.innerHTML=`<td class="rn">${++rowNum}</td>
+      <td style="font-family:var(--mono);font-size:11px">${p.time}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text2)">${p.date}</td>
+      <td style="color:var(--text);font-size:12px">${p.item}${p.upsell?' <span class="upsell-flag">↑ Upsell</span>':''}</td>
+      <td><span class="cat-badge ${ct.cls}"><i class="ti ${ct.icon}"></i>${p.cat}</span></td>
+      <td class="num" style="color:var(--text2)">${p.qty}</td>
+      <td class="num" style="color:var(--p);font-weight:600">${fmt$(p.amt*p.qty)}</td>
+      <td><span style="font-size:10px;font-family:var(--mono);color:var(--text3);cursor:pointer">${p.order}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* Populate event time filter from EVENTS */
+function populateEventFilters(){
+  const fill = (id, values, allLabel) => {
+    const sel = document.getElementById(id);
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">${allLabel}</option>`;
+    values.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      if (v === prev) o.selected = true;
+      sel.appendChild(o);
+    });
+    if (prev && !values.includes(prev)) sel.value = '';
+  };
+
+  // Event Time: all unique show times from EVENTS
+  const times = [...new Set(EVENTS.map(e => e.time))].sort();
+  fill('eventTimeFilter', times, 'All times');
+}
+
+function parseMMDDYYYY(str){ const [m,d,y]=str.split('/'); return new Date(+y,+m-1,+d); }
+let dateMode = 'curr-week';
+
+function applyFilters(){
+  const search    = document.getElementById('searchInput').value.toLowerCase();
+  const cat       = document.getElementById('catFilter').value;
+  const evtTime   = document.getElementById('eventTimeFilter').value;
+
+  // Build set of event names that match the selected time
+  let validEventNames = null;
+  if (evtTime) {
+    validEventNames = new Set(
+      EVENTS.filter(e => e.time === evtTime).map(e => e.name)
+    );
+  }
+
+  lastData = PURCHASES.filter(p=>{
+    if (cat              && p.cat       !== cat)                                  return false;
+    if (validEventNames  && !validEventNames.has(p.eventName))                   return false;
+    if (dateMode){
+      const d=parseMMDDYYYY(p.date);
+      const now=new Date(); now.setHours(23,59,59,999);
+      if(dateMode==='today'){
+        const s=new Date(); s.setHours(0,0,0,0); if(d<s||d>now) return false;
+      } else if(dateMode==='curr-week'){
+        const ref=new Date(); const day=ref.getDay();
+        const s=new Date(ref); s.setDate(ref.getDate()-(day===0?6:day-1)); s.setHours(0,0,0,0);
+        const e=new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999);
+        if(d<s||d>e) return false;
+      } else if(dateMode==='week'){
+        const s=new Date(); s.setDate(s.getDate()-7); s.setHours(0,0,0,0); if(d<s||d>now) return false;
+      } else if(dateMode==='month'){
+        const s=new Date(); s.setDate(s.getDate()-30); s.setHours(0,0,0,0); if(d<s||d>now) return false;
+      } else if(dateMode==='range'){
+        const fv=document.getElementById('dateFrom').value;
+        const tv=document.getElementById('dateTo').value;
+        if(fv){const fd=new Date(fv); fd.setHours(0,0,0,0); if(d<fd) return false;}
+        if(tv){const td=new Date(tv); td.setHours(23,59,59,999); if(d>td) return false;}
+      }
+    }
+    if (search && !`${p.seat} ${p.item} ${p.order} ${p.cat} ${p.interval} ${p.date} ${p.eventName}`.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderTable(lastData);
+}
+
+document.getElementById('searchInput').addEventListener('input',     applyFilters);
+document.getElementById('catFilter').addEventListener('change',       applyFilters);
+document.getElementById('eventTimeFilter').addEventListener('change', applyFilters);
+document.getElementById('dateFrom').addEventListener('change', applyFilters);
+document.getElementById('dateTo').addEventListener('change', applyFilters);
+document.querySelectorAll('.date-pill').forEach(btn=>{
+  btn.addEventListener('click', function(){
+    const dp=this.dataset.dp;
+    const rw=document.getElementById('dateRangeWrap');
+    if(dateMode===dp){ dateMode=''; this.classList.remove('on'); rw.classList.remove('show'); }
+    else { document.querySelectorAll('.date-pill').forEach(b=>b.classList.remove('on')); dateMode=dp; this.classList.add('on'); rw.classList.toggle('show',dp==='range'); }
+    applyFilters();
+  });
+});
+
+populateEventFilters();
+
+dateMode='curr-week';
+document.querySelector('.date-pill[data-dp="curr-week"]').classList.add('on');
+renderTable(PURCHASES);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

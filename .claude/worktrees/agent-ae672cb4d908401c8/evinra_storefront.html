@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+  <title>Evinra | Ticket System — Event Storefront</title>
+  <meta name="description" content="Browse events, select seats, and get your tickets through Evinra.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+/* ─────────────────────────────────────────────────────
+   Evinra Storefront — Navy Consumer Theme
+   ───────────────────────────────────────────────────── */
+
+/* ── Storefront Color Tokens ─────────────────────────── */
+:root {
+  --sf-bg:         #07112A;
+  --sf-bg2:        #0C1C3C;
+  --sf-bg3:        #112248;
+  --sf-card:       #0E1E3D;
+  --sf-card2:      #132450;
+  --sf-text:       #E8EFF7;
+  --sf-text2:      #8FA3C8;
+  --sf-text3:      #4D6A9A;
+  --sf-border:     rgba(144,167,209,.10);
+  --sf-border2:    rgba(144,167,209,.20);
+  --sf-teal:       #209991;
+  --sf-teal-dim:   rgba(32,153,145,.14);
+  --sf-teal-bdr:   rgba(32,153,145,.32);
+  --sf-red:        #C42030;
+  --sf-red-dim:    rgba(196,32,48,.14);
+  --sf-navy:       #3A4B70;
+  --sf-shadow:     0 4px 24px rgba(0,0,0,.45);
+  --sf-shadow-sm:  0 2px 8px rgba(0,0,0,.30);
+  --sf-radius:     14px;
+  --sf-radius-sm:  10px;
+  --sf-header-h:   58px;
+}
+
+[data-theme="light"] {
+  --sf-bg:         #EFF3FB;
+  --sf-bg2:        #FFFFFF;
+  --sf-bg3:        #E4EBF7;
+  --sf-card:       #FFFFFF;
+  --sf-card2:      #F5F8FF;
+  --sf-text:       #0A1628;
+  --sf-text2:      #3A4B70;
+  --sf-text3:      #7A8EAE;
+  --sf-border:     rgba(58,75,112,.10);
+  --sf-border2:    rgba(58,75,112,.20);
+  --sf-shadow:     0 4px 20px rgba(58,75,112,.12);
+  --sf-shadow-sm:  0 2px 8px rgba(58,75,112,.08);
+}
+
+/* ── Reset ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--sf-bg);
+  color: var(--sf-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+button { font-family: 'Outfit', sans-serif; }
+a { color: inherit; }
+
+/* ── Skip link ──────────────────────────────────────── */
+.skip-link {
+  position: absolute; left: 8px; top: -48px;
+  padding: 8px 16px; border-radius: 8px;
+  background: var(--sf-teal); color: #fff;
+  font-size: 13px; font-weight: 600;
+  text-decoration: none; z-index: 9999;
+  transition: top .15s;
+}
+.skip-link:focus { top: 8px; }
+
+/* ── Sticky Nav ─────────────────────────────────────── */
+.sf-nav {
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(7,17,42,.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--sf-border);
+}
+[data-theme="light"] .sf-nav {
+  background: rgba(255,255,255,.93);
+}
+.sf-nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  height: var(--sf-header-h);
+  padding: 0 16px;
+  max-width: 900px; margin: 0 auto;
+}
+.sf-nav-logo {
+  display: flex; align-items: center; text-decoration: none; color: var(--sf-text);
+}
+.sf-nav-logo svg { height: 30px; width: auto; }
+.sf-nav-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ── Icon Button ────────────────────────────────────── */
+.sf-icon-btn {
+  width: 38px; height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg3);
+  color: var(--sf-text2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; position: relative;
+  transition: background .14s, border-color .14s, color .14s;
+}
+.sf-icon-btn:hover { border-color: var(--sf-border2); color: var(--sf-text); }
+
+.sf-cart-badge {
+  position: absolute; top: -5px; right: -5px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 9px;
+  background: var(--sf-red); color: #fff;
+  font-size: 9px; font-weight: 700;
+  display: none; align-items: center; justify-content: center;
+  border: 2px solid var(--sf-bg2);
+}
+.sf-cart-badge.show { display: flex; }
+
+/* ── Theme toggle ───────────────────────────────────── */
+[data-theme="dark"]  .icon-sun  { display: none; }
+[data-theme="dark"]  .icon-moon { display: block; }
+[data-theme="light"] .icon-sun  { display: block; }
+[data-theme="light"] .icon-moon { display: none; }
+
+/* ── Hero Banner ────────────────────────────────────── */
+.sf-hero {
+  position: relative;
+  height: 180px;
+  background: linear-gradient(135deg, #07112A 0%, #0D1E45 40%, #162A5A 100%);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.sf-hero-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 35%;
+  opacity: .45;
+}
+.sf-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(7,17,42,.3) 0%, rgba(7,17,42,.65) 100%);
+}
+.sf-hero-logo {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.sf-hero-logo svg { height: 40px; width: auto; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
+
+/* ── Search Section ─────────────────────────────────── */
+.sf-search-wrap {
+  background: var(--sf-bg2);
+  border-bottom: 1px solid var(--sf-border);
+}
+.sf-search-inner {
+  max-width: 900px; margin: 0 auto;
+  padding: 14px 16px 0;
+}
+.sf-field {
+  display: flex; align-items: center;
+  background: var(--sf-bg3);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  height: 48px; padding: 0 14px; gap: 10px;
+  margin-bottom: 8px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.sf-field:focus-within {
+  border-color: var(--sf-teal-bdr);
+  box-shadow: 0 0 0 3px var(--sf-teal-dim);
+}
+.sf-field svg { flex-shrink: 0; color: var(--sf-text3); }
+.sf-field input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--sf-text); font-family: 'Outfit', sans-serif; font-size: 14px;
+}
+.sf-field input::placeholder { color: var(--sf-text3); }
+
+.sf-location-field {
+  display: flex; align-items: center;
+  background: var(--sf-bg3);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  height: 48px; padding: 0 4px 0 14px; gap: 8px;
+  margin-bottom: 14px;
+  transition: border-color .15s;
+}
+.sf-location-field:focus-within { border-color: var(--sf-teal-bdr); }
+.sf-location-field input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--sf-text); font-family: 'Outfit', sans-serif; font-size: 14px;
+}
+.sf-location-field input::placeholder { color: var(--sf-text3); }
+
+.sf-near-btn {
+  background: var(--sf-red);
+  color: #fff; border: none;
+  border-radius: 9px; height: 38px; padding: 0 14px;
+  font-size: 11px; font-weight: 700; letter-spacing: .07em;
+  cursor: pointer; flex-shrink: 0;
+  transition: opacity .15s;
+}
+.sf-near-btn:hover { opacity: .88; }
+
+/* ── Category Chips ─────────────────────────────────── */
+.sf-chips-bar {
+  background: var(--sf-bg2);
+  border-bottom: 1px solid var(--sf-border);
+}
+.sf-chips-inner {
+  max-width: 900px; margin: 0 auto;
+  padding: 0 16px 12px;
+}
+.sf-chips-scroll {
+  display: flex; gap: 8px;
+  overflow-x: auto; scrollbar-width: none;
+  padding: 2px 0;
+}
+.sf-chips-scroll::-webkit-scrollbar { display: none; }
+
+.sf-chip {
+  flex-shrink: 0;
+  height: 34px; padding: 0 16px;
+  border-radius: 17px;
+  border: 1px solid var(--sf-border2);
+  background: transparent;
+  color: var(--sf-text2);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  transition: all .15s;
+}
+.sf-chip:hover { border-color: var(--sf-teal-bdr); color: var(--sf-teal); }
+.sf-chip.active {
+  background: var(--sf-teal); border-color: var(--sf-teal);
+  color: #fff; font-weight: 600;
+}
+
+/* ── Page Layout ────────────────────────────────────── */
+.sf-page {
+  max-width: 900px; margin: 0 auto;
+  padding: 20px 16px 0;
+}
+
+/* ── Section heading ────────────────────────────────── */
+.sf-section-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.sf-section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 700;
+  color: var(--sf-text);
+}
+.sf-section-link {
+  font-size: 13px; font-weight: 500; color: var(--sf-teal);
+  text-decoration: none;
+  transition: opacity .15s;
+}
+.sf-section-link:hover { opacity: .78; }
+
+/* ── Add-ons Banner ─────────────────────────────────── */
+.sf-addons-banner {
+  border-radius: var(--sf-radius); overflow: hidden;
+  border: 1px solid var(--sf-border);
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: border-color .18s, transform .18s;
+}
+.sf-addons-banner:hover { border-color: var(--sf-border2); transform: translateY(-1px); }
+
+.sf-addons-img {
+  width: 100%; height: 150px; object-fit: cover; display: block;
+  background: linear-gradient(135deg, #1a3a6c 0%, #c42030 50%, #fdbb2d 100%);
+}
+.sf-addons-body {
+  padding: 14px 16px;
+  background: var(--sf-card);
+}
+.sf-addons-cats {
+  display: flex; flex-wrap: wrap; gap: 10px 16px;
+  margin-bottom: 12px;
+}
+.sf-addons-cat {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 500; color: var(--sf-text2);
+}
+.sf-addons-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.sf-addons-foot-text .title { font-size: 15px; font-weight: 600; color: var(--sf-text); }
+.sf-addons-foot-text .sub  { font-size: 12px; color: var(--sf-text2); }
+.sf-browse-btn {
+  background: var(--sf-teal); color: #fff; border: none;
+  border-radius: 9px; height: 38px; padding: 0 16px;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer; flex-shrink: 0;
+  transition: opacity .15s;
+}
+.sf-browse-btn:hover { opacity: .88; }
+
+/* ── Events Grid ────────────────────────────────────── */
+.sf-events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+@media (min-width: 600px) {
+  .sf-events-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 860px) {
+  .sf-events-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* ── Event Card ─────────────────────────────────────── */
+.sf-event-card {
+  border-radius: var(--sf-radius); overflow: hidden;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-card);
+  cursor: pointer;
+  transition: border-color .18s, transform .18s, box-shadow .18s;
+  position: relative;
+}
+.sf-event-card:hover {
+  border-color: var(--sf-border2);
+  transform: translateY(-2px);
+  box-shadow: var(--sf-shadow);
+}
+.sf-event-card.selected {
+  border-color: var(--sf-teal-bdr);
+  box-shadow: 0 0 0 2px var(--sf-teal-dim), var(--sf-shadow);
+}
+.sf-event-img {
+  width: 100%; height: 148px; object-fit: cover; display: block;
+}
+.sf-event-img-placeholder {
+  width: 100%; height: 148px; display: block;
+}
+
+.sf-event-body { padding: 13px 14px 14px; }
+
+.sf-event-location {
+  font-size: 14px; font-weight: 600; color: var(--sf-text);
+  margin-bottom: 2px;
+}
+.sf-event-venue {
+  font-size: 12px; color: var(--sf-text2); margin-bottom: 9px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sf-date-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--sf-teal-dim);
+  border: 1px solid var(--sf-teal-bdr);
+  color: var(--sf-teal);
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px 3px 8px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+.sf-event-addr {
+  display: flex; align-items: flex-start; gap: 4px;
+  font-size: 11px; color: var(--sf-text3); line-height: 1.45;
+}
+
+/* ── Favorite btn ───────────────────────────────────── */
+.sf-fav-btn {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(7,17,42,.55);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.55);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+.sf-fav-btn:hover { background: var(--sf-red-dim); border-color: var(--sf-red); color: var(--sf-red); }
+.sf-fav-btn.active { background: var(--sf-red-dim); border-color: var(--sf-red); color: var(--sf-red); }
+
+/* ── Date / Time Selector ───────────────────────────── */
+.sf-dt-section {
+  background: var(--sf-card);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: none;
+}
+.sf-dt-section.visible { display: block; }
+.sf-dt-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+  color: var(--sf-text);
+  margin-bottom: 16px;
+}
+
+.sf-date-pills {
+  display: flex; gap: 8px;
+  overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 14px;
+}
+.sf-date-pills::-webkit-scrollbar { display: none; }
+
+.sf-date-pill {
+  flex-shrink: 0;
+  height: 38px; padding: 0 16px;
+  border-radius: 19px;
+  border: 1px solid var(--sf-border2);
+  background: transparent;
+  color: var(--sf-text2);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  transition: all .15s;
+}
+.sf-date-pill:hover { border-color: var(--sf-teal-bdr); color: var(--sf-teal); }
+.sf-date-pill.active {
+  background: var(--sf-teal); border-color: var(--sf-teal);
+  color: #fff; font-weight: 600;
+}
+
+.sf-time-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.sf-time-slot {
+  height: 50px;
+  border-radius: var(--sf-radius-sm);
+  border: 1px solid var(--sf-border2);
+  background: var(--sf-bg3);
+  color: var(--sf-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+.sf-time-slot:hover {
+  border-color: var(--sf-teal-bdr);
+  background: var(--sf-teal-dim);
+  color: var(--sf-teal);
+}
+.sf-time-slot.active {
+  border-color: var(--sf-teal);
+  background: var(--sf-teal-dim);
+  color: var(--sf-teal); font-weight: 600;
+}
+.sf-time-slot.sold-out {
+  opacity: .32; cursor: not-allowed; pointer-events: none;
+}
+
+/* ── Ticket CTA ─────────────────────────────────────── */
+.sf-cta-section {
+  max-width: 900px; margin: 0 auto;
+  padding: 0 16px 20px;
+  display: none;
+}
+.sf-cta-section.visible { display: block; }
+
+.sf-get-tickets {
+  width: 100%; height: 52px;
+  border-radius: var(--sf-radius);
+  background: var(--sf-teal); border: none;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+.sf-get-tickets:hover { opacity: .92; transform: translateY(-1px); }
+.sf-get-tickets:active { transform: none; }
+
+/* ── Divider ────────────────────────────────────────── */
+.sf-divider {
+  height: 1px; background: var(--sf-border);
+  margin: 28px 0;
+}
+
+/* ── Empty State ────────────────────────────────────── */
+.sf-empty {
+  text-align: center; padding: 40px 16px;
+  color: var(--sf-text2);
+}
+.sf-empty svg { color: var(--sf-text3); margin-bottom: 12px; }
+.sf-empty p { font-size: 14px; }
+
+/* ── Modal Overlay ──────────────────────────────────── */
+.sf-modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(4px);
+  display: none; align-items: flex-end; justify-content: center;
+  padding: 0;
+}
+.sf-modal-overlay.open { display: flex; }
+
+.sf-modal {
+  background: var(--sf-bg2);
+  border-radius: 20px 20px 0 0;
+  border: 1px solid var(--sf-border);
+  width: 100%; max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 0 0 24px;
+  animation: slide-up .25s cubic-bezier(.22,.68,0,1.2);
+}
+@media (min-width: 600px) {
+  .sf-modal-overlay { align-items: center; padding: 16px; }
+  .sf-modal { border-radius: 20px; max-height: 85vh; }
+}
+@keyframes slide-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.sf-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--sf-border);
+  position: sticky; top: 0;
+  background: var(--sf-bg2);
+  border-radius: 20px 20px 0 0;
+  z-index: 1;
+}
+.sf-modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700; color: var(--sf-text);
+}
+.sf-modal-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg3);
+  color: var(--sf-text2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .14s;
+}
+.sf-modal-close:hover { border-color: var(--sf-border2); color: var(--sf-text); }
+.sf-modal-body { padding: 20px; }
+
+/* ── Add-ons Modal items ─────────────────────────────── */
+.sf-addon-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sf-border);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.sf-addon-item:last-child { border-bottom: none; }
+.sf-addon-item:hover { opacity: .8; }
+.sf-addon-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--sf-bg3); border: 1px solid var(--sf-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.sf-addon-info { flex: 1; }
+.sf-addon-name { font-size: 14px; font-weight: 600; color: var(--sf-text); margin-bottom: 2px; }
+.sf-addon-desc { font-size: 12px; color: var(--sf-text2); }
+.sf-addon-price { font-size: 14px; font-weight: 700; color: var(--sf-teal); }
+
+/* ── Toast notification ─────────────────────────────── */
+.sf-toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--sf-card2);
+  border: 1px solid var(--sf-teal-bdr);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 500; color: var(--sf-text);
+  box-shadow: var(--sf-shadow);
+  z-index: 9999;
+  transition: transform .3s cubic-bezier(.22,.68,0,1.2), opacity .3s;
+  opacity: 0; pointer-events: none;
+  white-space: nowrap;
+}
+.sf-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1; pointer-events: auto;
+}
+
+/* ── Footer ──────────────────────────────────────────── */
+.sf-footer {
+  background: #050D1F;
+  border-top: 1px solid var(--sf-border);
+  margin-top: 48px;
+}
+.sf-footer-inner {
+  max-width: 900px; margin: 0 auto;
+  padding: 40px 16px 24px;
+}
+.sf-footer-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 24px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgba(144,167,209,.08);
+}
+@media (min-width: 640px) {
+  .sf-footer-top { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+}
+
+.sf-footer-brand svg { height: 34px; width: auto; margin-bottom: 14px; }
+.sf-footer-tagline { font-size: 13px; color: rgba(144,167,209,.65); line-height: 1.65; max-width: 220px; }
+
+.sf-footer-col-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: rgba(144,167,209,.5);
+  margin-bottom: 12px;
+}
+.sf-footer-links { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.sf-footer-links a {
+  font-size: 13px; color: rgba(144,167,209,.65);
+  text-decoration: none;
+  transition: color .15s;
+}
+.sf-footer-links a:hover { color: #fff; }
+
+.sf-footer-bottom {
+  padding-top: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.sf-footer-copy { font-size: 12px; color: rgba(144,167,209,.4); }
+
+.sf-footer-legal { display: flex; gap: 16px; }
+.sf-footer-legal a { font-size: 12px; color: rgba(144,167,209,.4); text-decoration: none; transition: color .15s; }
+.sf-footer-legal a:hover { color: rgba(144,167,209,.75); }
+
+/* ── Responsive max-width on sections ───────────────── */
+.sf-search-inner,
+.sf-chips-inner,
+.sf-page,
+.sf-cta-section { max-width: 900px; }
+
+/* ── Reduced motion ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- ─── Sticky Navigation ──────────────────────────── -->
+<nav class="sf-nav" role="navigation" aria-label="Site navigation">
+  <div class="sf-nav-inner">
+    <a href="#" class="sf-nav-logo" aria-label="Evinra home">
+      <svg viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+        <path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+        <path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+        <path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+        <path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+        <path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+        <path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+      </svg>
+    </a>
+    <div class="sf-nav-actions">
+      <button class="sf-icon-btn" data-toggle-theme aria-label="Toggle theme">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/></svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="sf-icon-btn" onclick="openCart()" aria-label="Shopping cart">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="sf-cart-badge" id="cartBadge">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Hero Banner ───────────────────────────────── -->
+<section class="sf-hero" aria-label="Evinra — Event Storefront">
+  <img class="sf-hero-img"
+    src="https://picsum.photos/seed/celebration-crowd/1200/400"
+    alt="Event crowd at night"
+    onerror="this.style.display='none'">
+  <div class="sf-hero-overlay"></div>
+  <div class="sf-hero-logo">
+    <svg viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+      <path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="white"/>
+      <path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="white"/>
+      <path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="white"/>
+      <path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="white"/>
+      <path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="white"/>
+      <path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="white"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ─── Search Section ────────────────────────────── -->
+<div class="sf-search-wrap">
+  <div class="sf-search-inner">
+    <div class="sf-field" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="searchInput" placeholder="Shows, artists, or venues" aria-label="Search events" autocomplete="off">
+    </div>
+    <div class="sf-location-field">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <input type="text" id="locationInput" placeholder="City, State or Zip" aria-label="Location">
+      <button class="sf-near-btn" onclick="useMyLocation()" aria-label="Use my current location">NEAR ME</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Category Chips ────────────────────────────── -->
+<div class="sf-chips-bar">
+  <div class="sf-chips-inner">
+    <div class="sf-chips-scroll" role="tablist" aria-label="Filter by category">
+      <button class="sf-chip active" role="tab" aria-selected="true"  data-cat="all"     onclick="setCategory(this,'all')">All Events</button>
+      <button class="sf-chip"        role="tab" aria-selected="false" data-cat="music"   onclick="setCategory(this,'music')">Music</button>
+      <button class="sf-chip"        role="tab" aria-selected="false" data-cat="family"  onclick="setCategory(this,'family')">Family</button>
+      <button class="sf-chip"        role="tab" aria-selected="false" data-cat="comedy"  onclick="setCategory(this,'comedy')">Comedy</button>
+      <button class="sf-chip"        role="tab" aria-selected="false" data-cat="theater" onclick="setCategory(this,'theater')">Theater</button>
+      <button class="sf-chip"        role="tab" aria-selected="false" data-cat="sports"  onclick="setCategory(this,'sports')">Sports</button>
+      <button class="sf-chip"        role="tab" aria-selected="false" data-cat="rides"   onclick="setCategory(this,'rides')">Rides &amp; Exp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Main Content ──────────────────────────────── -->
+<main id="main">
+
+  <div class="sf-page">
+
+    <!-- Add-ons Featured Banner -->
+    <div class="sf-addons-banner" onclick="openAddons()" role="button" tabindex="0" aria-label="Browse add-ons: parking, rides, novelties and more" onkeydown="if(event.key==='Enter')openAddons()">
+      <img class="sf-addons-img"
+        src="https://picsum.photos/seed/carnival-night/900/150"
+        alt="Event add-ons — rides, food, and more"
+        onerror="this.style.background='linear-gradient(135deg,#1a3a6c 0%,#c42030 50%,#fdbb2d 100%)'">
+      <div class="sf-addons-body">
+        <div class="sf-addons-cats">
+          <span class="sf-addons-cat">🅿️ Parking Passes</span>
+          <span class="sf-addons-cat">🎡 Rides</span>
+          <span class="sf-addons-cat">✨ Novelties</span>
+          <span class="sf-addons-cat">🎪 Show Experiences</span>
+        </div>
+        <div class="sf-addons-foot">
+          <div class="sf-addons-foot-text">
+            <div class="title">Get Add-ons</div>
+            <div class="sub">Parking, rides, novelties &amp; more</div>
+          </div>
+          <button class="sf-browse-btn" tabindex="-1">
+            Browse Add-ons
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section heading -->
+    <div class="sf-section-hd">
+      <h1 class="sf-section-title">Upcoming Events</h1>
+      <a href="#" class="sf-section-link">View all</a>
+    </div>
+
+    <!-- Events Grid -->
+    <div class="sf-events-grid" id="eventsGrid">
+
+      <!-- Miami — Dec 19-22 -->
+      <article class="sf-event-card" data-cat="family" data-id="miami-dec-1" onclick="selectEvent(this,'miami-dec-1')" tabindex="0" role="button" aria-label="Miami-Dade County Fair, Miami Florida, December 19 to 22" onkeydown="if(event.key==='Enter')selectEvent(this,'miami-dec-1')">
+        <img class="sf-event-img" src="https://picsum.photos/seed/fair-miami-1/520/148" alt="Miami-Dade County Fair" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sf-event-img-placeholder" style="display:none;background:linear-gradient(135deg,#0d2a5e,#209991 80%)"></div>
+        <button class="sf-fav-btn" onclick="event.stopPropagation();toggleFav(this)" aria-label="Save to favorites">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="sf-event-body">
+          <div class="sf-event-location">Miami, Florida</div>
+          <div class="sf-event-venue">Miami-Dade County Fair &amp; Exposition, Inc.</div>
+          <div class="sf-date-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Thu, Dec 19 – Sun, Dec 22
+          </div>
+          <div class="sf-event-addr">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            10901 SW 24th St, Miami, FL 33165
+          </div>
+        </div>
+      </article>
+
+      <!-- Orlando — Dec 19-22 -->
+      <article class="sf-event-card" data-cat="family" data-id="orlando-dec-1" onclick="selectEvent(this,'orlando-dec-1')" tabindex="0" role="button" aria-label="Miami-Dade County Fair, Orlando FL, December 19 to 22" onkeydown="if(event.key==='Enter')selectEvent(this,'orlando-dec-1')">
+        <img class="sf-event-img" src="https://picsum.photos/seed/fair-orlando-1/520/148" alt="Orlando fair event" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sf-event-img-placeholder" style="display:none;background:linear-gradient(135deg,#1a0d5e,#c42030 80%)"></div>
+        <button class="sf-fav-btn" onclick="event.stopPropagation();toggleFav(this)" aria-label="Save to favorites">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="sf-event-body">
+          <div class="sf-event-location">Orlando, FL</div>
+          <div class="sf-event-venue">Miami-Dade County Fair &amp; Exposition, Inc.</div>
+          <div class="sf-date-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Thu, Dec 19 – Sun, Dec 22
+          </div>
+          <div class="sf-event-addr">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            10901 SW 24th St, Miami, FL 33165
+          </div>
+        </div>
+      </article>
+
+      <!-- Miami — Jan 23-26 -->
+      <article class="sf-event-card" data-cat="music" data-id="miami-jan" onclick="selectEvent(this,'miami-jan')" tabindex="0" role="button" aria-label="Miami-Dade County Fair, Miami Florida, January 23 to 26" onkeydown="if(event.key==='Enter')selectEvent(this,'miami-jan')">
+        <img class="sf-event-img" src="https://picsum.photos/seed/fair-miami-2/520/148" alt="Miami fair January" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sf-event-img-placeholder" style="display:none;background:linear-gradient(135deg,#0d4a2e,#fdbb2d 80%)"></div>
+        <button class="sf-fav-btn" onclick="event.stopPropagation();toggleFav(this)" aria-label="Save to favorites">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="sf-event-body">
+          <div class="sf-event-location">Miami, Florida</div>
+          <div class="sf-event-venue">Miami-Dade County Fair &amp; Exposition, Inc.</div>
+          <div class="sf-date-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Thu, Jan 23 – Sun, Jan 26
+          </div>
+          <div class="sf-event-addr">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            10901 SW 24th St, Miami, FL 33165
+          </div>
+        </div>
+      </article>
+
+      <!-- Orlando — Dec 19-22 (2nd) -->
+      <article class="sf-event-card" data-cat="theater" data-id="orlando-dec-2" onclick="selectEvent(this,'orlando-dec-2')" tabindex="0" role="button" aria-label="Miami-Dade County Fair, Orlando FL, December 19 to 22" onkeydown="if(event.key==='Enter')selectEvent(this,'orlando-dec-2')">
+        <img class="sf-event-img" src="https://picsum.photos/seed/fair-orlando-2/520/148" alt="Orlando winter event" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sf-event-img-placeholder" style="display:none;background:linear-gradient(135deg,#2a1a0d,#3A4B70 80%)"></div>
+        <button class="sf-fav-btn" onclick="event.stopPropagation();toggleFav(this)" aria-label="Save to favorites">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="sf-event-body">
+          <div class="sf-event-location">Orlando, FL</div>
+          <div class="sf-event-venue">Miami-Dade County Fair &amp; Exposition, Inc.</div>
+          <div class="sf-date-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Thu, Dec 19 – Sun, Dec 22
+          </div>
+          <div class="sf-event-addr">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            10901 SW 24th St, Miami, FL 33165
+          </div>
+        </div>
+      </article>
+
+      <!-- Miami — Dec 19-22 (3rd) -->
+      <article class="sf-event-card" data-cat="family" data-id="miami-dec-3" onclick="selectEvent(this,'miami-dec-3')" tabindex="0" role="button" aria-label="Miami-Dade County Fair, Miami Florida, December 19 to 22" onkeydown="if(event.key==='Enter')selectEvent(this,'miami-dec-3')">
+        <img class="sf-event-img" src="https://picsum.photos/seed/fair-miami-3/520/148" alt="Miami fair December" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sf-event-img-placeholder" style="display:none;background:linear-gradient(135deg,#0d1a5e,#c42030 60%,#fdbb2d 100%)"></div>
+        <button class="sf-fav-btn" onclick="event.stopPropagation();toggleFav(this)" aria-label="Save to favorites">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="sf-event-body">
+          <div class="sf-event-location">Miami, Florida</div>
+          <div class="sf-event-venue">Miami-Dade County Fair &amp; Exposition, Inc.</div>
+          <div class="sf-date-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Thu, Dec 19 – Sun, Dec 22
+          </div>
+          <div class="sf-event-addr">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            10901 SW 24th St, Miami, FL 33165
+          </div>
+        </div>
+      </article>
+
+      <!-- Phoenix — Dec 19-22 -->
+      <article class="sf-event-card" data-cat="sports" data-id="phoenix-dec" onclick="selectEvent(this,'phoenix-dec')" tabindex="0" role="button" aria-label="Miami-Dade County Fair, Phoenix AZ, December 19 to 22" onkeydown="if(event.key==='Enter')selectEvent(this,'phoenix-dec')">
+        <img class="sf-event-img" src="https://picsum.photos/seed/fair-phoenix/520/148" alt="Phoenix event" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sf-event-img-placeholder" style="display:none;background:linear-gradient(135deg,#3a1a0d,#c42030 80%)"></div>
+        <button class="sf-fav-btn" onclick="event.stopPropagation();toggleFav(this)" aria-label="Save to favorites">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <div class="sf-event-body">
+          <div class="sf-event-location">Phoenix, AZ</div>
+          <div class="sf-event-venue">Miami-Dade County Fair &amp; Exposition, Inc.</div>
+          <div class="sf-date-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Thu, Dec 19 – Sun, Dec 22
+          </div>
+          <div class="sf-event-addr">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            10901 SW 24th St, Miami, FL 33165
+          </div>
+        </div>
+      </article>
+
+    </div><!-- /events grid -->
+
+    <!-- Empty state (shown when filter has no results) -->
+    <div class="sf-empty" id="emptyState" style="display:none">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>No events found in this category.<br>Try <strong>All Events</strong> to see everything.</p>
+    </div>
+
+    <!-- Date &amp; Time Selector -->
+    <div class="sf-dt-section" id="dtSection">
+      <div class="sf-dt-label">Select Date and Time</div>
+      <div class="sf-date-pills" id="datePills" role="group" aria-label="Select a date"></div>
+      <div class="sf-time-grid" id="timeGrid" role="group" aria-label="Select a time"></div>
+    </div>
+
+  </div><!-- /sf-page -->
+
+  <!-- Get Tickets CTA -->
+  <div class="sf-cta-section" id="ctaSection">
+    <button class="sf-get-tickets" id="getTicketsBtn" onclick="goToTickets()">
+      Get Tickets
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+  </div>
+
+</main>
+
+<!-- ─── Footer ────────────────────────────────────── -->
+<footer class="sf-footer" role="contentinfo">
+  <div class="sf-footer-inner">
+    <div class="sf-footer-top">
+
+      <!-- Brand column -->
+      <div class="sf-footer-brand">
+        <svg viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+          <path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="white"/>
+          <path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="white"/>
+          <path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="white"/>
+          <path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="white"/>
+          <path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="white"/>
+          <path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="white"/>
+        </svg>
+        <p class="sf-footer-tagline">The complete event management &amp; ticketing platform. Powering experiences that matter.</p>
+      </div>
+
+      <!-- Event Management -->
+      <div>
+        <div class="sf-footer-col-title">Event Management</div>
+        <ul class="sf-footer-links">
+          <li><a href="#">Show Ticketing</a></li>
+          <li><a href="#">Season Passes</a></li>
+          <li><a href="#">Group Events</a></li>
+          <li><a href="#">Gift Cards</a></li>
+          <li><a href="#">Promotions</a></li>
+        </ul>
+      </div>
+
+      <!-- Operations -->
+      <div>
+        <div class="sf-footer-col-title">Operations</div>
+        <ul class="sf-footer-links">
+          <li><a href="#">Staff Management</a></li>
+          <li><a href="#">Inventory Control</a></li>
+          <li><a href="#">Reports &amp; Analytics</a></li>
+          <li><a href="#">Device Management</a></li>
+        </ul>
+      </div>
+
+      <!-- Company -->
+      <div>
+        <div class="sf-footer-col-title">Company</div>
+        <ul class="sf-footer-links">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Partners</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+    </div><!-- /sf-footer-top -->
+
+    <div class="sf-footer-bottom">
+      <span class="sf-footer-copy">&copy; 2025 Evinra, Inc. All rights reserved.</span>
+      <div class="sf-footer-legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Accessibility</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Add-ons Modal ─────────────────────────────── -->
+<div class="sf-modal-overlay" id="addonsModal" role="dialog" aria-modal="true" aria-labelledby="addonsModalTitle" onclick="if(event.target===this)closeAddons()">
+  <div class="sf-modal">
+    <div class="sf-modal-header">
+      <h2 class="sf-modal-title" id="addonsModalTitle">Browse Add-ons</h2>
+      <button class="sf-modal-close" onclick="closeAddons()" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sf-modal-body">
+
+      <div class="sf-addon-item" onclick="addToCart('Parking Pass')">
+        <div class="sf-addon-icon">🅿️</div>
+        <div class="sf-addon-info">
+          <div class="sf-addon-name">Parking Pass</div>
+          <div class="sf-addon-desc">Reserved parking near main entrance</div>
+        </div>
+        <div class="sf-addon-price">$15.00</div>
+      </div>
+
+      <div class="sf-addon-item" onclick="addToCart('Rides Wristband')">
+        <div class="sf-addon-icon">🎡</div>
+        <div class="sf-addon-info">
+          <div class="sf-addon-name">Rides Wristband</div>
+          <div class="sf-addon-desc">Unlimited rides all day</div>
+        </div>
+        <div class="sf-addon-price">$29.00</div>
+      </div>
+
+      <div class="sf-addon-item" onclick="addToCart('Novelty Kit')">
+        <div class="sf-addon-icon">✨</div>
+        <div class="sf-addon-info">
+          <div class="sf-addon-name">Novelty Kit</div>
+          <div class="sf-addon-desc">Glow wand, light-up necklace &amp; more</div>
+        </div>
+        <div class="sf-addon-price">$22.00</div>
+      </div>
+
+      <div class="sf-addon-item" onclick="addToCart('Show Experience VIP')">
+        <div class="sf-addon-icon">🎪</div>
+        <div class="sf-addon-info">
+          <div class="sf-addon-name">Show Experience VIP</div>
+          <div class="sf-addon-desc">Front row access + backstage tour</div>
+        </div>
+        <div class="sf-addon-price">$75.00</div>
+      </div>
+
+      <div class="sf-addon-item" onclick="addToCart('Food &amp; Beverage Credit')">
+        <div class="sf-addon-icon">🍔</div>
+        <div class="sf-addon-info">
+          <div class="sf-addon-name">Food &amp; Beverage Credit</div>
+          <div class="sf-addon-desc">$30 loaded on your wristband</div>
+        </div>
+        <div class="sf-addon-price">$28.00</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ─── Toast ─────────────────────────────────────── -->
+<div class="sf-toast" id="sfToast" role="status" aria-live="polite">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#209991" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="sfToastMsg">Added to cart</span>
+</div>
+
+<!-- ─── Scripts ───────────────────────────────────── -->
+<script src="assets/theme.js"></script>
+<script>
+/* ─── Event data ───────────────────────────────────── */
+var EVENT_DATA = {
+  'miami-dec-1':   { dates: ['Thu, Dec 19','Fri, Dec 20','Sat, Dec 21','Sun, Dec 22'], times: { 'Thu, Dec 19':['2:00 PM','7:00 PM'], 'Fri, Dec 20':['2:00 PM','7:00 PM'], 'Sat, Dec 21':['2:00 PM','7:00 PM'], 'Sun, Dec 22':['2:00 PM','7:00 PM'] } },
+  'orlando-dec-1': { dates: ['Thu, Dec 19','Fri, Dec 20','Sat, Dec 21','Sun, Dec 22'], times: { 'Thu, Dec 19':['2:00 PM','7:00 PM'], 'Fri, Dec 20':['12:00 PM','5:00 PM','7:30 PM'], 'Sat, Dec 21':['1:00 PM','4:30 PM','8:00 PM'], 'Sun, Dec 22':['2:00 PM','6:00 PM'] } },
+  'miami-jan':     { dates: ['Thu, Jan 23','Fri, Jan 24','Sat, Jan 25','Sun, Jan 26'], times: { 'Thu, Jan 23':['3:00 PM','7:00 PM'], 'Fri, Jan 24':['2:00 PM','7:00 PM'], 'Sat, Jan 25':['1:00 PM','4:00 PM','7:00 PM'], 'Sun, Jan 26':['2:00 PM','5:00 PM'] } },
+  'orlando-dec-2': { dates: ['Thu, Dec 19','Fri, Dec 20','Sat, Dec 21','Sun, Dec 22'], times: { 'Thu, Dec 19':['2:00 PM','7:00 PM'], 'Fri, Dec 20':['2:00 PM','7:00 PM'], 'Sat, Dec 21':['2:00 PM','7:00 PM'], 'Sun, Dec 22':['2:00 PM','7:00 PM'] } },
+  'miami-dec-3':   { dates: ['Thu, Dec 19','Fri, Dec 20','Sat, Dec 21','Sun, Dec 22'], times: { 'Thu, Dec 19':['2:00 PM','7:00 PM'], 'Fri, Dec 20':['2:00 PM','7:00 PM'], 'Sat, Dec 21':['2:00 PM','7:00 PM'], 'Sun, Dec 22':['2:00 PM','7:00 PM'] } },
+  'phoenix-dec':   { dates: ['Thu, Dec 19','Fri, Dec 20','Sat, Dec 21','Sun, Dec 22'], times: { 'Thu, Dec 19':['7:00 PM'], 'Fri, Dec 20':['7:00 PM'], 'Sat, Dec 21':['2:00 PM','7:00 PM'], 'Sun, Dec 22':['2:00 PM'] } }
+};
+
+var selectedEventId  = null;
+var selectedDateStr  = null;
+var selectedTimeStr  = null;
+var cartCount        = 0;
+
+/* ─── Category filter ──────────────────────────────── */
+function setCategory(btn, cat) {
+  document.querySelectorAll('.sf-chip').forEach(function(c) {
+    c.classList.remove('active');
+    c.setAttribute('aria-selected','false');
+  });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected','true');
+
+  var cards   = document.querySelectorAll('.sf-event-card');
+  var visible = 0;
+  cards.forEach(function(card) {
+    var show = (cat === 'all' || card.dataset.cat === cat);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
+
+  // Reset date/time if visible cards don't include selected
+  if (selectedEventId) {
+    var sel = document.querySelector('[data-id="'+selectedEventId+'"]');
+    if (sel && sel.style.display === 'none') resetDateTime();
+  }
+}
+
+/* ─── Search ───────────────────────────────────────── */
+document.getElementById('searchInput').addEventListener('input', function() {
+  var q = this.value.toLowerCase().trim();
+  var cards = document.querySelectorAll('.sf-event-card');
+  var visible = 0;
+  cards.forEach(function(card) {
+    var text = card.textContent.toLowerCase();
+    var show = !q || text.includes(q);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
+});
+
+/* ─── Near me ──────────────────────────────────────── */
+function useMyLocation() {
+  if (!navigator.geolocation) {
+    showToast('Geolocation not supported');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    document.getElementById('locationInput').value = 'Near me (' + pos.coords.latitude.toFixed(2) + ', ' + pos.coords.longitude.toFixed(2) + ')';
+    showToast('Location updated');
+  }, function() {
+    showToast('Could not get location');
+  });
+}
+
+/* ─── Event selection ──────────────────────────────── */
+function selectEvent(el, id) {
+  document.querySelectorAll('.sf-event-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedEventId = id;
+  selectedDateStr = null;
+  selectedTimeStr = null;
+  renderDatePills();
+  var dtSection = document.getElementById('dtSection');
+  dtSection.classList.add('visible');
+  document.getElementById('ctaSection').classList.remove('visible');
+  setTimeout(function() {
+    dtSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 80);
+}
+
+function resetDateTime() {
+  document.querySelectorAll('.sf-event-card').forEach(function(c) { c.classList.remove('selected'); });
+  selectedEventId = null;
+  selectedDateStr = null;
+  selectedTimeStr = null;
+  document.getElementById('dtSection').classList.remove('visible');
+  document.getElementById('ctaSection').classList.remove('visible');
+}
+
+/* ─── Date pills ───────────────────────────────────── */
+function renderDatePills() {
+  var data = EVENT_DATA[selectedEventId];
+  if (!data) return;
+  var pills = document.getElementById('datePills');
+  pills.innerHTML = data.dates.map(function(d, i) {
+    return '<button class="sf-date-pill' + (i === 0 ? ' active' : '') + '" onclick="selectDate(\'' + d + '\')">' + d + '</button>';
+  }).join('');
+  selectDate(data.dates[0]);
+}
+
+function selectDate(date) {
+  selectedDateStr = date;
+  selectedTimeStr = null;
+  document.querySelectorAll('.sf-date-pill').forEach(function(p) {
+    p.classList.toggle('active', p.textContent === date);
+  });
+  renderTimeGrid();
+  document.getElementById('ctaSection').classList.remove('visible');
+}
+
+/* ─── Time grid ────────────────────────────────────── */
+function renderTimeGrid() {
+  var data  = EVENT_DATA[selectedEventId];
+  var times = (data && data.times[selectedDateStr]) || [];
+  var grid  = document.getElementById('timeGrid');
+  grid.innerHTML = times.map(function(t) {
+    return '<button class="sf-time-slot" onclick="selectTime(\'' + t + '\')">' + t + '</button>';
+  }).join('');
+}
+
+function selectTime(time) {
+  selectedTimeStr = time;
+  document.querySelectorAll('.sf-time-slot').forEach(function(s) {
+    s.classList.toggle('active', s.textContent.trim() === time);
+  });
+  document.getElementById('ctaSection').classList.add('visible');
+}
+
+/* ─── Get Tickets ──────────────────────────────────── */
+function goToTickets() {
+  showToast('Proceeding to ticket selection…');
+}
+
+/* ─── Favorites ────────────────────────────────────── */
+function toggleFav(btn) {
+  btn.classList.toggle('active');
+  var isActive = btn.classList.contains('active');
+  btn.querySelector('svg').setAttribute('fill', isActive ? 'currentColor' : 'none');
+  btn.setAttribute('aria-label', isActive ? 'Remove from favorites' : 'Save to favorites');
+  showToast(isActive ? 'Saved to favorites' : 'Removed from favorites');
+}
+
+/* ─── Add-ons modal ────────────────────────────────── */
+function openAddons() {
+  document.getElementById('addonsModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAddons() {
+  document.getElementById('addonsModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ─── Cart ─────────────────────────────────────────── */
+function openCart() {
+  showToast(cartCount === 0 ? 'Your cart is empty' : cartCount + ' item' + (cartCount > 1 ? 's' : '') + ' in cart');
+}
+function addToCart(name) {
+  cartCount++;
+  var badge = document.getElementById('cartBadge');
+  badge.textContent = cartCount;
+  badge.classList.add('show');
+  closeAddons();
+  showToast(name + ' added to cart');
+}
+
+/* ─── Toast ────────────────────────────────────────── */
+var _toastTimer;
+function showToast(msg) {
+  var toast = document.getElementById('sfToast');
+  document.getElementById('sfToastMsg').textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 3200);
+}
+
+/* ─── Keyboard close modal ─────────────────────────── */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('addonsModal').classList.contains('open')) closeAddons();
+  }
+});
+</script>
+
+</body>
+</html>

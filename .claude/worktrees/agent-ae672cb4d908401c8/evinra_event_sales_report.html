@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="color-scheme" content="dark light"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — Sales Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<style>/* Scrollbar styling */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#0B0F0E}
+::-webkit-scrollbar-thumb{background:#6E827E;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#A6B6B3}
+/* Icon toggle for theme switch */
+[data-theme="dark"] .icon-sun{display:none!important}
+/* SVG icon styling - base rules */
+.ev-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ev-icon svg{width:14px;height:14px}
+svg[stroke="currentColor"]{stroke:currentColor!important}
+/* Button SVG colors */
+.sb-item svg{stroke:var(--text2)!important}
+.sb-item:hover svg{stroke:var(--text)!important}
+.sb-item.active svg{stroke:var(--p)!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--body);display:flex;flex-direction:column;overflow:hidden}
+/* SHELL */
+.shell{display:flex;flex:1;min-height:0;overflow:hidden}
+/* ── SIDEBAR ────────────────────────────────────── */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px);}
+.sb-section{padding:0 0 8px}
+.sb-group{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.10em;color:var(--text3);text-transform:uppercase;padding:8px 16px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-family:var(--body);font-size:12.5px;font-weight:400;color:var(--text2);text-decoration:none;border-radius:0;transition:background .12s,color .12s;position:relative;white-space:nowrap;}
+.sb-item i{font-size:14px;flex-shrink:0}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--p-dim);color:var(--p);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--p);border-radius:0 2px 2px 0;}
+.sb-bottom{margin-top:auto;padding:14px 10px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-user-name{font-size:12px;font-weight:500;color:var(--text)}
+.sb-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+/* ── MAIN ───────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+/* ── FILTER BAR ─────────────────────────────────── */
+.filter-bar{background:var(--bg3);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.ml-auto{margin-left:auto}
+.result-count{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.result-count strong{color:var(--text2)}
+/* ── TABLE WRAPPER ──────────────────────────────── */
+.table-wrap{flex:1;overflow-y:auto;overflow-x:auto;padding:0;min-height:0}
+/* ── TABLE ──────────────────────────────────────── */
+.evt-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.evt-table colgroup col:nth-child(1){width:52px}   /* # */
+.evt-table colgroup col:nth-child(2){width:88px}   /* date */
+.evt-table colgroup col:nth-child(3){width:60px}   /* day */
+.evt-table colgroup col:nth-child(4){width:110px}  /* channel */
+.evt-table colgroup col:nth-child(5){width:110px}  /* qty */
+.evt-table colgroup col:nth-child(6){width:100px}  /* fees */
+.evt-table colgroup col:nth-child(7){width:106px}  /* discounts */
+.evt-table colgroup col:nth-child(8){width:90px}   /* tips */
+.evt-table colgroup col:nth-child(9){width:100px}  /* refunds */
+.evt-table colgroup col:nth-child(10){width:110px} /* gross sales */
+.evt-table colgroup col:nth-child(11){width:112px} /* net */
+/* STICKY HEADER */
+.evt-table thead th{
+  position:sticky;top:0;z-index:10;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border2);
+  border-top:none;
+  padding:10px 12px;
+  font-size:9px;font-weight:600;font-family:var(--mono);
+  color:var(--text3);text-transform:uppercase;letter-spacing:.7px;
+  text-align:left;white-space:nowrap;
+  cursor:pointer;user-select:none;
+  transition:color .14s;
+}
+.evt-table thead th:hover{color:var(--text2)}
+.evt-table thead th.sort-asc::after{content:' ↑';color:var(--p)}
+.evt-table thead th.sort-desc::after{content:' ↓';color:var(--p)}
+.evt-table thead th.num{text-align:right}
+/* VENUE GROUP HEADER */
+.venue-header td{
+  background:var(--bg3);
+  border-top:1px solid var(--border2);
+  border-bottom:1px solid var(--border);
+  padding:9px 16px;
+  position:sticky;
+  z-index:5;
+}
+.venue-header-inner{display:flex;align-items:center;gap:10px}
+.venue-pip{width:3px;height:28px;border-radius:2px;flex-shrink:0}
+.venue-name-tag{font-size:10px;font-family:var(--mono);color:var(--p);display:inline-flex;align-items:center;gap:4px;background:var(--p-dim);border:1px solid var(--p-border);border-radius:5px;padding:2px 8px}
+.venue-name{font-size:12px;font-weight:700;color:var(--text);font-family:var(--display);letter-spacing:-.2px}
+.venue-sub{font-size:10px;font-family:var(--mono);color:var(--text3);display:flex;align-items:center;gap:4px}
+.venue-shows{font-size:10px;font-family:var(--mono);color:var(--text3);padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg4);white-space:nowrap;flex-shrink:0}
+/* DATA ROWS */
+.evt-table tbody tr.data-row{transition:background .12s;cursor:pointer}
+.evt-table tbody tr.data-row:hover td{background:rgba(255,255,255,.02)}
+.evt-table tbody tr.data-row td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  font-size:12.5px;
+  color:var(--text2);
+  vertical-align:middle;
+}
+.evt-table tbody tr.data-row td.num{text-align:right;font-family:var(--mono)}
+.evt-table tbody tr.data-row td.mono{font-family:var(--mono)}
+/* ROW NUMBER */
+.row-num{font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center}
+/* DATE / DAY CHIPS */
+.date-chip{font-size:11px;font-family:var(--mono);color:var(--text);white-space:nowrap}
+.day-chip{display:inline-block;font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px;border:1px solid var(--border);color:var(--text3);background:var(--bg4);white-space:nowrap}
+.day-chip.weekend{border-color:rgba(139,107,212,.3);color:var(--violet);background:var(--violet-dim)}
+/* STATUS BADGE */
+.status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:5px;border:1px solid;white-space:nowrap}
+.status i{font-size:10px}
+.status.on-sale{border-color:rgba(42,155,133,.3);background:var(--p-dim);color:var(--p)}
+.status.sold-out{border-color:rgba(201,75,75,.3);background:var(--red-dim);color:var(--red)}
+.status.upcoming{border-color:rgba(212,136,74,.3);background:var(--amber-dim);color:var(--amber)}
+.status.past{border-color:var(--border);background:transparent;color:var(--text3)}
+/* EVENT NAME */
+.evt-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* CHANNEL BADGE */
+.ch-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);font-weight:500;padding:3px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
+.ch-badge i{font-size:11px}
+.ch-box-office{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.ch-storefront{border-color:rgba(74,139,212,.3);background:rgba(74,139,212,.1);color:#4A8BD4}
+.ch-third-party{border-color:rgba(139,107,212,.3);background:rgba(139,107,212,.1);color:#8B6BD4}
+.ch-vendor{border-color:rgba(212,136,74,.3);background:rgba(212,136,74,.1);color:#D4884A}
+.venue-cell{display:flex;flex-direction:column;gap:2px;min-width:0}
+.venue-cell-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.venue-cell-city{font-size:10px;font-family:var(--mono);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* TICKETS WITH MINI BAR */
+.tickets-wrap{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.tickets-count{font-size:12.5px;font-family:var(--mono);color:var(--text);font-weight:500;min-width:32px;text-align:right}
+.cap-bar{width:40px;height:4px;background:var(--bg5);border-radius:2px;overflow:hidden;flex-shrink:0}
+.cap-fill{height:100%;border-radius:2px;background:var(--p);transition:width .8s cubic-bezier(.16,1,.3,1)}
+.cap-fill.warn{background:var(--amber)}
+.cap-fill.full{background:var(--red)}
+/* MONEY CELLS */
+.money{font-family:var(--mono);text-align:right;color:var(--text2)}
+.money.net{color:var(--p);font-weight:500}
+.money.zero{color:var(--text3)}
+/* VENUE SUBTOTAL ROW */
+tr.subtotal td{
+  background:rgba(42,155,133,.04);
+  border-top:1px solid var(--p-border);
+  border-bottom:1px solid var(--border);
+  padding:8px 12px;
+  font-size:11px;font-family:var(--mono);
+}
+.subtotal-label{color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-size:9.5px}
+.subtotal-val{color:var(--p);font-weight:600;text-align:right}
+.subtotal-tickets{color:var(--text2);font-weight:600;text-align:right}
+/* GRAND TOTAL ROW */
+tr.grand-total td{
+  background:var(--p-dim);
+  border-top:2px solid var(--p-border);
+  border-bottom:none;
+  padding:11px 12px;
+  font-size:12px;font-family:var(--mono);font-weight:600;
+  position:sticky;bottom:0;
+  z-index:8;
+}
+.gt-label{color:var(--p);text-transform:uppercase;letter-spacing:.5px;font-size:10px}
+.gt-val{color:var(--p);text-align:right;font-size:14px}
+.gt-tickets{color:var(--text);text-align:right}
+/* summary date row — aggregated, slightly bolder */
+tr.summary-date-row td{
+  padding:13px 12px;
+  border-bottom:1px solid var(--border);
+  font-size:12.5px;
+  color:var(--text2);
+  vertical-align:middle;
+  transition:background .12s;
+  cursor:pointer;
+}
+tr.summary-date-row:hover td{background:rgba(255,255,255,.02)}
+tr.summary-date-row td.sum-date{font-family:var(--mono);color:var(--text);font-weight:500}
+tr.summary-date-row td.sum-shows{font-size:11px;color:var(--text3);font-family:var(--mono)}
+/* ── PAGINATION ─────────────────────────────────── */
+.pagination{background:var(--bg2);border-top:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.pg-btn{min-width:32px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 8px;transition:all .14s}
+.pg-btn:hover{background:var(--bg4);color:var(--text);border-color:var(--border2)}
+.pg-btn.active{background:var(--p-dim);border-color:var(--p-border);color:var(--p);font-weight:600}
+.pg-btn:disabled,.pg-btn[disabled]{opacity:.35;cursor:not-allowed}
+.pg-ellipsis{color:var(--text3);font-family:var(--mono);font-size:12px;padding:0 4px}
+.pg-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pg-label{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.pg-input{background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:var(--mono);padding:4px 8px;width:52px;text-align:center;outline:none}
+.pg-input:focus{border-color:var(--p-border)}
+.pg-size select{appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:11px;font-family:var(--mono);padding:4px 22px 4px 8px;cursor:pointer;outline:none}
+/* ── GLOBAL APP HEADER ──────────────────────────── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;height:auto;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:20px}
+.header-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+.header-logo{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.header-logo-label{font-size:8px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;line-height:1;white-space:nowrap;font-weight:600}
+.header-content{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;margin-left:90px}
+.header-page-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.header-breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-right{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .14s}
+.header-user:hover{background:rgba(255,255,255,.04)}
+.header-user-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-user-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.header-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.header-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.header-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .14s}
+.header-icon-btn:hover{border-color:var(--border2);color:var(--text)}
+
+.filter-sep{width:1px;height:24px;background:var(--border2);align-self:center}
+.search-input::placeholder{color:var(--text3)}
+.btn{height:30px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:#0B0F0E}
+.btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#0B0F0E}
+.btn-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.btn-violet:hover{background:var(--violet);color:#fff}
+.btn-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 12px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+.tbl thead th.sortable{cursor:pointer}
+.tbl thead th.sortable:hover{color:var(--text2)}
+.tbl tbody tr{transition:background .12s;cursor:pointer}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.badge i{font-size:10px}
+.badge-teal{border-color:rgba(42,155,133,.3);background:rgba(42,155,133,.1);color:#2A9B85}
+.badge-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.badge-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.badge-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.badge-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.badge-gold{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold)}
+.badge-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.act-wrap{display:flex;gap:4px}
+.act-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s;color:var(--text3)}
+.act-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.act-btn.red:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.act-btn.amber:hover{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn .ev-icon{width:14px;height:14px}
+.page-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:var(--mono);color:var(--text2);transition:all .14s}
+.page-btn:hover{border-color:var(--border2);color:var(--text)}
+.page-btn.active{background:var(--p);border-color:var(--p);color:#0B0F0E;font-weight:700}
+
+
+/* Filter dropdown styling */
+select{appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px}
+select:focus{border-color:var(--p-border)}
+.filter-dropdown{position:relative}
+.filter-dropdown svg{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);width:11px;height:11px}
+/* DATE FILTER PILLS */
+.date-filter-group{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.date-pill{height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.date-pill:hover{border-color:var(--border2);color:var(--text)}
+.date-pill.on{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.date-range-wrap{display:none;align-items:center;gap:5px}
+.date-range-wrap.show{display:flex}
+.date-input{height:30px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11px;font-family:var(--mono);padding:0 9px;outline:none;cursor:pointer;min-width:110px}
+.date-input:focus{border-color:var(--red-border);color:var(--text)}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg style="height:38px;width:auto;display:block" viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+<path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+<path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+<path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+<path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+<path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+<path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+<path d="M219.307 76.6345V74.2444H231.761V76.6345H226.936V89.9841H224.131V76.6345H219.307Z" style="fill:var(--text3)"/>
+<path d="M236.989 74.2444V89.9841H234.162V74.2444H236.989Z" style="fill:var(--text3)"/>
+<path d="M253.413 79.555H250.562C250.481 79.0836 250.331 78.666 250.112 78.3023C249.894 77.9334 249.622 77.6208 249.297 77.3646C248.971 77.1085 248.601 76.9163 248.184 76.7882C247.772 76.655 247.328 76.5884 246.85 76.5884C246.002 76.5884 245.249 76.8036 244.594 77.234C243.939 77.6593 243.425 78.2843 243.054 79.1092C242.683 79.929 242.498 80.9307 242.498 82.1143C242.498 83.3183 242.683 84.3328 243.054 85.1577C243.43 85.9775 243.944 86.5974 244.594 87.0176C245.249 87.4326 245.999 87.6401 246.842 87.6401C247.31 87.6401 247.747 87.5786 248.153 87.4556C248.565 87.3275 248.933 87.1405 249.259 86.8946C249.589 86.6487 249.866 86.3464 250.089 85.9877C250.318 85.6291 250.476 85.2192 250.562 84.758L253.413 84.7734C253.306 85.5215 253.075 86.2234 252.719 86.8792C252.368 87.5351 251.908 88.114 251.339 88.6161C250.77 89.1131 250.105 89.5025 249.342 89.7843C248.58 90.061 247.734 90.1993 246.804 90.1993C245.432 90.1993 244.208 89.8791 243.131 89.2387C242.053 88.5982 241.205 87.6734 240.585 86.4642C239.965 85.255 239.655 83.805 239.655 82.1143C239.655 80.4183 239.968 78.9683 240.593 77.7643C241.218 76.5551 242.069 75.6303 243.146 74.9898C244.223 74.3494 245.443 74.0292 246.804 74.0292C247.673 74.0292 248.481 74.1521 249.228 74.3981C249.975 74.644 250.641 75.0052 251.225 75.4817C251.809 75.9531 252.29 76.5321 252.666 77.2186C253.047 77.9001 253.296 78.6789 253.413 79.555Z" style="fill:var(--text3)"/>
+<path d="M256.002 89.9841V74.2444H258.83V81.4764H259.02L265.11 74.2444H268.563L262.526 81.3073L268.616 89.9841H265.217L260.56 83.2363L258.83 85.296V89.9841H256.002Z" style="fill:var(--text3)"/>
+<path d="M270.527 89.9841V74.2444H280.68V76.6345H273.355V80.9076H280.154V83.2978H273.355V87.594H280.741V89.9841H270.527Z" style="fill:var(--text3)"/>
+<path d="M282.879 76.6345V74.2444H295.333V76.6345H290.508V89.9841H287.703V76.6345H282.879Z" style="fill:var(--text3)"/>
+<path d="M300.561 74.2444V89.9841H297.734V74.2444H300.561Z" style="fill:var(--text3)"/>
+<path d="M316.451 74.2444V89.9841H313.936L306.581 79.263H306.451V89.9841H303.623V74.2444H306.154L313.501 84.9732H313.639V74.2444H316.451Z" style="fill:var(--text3)"/>
+<path d="M329.989 79.2706C329.862 78.8556 329.687 78.4842 329.463 78.1562C329.245 77.8232 328.981 77.5389 328.671 77.3032C328.366 77.0675 328.015 76.8907 327.619 76.7729C327.223 76.6499 326.791 76.5884 326.323 76.5884C325.485 76.5884 324.738 76.801 324.082 77.2263C323.427 77.6516 322.911 78.2767 322.535 79.1016C322.164 79.9213 321.979 80.9204 321.979 82.0989C321.979 83.2876 322.164 84.2944 322.535 85.1193C322.906 85.9442 323.422 86.5718 324.082 87.0022C324.743 87.4275 325.51 87.6401 326.384 87.6401C327.177 87.6401 327.863 87.4864 328.442 87.179C329.026 86.8715 329.476 86.436 329.791 85.8724C330.106 85.3037 330.264 84.6376 330.264 83.8742L330.904 83.9741H326.666V81.7453H333V83.636C333 84.9835 332.715 86.1491 332.146 87.1329C331.577 88.1166 330.795 88.8749 329.799 89.4077C328.803 89.9355 327.66 90.1993 326.369 90.1993C324.931 90.1993 323.668 89.874 322.581 89.2233C321.499 88.5675 320.653 87.6375 320.043 86.4335C319.438 85.2243 319.136 83.7897 319.136 82.1296C319.136 80.859 319.314 79.7241 319.669 78.725C320.03 77.7259 320.533 76.8779 321.178 76.1811C321.824 75.4792 322.581 74.9463 323.45 74.5825C324.319 74.2136 325.264 74.0292 326.285 74.0292C327.149 74.0292 327.954 74.1572 328.701 74.4134C329.448 74.6645 330.111 75.0232 330.691 75.4894C331.275 75.9557 331.755 76.509 332.131 77.1495C332.507 77.7899 332.754 78.497 332.87 79.2706H329.989Z" style="fill:var(--text3)"/>
+</svg>
+    </div>
+    
+<div class="header-content">
+      <div class="header-page-title" id="headerTitle">Event Sales Report</div>
+      <div class="header-breadcrumb" id="headerBreadcrumb">Reports / Sales Report</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;display:inline-block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-group">Main</div>
+      <a href="evinra_dashboard_mvp.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg></span>Dashboard <span class="sb-badge">MVP</span></a>
+      <a href="evinra_events.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events</a>
+<a href="evinra_order_detail.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Orders</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Reports</div>
+      <a href="evinra_sales_overview.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg></span>Sales Overview</a>
+      <a href="evinra_event_sales_report.html" class="sb-item active"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Sales Report</a>
+      <a href="evinra_attendance_scan_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg></span>Attendance &amp; Scan</a>
+      <a href="evinra_refund_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Refund Report</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Settings</div>
+      <a href="evinra_general.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>General</a>
+      <a href="evinra_shows.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Shows</a>
+      <a href="evinra_seating_map.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Layout Management</a>
+      <a href="evinra_discounts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo Codes</a>
+      <a href="evinra_credit_plans.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Plans</a>
+      <a href="evinra_experience_tickets.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Experience Ticketing</a>
+      <a href="evinra_other_vendors.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Others Vendors</a>
+      <a href="evinra_vendor_sales_links.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Vendor Referral Links</a>
+      <a href="evinra_fees_taxes.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Fees &amp; Taxes</a>
+      <a href="evinra_users.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="date-filter-group">
+  <button class="date-pill" data-dp="range">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Range
+  </button>
+  <button class="date-pill" data-dp="today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Today
+  </button>
+  <button class="date-pill" data-dp="curr-week">Current Week</button>
+  <button class="date-pill" data-dp="week">Last Week</button>
+  <button class="date-pill" data-dp="month">Last Month</button>
+  <div class="date-range-wrap" id="dateRangeWrap">
+    <input type="date" id="dateFrom" class="date-input">
+    <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">–</span>
+    <input type="date" id="dateTo" class="date-input">
+  </div>
+</div>
+      <div style="position:relative;flex:1;max-width:220px">
+        <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+        <input type="text" id="searchInput" placeholder="Search event, venue, city…" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 10px 6px 30px;outline:none">
+      </div>
+      <div class="filter-sep"></div>
+      <div style="position:relative">
+          <select id="productionFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Production</option>
+          <option value="">All productions</option>
+          <option>Flying Lions</option>
+          <option>Circus of Dreams</option>
+        </select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+      <div style="position:relative">
+          <select id="venueFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Venue</option>
+          <option value="">All venues</option>
+          <option>South Florida Fairgrounds</option>
+          <option>GurtPaller Park</option>
+        </select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+      <div style="position:relative">
+          <select id="dayFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Day</option>
+          <option value="">All days</option>
+          <option>Friday</option>
+          <option>Saturday</option>
+          <option>Sunday</option>
+          <option>Thursday</option>
+        </select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+      <div style="position:relative">
+          <select id="channelFilter" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:6px 28px 6px 10px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">Channel</option>
+          <option value="">All channels</option>
+          <option>Box Office</option>
+          <option>Storefront</option>
+          <option>Third Party</option>
+          <option>Vendor</option>
+        </select>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+      <div class="ml-auto">
+        <span class="result-count"><strong id="resultCount">14</strong> results</span>
+      </div>
+    </div>
+
+    <!-- TABLE WRAPPER -->
+    <div class="table-wrap" id="tableWrap">
+      <table class="evt-table" id="evtTable">
+        <colgroup>
+          <col/><col/><col/><col/><col/><col/><col/><col/><col/><col/><col/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th title="Row">#</th>
+            <th class="sort-asc" title="Show date">Date</th>
+            <th title="Day of week">Day</th>
+            <th title="Sales channel">Channel</th>
+            <th class="num" title="Tickets sold">Qty</th>
+            <th class="num" title="Total fees collected">Fees</th>
+            <th class="num" title="Promo &amp; discount deductions">Discounts</th>
+            <th class="num" title="POS tips &amp; gratuities">Tips</th>
+            <th class="num" title="Total refunded amount">Refunds</th>
+            <th class="num" title="Total amount paid">Gross Sales</th>
+            <th class="num" title="Net revenue: collected + tips − fees − discounts − refunds">Net Rev.</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <button class="pg-btn" disabled><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="pg-btn active">1</button>
+      <button class="pg-btn">2</button>
+      <button class="pg-btn">3</button>
+      <span class="pg-ellipsis">…</span>
+      <button class="pg-btn">11</button>
+      <button class="pg-btn"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+      <div class="pg-right">
+        <div class="pg-size flt">
+          <select>
+            <option>25 / page</option>
+            <option>50 / page</option>
+            <option>100 / page</option>
+          </select>
+        </div>
+        <span class="pg-label">Go to</span>
+        <input class="pg-input" type="text" value="1">
+        <span class="pg-label">of 11</span>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+(function(){
+  /* ── STATE ──────────────────────────────────────── */
+  /* Summary-only — no view mode toggle needed */
+
+  /* ── DATA — flat show list, grouped by production ── */
+  /* Per-session sales lines from the canonical dataset (assets/data.js) */
+  const SHOWS = EVINRA.salesRows;
+  const _SHOWS_LEGACY = [
+    { id:1,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'04/28/2026', time:'4:30pm', day:'Monday',   channel:'Box Office',  event:'WPB Evening Show I',    tickets:129, fees:70.54,   discount:120.00, tips:18.40,  paid:4263.84, refunds:242.00 },
+    { id:2,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'04/28/2026', time:'7:30pm', day:'Monday',   channel:'Storefront',  event:'WPB Evening Show II',   tickets:373, fees:2138.11, discount:845.00, tips:62.10,  paid:7958.71, refunds:310.00 },
+    { id:3,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/16/2026', time:'1:30pm', day:'Saturday', channel:'Box Office',  event:'WPB Matinee I',         tickets:234, fees:1410.42, discount:490.00, tips:34.80,  paid:7288.47, refunds:139.00 },
+    { id:4,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/16/2026', time:'4:30pm', day:'Saturday', channel:'Third Party', event:'WPB Afternoon I',       tickets:261, fees:1574.44, discount:620.00, tips:41.50,  paid:8343.64, refunds:170.00 },
+    { id:5,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/16/2026', time:'7:30pm', day:'Saturday', channel:'Storefront',  event:'WPB Evening III',       tickets:215, fees:1304.16, discount:380.00, tips:29.70,  paid:6602.62, refunds:102.00 },
+    { id:6,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/20/2026', time:'1:30pm', day:'Wednesday', channel:'Box Office',  event:'WPB Matinee II',        tickets:221, fees:1361.36, discount:210.00, tips:22.60,  paid:5895.51, refunds:82.00  },
+    { id:7,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/20/2026', time:'4:00pm', day:'Wednesday', channel:'Vendor',      event:'WPB Afternoon II',      tickets:204, fees:1227.02, discount:175.00, tips:19.80,  paid:5953.87, refunds:56.00  },
+    { id:8,  production:'Flying Lions',   venue:'South Florida Fairgrounds', city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/20/2026', time:'7:00pm', day:'Wednesday', channel:'Third Party', event:'WPB Evening Show IV',   tickets:33,  fees:82.01,   discount:0.00,   tips:5.20,   paid:2064.09, refunds:0.00   },
+    { id:9,  production:'Circus of Dreams', venue:'GurtPaller Park',         city:'North Port, FL',      color:'#4A8BD4', capacity:200, date:'05/21/2026', time:'4:30pm', day:'Thursday', channel:'Box Office',  event:'North Port Show I',     tickets:83,  fees:50.63,   discount:60.00,  tips:8.90,   paid:2401.42, refunds:46.00  },
+    { id:10, production:'Circus of Dreams', venue:'GurtPaller Park',         city:'North Port, FL',      color:'#4A8BD4', capacity:200, date:'05/21/2026', time:'7:30pm', day:'Thursday', channel:'Storefront',  event:'North Port Show II',    tickets:48,  fees:90.45,   discount:0.00,   tips:4.20,   paid:1467.55, refunds:36.00  },
+    { id:11, production:'Circus of Dreams', venue:'GurtPaller Park',         city:'North Port, FL',      color:'#4A8BD4', capacity:200, date:'05/21/2026', time:'4:30pm', day:'Thursday', channel:'Box Office',  event:'North Port Friday PM',  tickets:81,  fees:84.02,   discount:45.00,  tips:7.60,   paid:2502.52, refunds:0.00   },
+    { id:12, production:'Circus of Dreams', venue:'GurtPaller Park',         city:'North Port, FL',      color:'#4A8BD4', capacity:200, date:'05/21/2026', time:'7:30pm', day:'Thursday', channel:'Vendor',      event:'North Port Friday Eve', tickets:102, fees:62.15,   discount:90.00,  tips:11.30,  paid:2886.40, refunds:114.00 },
+    { id:13, production:'Circus of Dreams', venue:'GurtPaller Park',         city:'North Port, FL',      color:'#4A8BD4', capacity:200, date:'05/21/2026', time:'1:30pm', day:'Thursday', channel:'Third Party', event:'North Port Sat Mat.',   tickets:101, fees:96.83,   discount:30.00,  tips:9.40,   paid:2866.16, refunds:57.00  },
+    { id:14, production:'Circus of Dreams', venue:'GurtPaller Park',         city:'North Port, FL',      color:'#4A8BD4', capacity:200, date:'05/21/2026', time:'4:30pm', day:'Thursday', channel:'Storefront',  event:'North Port Sat PM',     tickets:136, fees:75.04,   discount:120.00, tips:14.80,  paid:3473.29, refunds:0.00   },
+    { id:15, production:'Flying Lions',     venue:'Flying Lions Big Top',    city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/25/2026', time:'2:00pm', day:'Monday',   channel:'Box Office',  event:'WPB Monday Kickoff',    tickets:198, fees:1180.44, discount:220.00, tips:28.50,  paid:6124.38, refunds:95.00  },
+    { id:16, production:'Solar Spectacular',venue:'AmericanAirlines Arena',  city:'Miami, FL',           color:'#D4884A', capacity:600, date:'05/26/2026', time:'3:00pm', day:'Tuesday',  channel:'Storefront',  event:'MIA Afternoon Show',    tickets:241, fees:1455.84, discount:310.00, tips:35.20,  paid:7842.61, refunds:148.00 },
+    { id:17, production:'Solar Spectacular',venue:'AmericanAirlines Arena',  city:'Miami, FL',           color:'#D4884A', capacity:600, date:'05/26/2026', time:'7:30pm', day:'Tuesday',  channel:'Third Party', event:'MIA Tuesday Night',     tickets:389, fees:2284.63, discount:540.00, tips:58.80,  paid:9987.42, refunds:210.00 },
+    { id:18, production:'Nova Circus',      venue:'Orange County Arena',     city:'Orlando, FL',         color:'#8B6BD4', capacity:520, date:'05/27/2026', time:'7:00pm', day:'Wednesday',channel:'Box Office',  event:'ORL Mid-Week Special',  tickets:302, fees:1792.18, discount:415.00, tips:44.10,  paid:8563.74, refunds:173.00 },
+    { id:19, production:'Flying Lions',     venue:'Flying Lions Big Top',    city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/28/2026', time:'6:00pm', day:'Thursday', channel:'Vendor',      event:'WPB Thursday Evening',  tickets:215, fees:1296.02, discount:285.00, tips:31.60,  paid:6728.55, refunds:88.00  },
+    { id:20, production:'SunPeak Events',   venue:'Amalie Arena',            city:'Tampa, FL',           color:'#E05C8A', capacity:480, date:'05/28/2026', time:'2:00pm', day:'Thursday', channel:'Storefront',  event:'TPA Thursday Matinée',  tickets:167, fees:1014.56, discount:195.00, tips:22.40,  paid:5291.83, refunds:62.00  },
+    { id:21, production:'Solar Spectacular',venue:'AmericanAirlines Arena',  city:'Miami, FL',           color:'#D4884A', capacity:600, date:'05/30/2026', time:'3:00pm', day:'Saturday', channel:'Box Office',  event:'MIA Saturday Show',     tickets:421, fees:2508.79, discount:620.00, tips:64.30,  paid:11248.37,refunds:295.00 },
+    { id:22, production:'Nova Circus',      venue:'Orange County Arena',     city:'Orlando, FL',         color:'#8B6BD4', capacity:520, date:'05/30/2026', time:'7:00pm', day:'Saturday', channel:'Third Party', event:'ORL Weekend Spectacular',tickets:488, fees:2921.64, discount:730.00, tips:74.90,  paid:13102.18,refunds:340.00 },
+    { id:23, production:'Flying Lions',     venue:'Flying Lions Big Top',    city:'West Palm Beach, FL', color:'#2A9B85', capacity:450, date:'05/31/2026', time:'4:00pm', day:'Sunday',   channel:'Storefront',  event:'WPB Sunday Finale',     tickets:276, fees:1644.88, discount:355.00, tips:40.20,  paid:7918.46, refunds:127.00 },
+  ];
+
+  /* ── HELPERS ────────────────────────────────────── */
+  const fmt$ = v => '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const isWeekend = d => ['Saturday','Sunday'].includes(d);
+  function capPct(t,cap){ return Math.min(100,Math.round(t/cap*100)); }
+  function capClass(p){ return p>=95?'full':p>=75?'warn':''; }
+
+  const CHANNEL_CFG = {
+    'Box Office':  { cls:'ch-box-office',  icon:'ti-ticket'          },
+    'Storefront':  { cls:'ch-storefront',  icon:'ti-world'           },
+    'Third Party': { cls:'ch-third-party', icon:'ti-building-store'  },
+    'Vendor':      { cls:'ch-vendor',      icon:'ti-shopping-cart'   },
+  };
+  function channelBadge(ch){
+    const c = CHANNEL_CFG[ch] || { cls:'ch-storefront', icon:'ti-tag' };
+    return `<span class="ch-badge ${c.cls}"><i class="ti ${c.icon}" aria-hidden="true"></i>${ch}</span>`;
+  }
+
+  /* group flat show list into productions */
+  function groupByProduction(shows){
+    const map = {};
+    shows.forEach(s => {
+      if (!map[s.production]) map[s.production] = {
+        production: s.production,
+        venue:      s.venue,
+        city:       s.city,
+        color:      s.color,
+        capacity:   s.capacity,
+        shows:      []
+      };
+      map[s.production].shows.push(s);
+    });
+    return Object.values(map);
+  }
+
+  /* ── SHARED ROW BUILDERS ────────────────────────── */
+  function subtotalRow(label, t, f, d, ti, p, r, labelColspan){
+    const net = p + ti - f - d - r;
+    const tr = document.createElement('tr');
+    tr.className = 'subtotal';
+    tr.innerHTML = `
+      <td colspan="${labelColspan}" class="subtotal-label">${label}</td>
+      <td></td>
+      <td class="subtotal-tickets">${t.toLocaleString()}</td>
+      <td class="subtotal-val">${fmt$(f)}</td>
+      <td class="subtotal-val" style="color:var(--red)">−${fmt$(d)}</td>
+      <td class="subtotal-val" style="color:#5AC8A0">+${fmt$(ti)}</td>
+      <td class="subtotal-val" style="color:var(--red)">${r>0?'−':''}${fmt$(r)}</td>
+      <td class="subtotal-val">${fmt$(p)}</td>
+      <td class="subtotal-val">${fmt$(net)}</td>`;
+    return tr;
+  }
+
+  function grandTotalRow(rowNum, prodCount, gt, gf, gd, gti, gp, gr, labelColspan){
+    const gnet = gp + gti - gf - gd - gr;
+    const tr = document.createElement('tr');
+    tr.className = 'grand-total';
+    tr.innerHTML = `
+      <td colspan="${labelColspan}" class="gt-label">Grand Total — ${rowNum} show${rowNum!==1?'s':''} across ${prodCount} event${prodCount!==1?'s':''}</td>
+      <td></td>
+      <td class="gt-tickets">${gt.toLocaleString()}</td>
+      <td class="gt-val">${fmt$(gf)}</td>
+      <td class="gt-val" style="color:var(--red)">−${fmt$(gd)}</td>
+      <td class="gt-val" style="color:#5AC8A0">+${fmt$(gti)}</td>
+      <td class="gt-val" style="color:var(--red)">${gr>0?'−':''}${fmt$(gr)}</td>
+      <td class="gt-val">${fmt$(gp)}</td>
+      <td class="gt-val">${fmt$(gnet)}</td>`;
+    return tr;
+  }
+
+  /* ── SUMMARY RENDER — group by production, one row per date ── */
+  function renderSummary(shows){
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    const prods = groupByProduction(shows);
+    let GT=0,GF=0,GD=0,GTi=0,GP=0,GR=0,rowNum=0;
+
+    prods.forEach(prod => {
+      let vT=0,vF=0,vD=0,vTi=0,vP=0,vR=0;
+
+      /* group this production's shows by date */
+      const byDate = {};
+      prod.shows.forEach(s => {
+        if (!byDate[s.date]) byDate[s.date] = { date:s.date, day:s.day, shows:[] };
+        byDate[s.date].shows.push(s);
+      });
+      const dateGroups = Object.values(byDate).sort((a,b) => new Date(a.date)-new Date(b.date));
+
+      const vh = document.createElement('tr');
+      vh.className = 'venue-header';
+      vh.innerHTML = `<td colspan="11"><div class="venue-header-inner">
+        <div class="venue-pip" style="background:${prod.color}"></div>
+        <div class="venue-header-main">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="venue-name">${prod.production}</span>
+            <span class="venue-name-tag"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${prod.venue}</span>
+            <span class="venue-name-tag" style="color:var(--text3)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>${prod.city}</span>
+          </div>
+          <span class="venue-sub">Capacity ${prod.capacity.toLocaleString()} seats</span>
+        </div>
+        <span class="venue-shows" style="display:none">${dateGroups.length} date${dateGroups.length!==1?'s':''} · ${prod.shows.length} shows</span>
+      </div></td>`;
+      tbody.appendChild(vh);
+
+      dateGroups.forEach(group => {
+        rowNum++;
+        const sT  = group.shows.reduce((a,s)=>a+s.tickets, 0);
+        const sF  = group.shows.reduce((a,s)=>a+s.fees,    0);
+        const sD  = group.shows.reduce((a,s)=>a+s.discount,0);
+        const sTi = group.shows.reduce((a,s)=>a+s.tips,    0);
+        const sP  = group.shows.reduce((a,s)=>a+s.paid,    0);
+        const sR  = group.shows.reduce((a,s)=>a+s.refunds, 0);
+        const net = sP + sTi - sF - sD - sR;
+        const pct = capPct(sT, prod.capacity * group.shows.length);
+        const wknd = isWeekend(group.day);
+
+        const tr = document.createElement('tr');
+        tr.className = 'summary-date-row data-row';
+        tr.dataset.production = prod.production;
+        tr.dataset.day = group.day;
+        tr.dataset.search = `${prod.production} ${prod.venue} ${prod.city} ${group.date} ${group.day}`.toLowerCase();
+        tr.innerHTML = `
+          <td class="row-num">${rowNum}</td>
+          <td class="sum-date mono"><span class="date-chip">${group.date}</span></td>
+          <td><span class="day-chip${wknd?' weekend':''}">${group.day.slice(0,3)}</span></td>
+          <td>${[...new Set(group.shows.map(s=>s.channel))].map(ch=>channelBadge(ch)).join('<br>')}</td>
+          <td class="num"><span class="tickets-count">${sT.toLocaleString()}</span></td>
+          <td class="money num">${fmt$(sF)}</td>
+          <td class="money num" style="${sD>0?'color:var(--red)':'color:var(--text3)'}">${sD>0?'−':''}${fmt$(sD)}</td>
+          <td class="money num" style="color:#5AC8A0">+${fmt$(sTi)}</td>
+          <td class="money num" style="${sR>0?'color:var(--red)':'color:var(--text3)'}">${sR>0?'−':''}${fmt$(sR)}</td>
+          <td class="money num">${fmt$(sP)}</td>
+          <td class="money net num">${fmt$(net)}</td>`;
+        tbody.appendChild(tr);
+        vT+=sT; vF+=sF; vD+=sD; vTi+=sTi; vP+=sP; vR+=sR;
+      });
+
+      tbody.appendChild(subtotalRow(`${prod.production} subtotal — ${dateGroups.length} dates · ${prod.shows.length} shows`, vT, vF, vD, vTi, vP, vR, 3));
+      GT+=vT; GF+=vF; GD+=vD; GTi+=vTi; GP+=vP; GR+=vR;
+    });
+
+    tbody.appendChild(grandTotalRow(rowNum, prods.length, GT, GF, GD, GTi, GP, GR, 3));
+    document.getElementById('resultCount').textContent = rowNum;
+  }
+
+  /* ── FILTER ─────────────────────────────────────── */
+  function parseMMDDYYYY(str){ const [m,d,y]=str.split('/'); return new Date(+y,+m-1,+d); }
+  let dateMode = 'curr-week';
+
+  function applyFilters(){
+    const search     = document.getElementById('searchInput').value.toLowerCase();
+    const venue      = document.getElementById('venueFilter').value;
+    const production = document.getElementById('productionFilter').value;
+    const day        = document.getElementById('dayFilter').value;
+
+    const channel    = document.getElementById('channelFilter').value;
+
+    const filtered = SHOWS.filter(s => {
+      if (venue      && !s.venue.includes(venue))           return false;
+      if (production && s.production !== production)         return false;
+      if (day        && s.day !== day)                       return false;
+      if (channel    && s.channel !== channel)               return false;
+      if (search     && !`${s.event} ${s.production} ${s.venue} ${s.city} ${s.date} ${s.day} ${s.channel}`.toLowerCase().includes(search)) return false;
+      if(dateMode){
+        const d=parseMMDDYYYY(s.date);
+        const now=new Date(); now.setHours(23,59,59,999);
+        if(dateMode==='today'){
+          const s2=new Date(); s2.setHours(0,0,0,0); if(d<s2||d>now) return false;
+        } else if(dateMode==='curr-week'){
+          const ref=new Date(); const day2=ref.getDay();
+          const s2=new Date(ref); s2.setDate(ref.getDate()-(day2===0?6:day2-1)); s2.setHours(0,0,0,0);
+          const e=new Date(s2); e.setDate(s2.getDate()+6); e.setHours(23,59,59,999);
+          if(d<s2||d>e) return false;
+        } else if(dateMode==='week'){
+          const s2=new Date(); s2.setDate(s2.getDate()-7); s2.setHours(0,0,0,0); if(d<s2||d>now) return false;
+        } else if(dateMode==='month'){
+          const s2=new Date(); s2.setDate(s2.getDate()-30); s2.setHours(0,0,0,0); if(d<s2||d>now) return false;
+        } else if(dateMode==='range'){
+          const fv=document.getElementById('dateFrom').value;
+          const tv=document.getElementById('dateTo').value;
+          if(fv){const fd=new Date(fv); fd.setHours(0,0,0,0); if(d<fd) return false;}
+          if(tv){const td=new Date(tv); td.setHours(23,59,59,999); if(d>td) return false;}
+        }
+      }
+      return true;
+    });
+
+    renderSummary(filtered);
+  }
+
+  /* ── COLUMN SORT ────────────────────────────────── */
+  let sortCol=1, sortDir=1;
+  document.querySelectorAll('.evt-table thead th').forEach((th,idx) => {
+    th.addEventListener('click', () => {
+      if (sortCol===idx) sortDir*=-1; else { sortCol=idx; sortDir=1; }
+      document.querySelectorAll('.evt-table thead th').forEach(h=>h.classList.remove('sort-asc','sort-desc'));
+      th.classList.add(sortDir===1?'sort-asc':'sort-desc');
+      const sortKey=['id','date','day','channel','tickets','fees','discount','tips','refunds','paid','net'][idx];
+      SHOWS.sort((a,b) => {
+        const av = sortKey==='net'?(a.paid+a.tips-a.fees-a.discount-a.refunds):a[sortKey]??'';
+        const bv = sortKey==='net'?(b.paid+b.tips-b.fees-b.discount-b.refunds):b[sortKey]??'';
+        return typeof av==='string'?av.localeCompare(bv)*sortDir:(av-bv)*sortDir;
+      });
+      applyFilters();
+    });
+  });
+
+  /* ── OTHER EVENTS ───────────────────────────────── */
+  /* ── CASCADE FILTER LOGIC ───────────────────────── */
+
+  /* build lookup maps from SHOWS */
+  const PROD_TO_VENUES = {};   /* production → Set of venues */
+  const VENUE_TO_PRODS = {};   /* venue      → Set of productions */
+  SHOWS.forEach(s => {
+    if (!PROD_TO_VENUES[s.production]) PROD_TO_VENUES[s.production] = new Set();
+    PROD_TO_VENUES[s.production].add(s.venue);
+    if (!VENUE_TO_PRODS[s.venue]) VENUE_TO_PRODS[s.venue] = new Set();
+    VENUE_TO_PRODS[s.venue].add(s.production);
+  });
+
+  function rebuildSelect(sel, allLabel, options, currentVal){
+    const prev = currentVal ?? sel.value;
+    sel.innerHTML = `<option value="">${allLabel}</option>`;
+    options.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o; opt.textContent = o;
+      if (o === prev) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function onProductionChange(){
+    const prod   = document.getElementById('productionFilter').value;
+    const venSel = document.getElementById('venueFilter');
+    if (prod) {
+      /* restrict Venue to only venues that run this production */
+      const allowed = [...(PROD_TO_VENUES[prod] || [])].sort();
+      rebuildSelect(venSel, 'All venues', allowed);
+    } else {
+      /* restore all venues */
+      const all = [...new Set(SHOWS.map(s=>s.venue))].sort();
+      rebuildSelect(venSel, 'All venues', all);
+    }
+    applyFilters();
+  }
+
+  function onVenueChange(){
+    const venue  = document.getElementById('venueFilter').value;
+    const prSel  = document.getElementById('productionFilter');
+    if (venue) {
+      /* restrict Production to only productions at this venue */
+      const allowed = [...(VENUE_TO_PRODS[venue] || [])].sort();
+      rebuildSelect(prSel, 'All productions', allowed);
+    } else {
+      /* restore all productions */
+      const all = [...new Set(SHOWS.map(s=>s.production))].sort();
+      rebuildSelect(prSel, 'All productions', all);
+    }
+    applyFilters();
+  }
+
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('productionFilter').addEventListener('change', onProductionChange);
+  document.getElementById('venueFilter').addEventListener('change', onVenueChange);
+  document.getElementById('dayFilter').addEventListener('change', applyFilters);
+  document.getElementById('channelFilter').addEventListener('change', applyFilters);
+
+  document.getElementById('tableBody').addEventListener('click', e => {
+    const tr = e.target.closest('tr.data-row');
+    if (!tr) return;
+    document.querySelectorAll('tr.data-row.selected').forEach(r=>{r.classList.remove('selected');r.style.background='';});
+    tr.classList.add('selected');
+    tr.style.background = 'rgba(42,155,133,.07)';
+    setTimeout(()=>{tr.style.background='';tr.classList.remove('selected');}, 2000);
+  });
+
+  /* ── DATE PILL LISTENERS ───────────────────────── */
+  document.getElementById('dateFrom').addEventListener('change', applyFilters);
+  document.getElementById('dateTo').addEventListener('change', applyFilters);
+  document.querySelectorAll('.date-pill').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      const dp=this.dataset.dp;
+      const rw=document.getElementById('dateRangeWrap');
+      if(dateMode===dp){ dateMode=''; this.classList.remove('on'); rw.classList.remove('show'); }
+      else { document.querySelectorAll('.date-pill').forEach(b=>b.classList.remove('on')); dateMode=dp; this.classList.add('on'); rw.classList.toggle('show',dp==='range'); }
+      applyFilters();
+    });
+  });
+
+  /* ── INIT ───────────────────────────────────────── */
+  dateMode='';   // show all sessions (events span recent + upcoming months)
+  rebuildSelect(document.getElementById('productionFilter'), 'All productions', [...new Set(SHOWS.map(s=>s.production))].sort());
+  rebuildSelect(document.getElementById('venueFilter'),      'All venues',      [...new Set(SHOWS.map(s=>s.venue))].sort());
+  applyFilters();
+
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

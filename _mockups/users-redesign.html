@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Users — friendlier redesign (exploration)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+html[data-theme="dark"]{
+  --bg:#0B0F0E;--bg2:#131A18;--bg3:#1B2421;--bg4:#222B28;--card:#141A18;
+  --p:#2DB89C;--p-dim:rgba(45,184,156,.14);--p-border:rgba(45,184,156,.30);--p-contrast:#06120F;
+  --amber:#E0A361;--amber-dim:rgba(224,163,97,.14);--red:#E06363;--red-dim:rgba(224,99,99,.14);--red-border:rgba(224,99,99,.30);
+  --blue:#6BA3E0;--blue-dim:rgba(107,163,224,.14);--violet:#9C82E0;--violet-dim:rgba(156,130,224,.14);--gold:#EAB044;--gold-dim:rgba(234,176,68,.14);
+  --text:#ECF2F0;--text2:#A6B6B3;--text3:#6E827E;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --display:'Syne',sans-serif;--body:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.scrim{display:none}
+/* Sidebar */
+.sb{background:var(--bg2);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:3px}
+.sb-brand{display:flex;align-items:center;gap:9px;padding:6px 8px 16px}
+.sb-logo{width:28px;height:28px;border-radius:8px;background:var(--p);color:var(--p-contrast);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800}
+.sb-grp{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--text3);padding:14px 10px 5px}
+.sb-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text2);font-size:13px;cursor:pointer;text-decoration:none}
+.sb-i:hover{background:var(--bg3);color:var(--text)}
+.sb-i.on{background:var(--p-dim);color:var(--p);font-weight:600}
+.sb-i svg{width:16px;height:16px;flex-shrink:0;opacity:.85}
+/* Topbar */
+.main{display:flex;flex-direction:column;min-width:0}
+.top{height:58px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 22px;background:var(--bg)}
+.hamb{display:none;width:38px;height:38px;border:1px solid var(--border);border-radius:9px;background:none;color:var(--text);align-items:center;justify-content:center;cursor:pointer}
+.crumb{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.crumb b{color:var(--text);font-weight:600}
+.top-sp{flex:1}
+.ic-btn{width:38px;height:38px;border:1px solid var(--border);border-radius:9px;background:none;color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ic-btn:hover{color:var(--text);border-color:var(--border2)}
+.me{display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:9px}
+.me-av{width:30px;height:30px;border-radius:50%;background:var(--p);color:var(--p-contrast);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+.me-n{font-size:12px;font-weight:600}.me-r{font-size:10px;font-family:var(--mono);color:var(--text3)}
+/* Content */
+.wrap{padding:22px;max-width:1180px;width:100%;margin:0 auto}
+.pg-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.pg-title{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.02em}
+.pg-sub{font-size:12.5px;color:var(--text2);margin-top:2px}
+.btn{height:40px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;transition:all .15s}
+.btn-primary{background:var(--p);border-color:var(--p);color:var(--p-contrast)}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-ghost{background:none;border-color:var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+/* Compact stat strip */
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stat{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:9px 14px;flex:1;min-width:130px}
+.stat-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-v{font-family:var(--display);font-size:18px;font-weight:700;line-height:1}
+.stat-l{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-top:3px}
+/* Slim EM banner */
+.embar{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--card),rgba(45,184,156,.05));border:1px solid var(--p-border);border-radius:11px;padding:10px 14px;margin-bottom:14px;font-size:12.5px}
+.embar .dot{width:8px;height:8px;border-radius:50%;background:var(--p);box-shadow:0 0 0 4px var(--p-dim);flex-shrink:0}
+.embar .lk{color:var(--p);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
+.embar .x{margin-left:auto;color:var(--text3);cursor:pointer;background:none;border:none;display:flex}
+/* Toolbar */
+.tools{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.search{position:relative;flex:1;min-width:200px}
+.search input{height:40px;width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;padding:0 36px 0 36px;outline:none}
+.search input:focus{border-color:var(--p);box-shadow:0 0 0 3px var(--p-dim)}
+.search .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.search .sx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:none;background:none;color:var(--text3);cursor:pointer;border-radius:6px;display:none;align-items:center;justify-content:center}
+.search .sx.on{display:flex}
+.seg{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:3px}
+.seg button{height:30px;padding:0 12px;border:none;background:none;color:var(--text2);font-size:12px;font-family:var(--mono);font-weight:600;border-radius:6px;cursor:pointer}
+.seg button.on{background:var(--bg);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sel{height:40px;padding:0 32px 0 12px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:12.5px;font-family:var(--body);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%236E827E' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.count{font-size:11px;font-family:var(--mono);color:var(--text3);margin-left:2px}
+/* Bulk bar */
+.bulk{display:none;align-items:center;gap:12px;background:var(--p-dim);border:1px solid var(--p-border);border-radius:11px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;animation:slidein .2s ease-out}
+.bulk.on{display:flex}
+.bulk b{color:var(--p)}
+.bulk .ba{margin-left:auto;display:flex;gap:6px}
+.bchip{height:30px;padding:0 11px;border:1px solid var(--border2);background:var(--bg2);border-radius:8px;color:var(--text);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.bchip.danger{color:var(--red);border-color:var(--red-border);background:var(--red-dim)}
+@keyframes slidein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+/* Card list (the table) */
+.list{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.lhead,.lrow{display:grid;grid-template-columns:34px 2.3fr 2fr 1fr 1fr 96px;align-items:center;gap:10px;padding:11px 16px}
+.lhead{border-bottom:1px solid var(--border);font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.lrow{border-bottom:1px solid var(--border);transition:background .12s}
+.lrow:last-child{border-bottom:none}
+.lrow:hover{background:var(--bg2)}
+.ck{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);background:var(--bg4);cursor:pointer;appearance:none;position:relative}
+.ck:checked{background:var(--p);border-color:var(--p)}
+.ck:checked::after{content:'';position:absolute;left:5px;top:2px;width:5px;height:9px;border:solid var(--p-contrast);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.u{display:flex;align-items:center;gap:11px;min-width:0}
+.u-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.u-n{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-e{font-size:11px;font-family:var(--mono);color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roles{display:flex;flex-wrap:wrap;gap:5px}
+.rp{font-size:10.5px;font-family:var(--mono);padding:3px 9px;border-radius:20px;background:var(--p-dim);color:var(--p);white-space:nowrap}
+.rp.more{background:var(--bg4);color:var(--text2)}
+.rp.none{background:var(--bg4);color:var(--text3)}
+.src{font-size:10.5px;font-family:var(--mono);padding:3px 9px;border-radius:6px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+.src.em{background:var(--blue-dim);color:var(--blue);border-color:transparent}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.st .d{width:7px;height:7px;border-radius:50%}
+.st.active .d{background:var(--p)} .st.inactive .d{background:var(--text3)}
+.st.active{color:var(--text)} .st.inactive{color:var(--text3)}
+.acts{display:flex;gap:4px;justify-content:flex-end}
+.act{width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.act:hover{background:var(--bg3);color:var(--p);border-color:var(--p-border)}
+.act.danger:hover{color:var(--red);border-color:var(--red-border);background:var(--red-dim)}
+.lcell-h{display:none;font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:3px}
+/* Footer */
+.lfoot{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border)}
+.pg-btns{display:flex;gap:4px}
+.pgb{width:30px;height:30px;border:1px solid var(--border);border-radius:7px;background:var(--bg4);color:var(--text2);font-size:12px;font-family:var(--mono);cursor:pointer}
+.pgb.on{background:var(--p);border-color:var(--p);color:var(--p-contrast);font-weight:700}
+.muted{font-size:11px;font-family:var(--mono);color:var(--text3)}
+
+/* ── Responsive: table → cards, sidebar → off-canvas ── */
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .sb{position:fixed;inset:0 auto 0 0;width:250px;z-index:50;transform:translateX(-100%);transition:transform .22s ease-out;box-shadow:8px 0 30px rgba(0,0,0,.4)}
+  .app.nav-open .sb{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;display:none}
+  .app.nav-open .scrim{display:block}
+  .hamb{display:flex}
+  .lhead{display:none}
+  .lrow{grid-template-columns:1fr;gap:10px;padding:14px 16px;position:relative}
+  .lrow>.ckwrap{position:absolute;top:14px;right:14px}
+  .roles,.src-wrap,.st-wrap{display:flex}
+  .lcell-h{display:block}
+  .acts{justify-content:flex-start;margin-top:2px}
+  .stat{min-width:46%}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="scrim" onclick="document.getElementById('app').classList.remove('nav-open')"></div>
+  <!-- Sidebar -->
+  <aside class="sb">
+    <div class="sb-brand"><div class="sb-logo">e</div><div><div style="font-family:var(--display);font-weight:700;font-size:14px">Evinra</div><div style="font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:.1em">TICKETING</div></div></div>
+    <div class="sb-grp">Main</div>
+    <a class="sb-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+    <a class="sb-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Events</a>
+    <a class="sb-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Orders</a>
+    <div class="sb-grp">Settings</div>
+    <a class="sb-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.4-2.6H9.6L9.2 4a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.4 2.6h4.8l.4-2.6a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg>General</a>
+    <a class="sb-i on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>Users</a>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="top">
+      <button class="hamb" onclick="document.getElementById('app').classList.toggle('nav-open')" aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <div class="crumb">Settings / <b>Users</b></div>
+      <div class="top-sp"></div>
+      <button class="ic-btn" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg></button>
+      <button class="ic-btn" aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+      <div class="me"><div class="me-av">YP</div><div><div class="me-n">Yoaldis P.</div><div class="me-r">Org Owner</div></div></div>
+    </header>
+
+    <div class="wrap">
+      <!-- Page header -->
+      <div class="pg-head">
+        <div>
+          <div class="pg-title">Users</div>
+          <div class="pg-sub">Manage who can access <b style="color:var(--p)">Nova Circus</b> and what they can do.</div>
+        </div>
+        <button class="btn btn-primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User</button>
+      </div>
+
+      <!-- Compact stats -->
+      <div class="stats">
+        <div class="stat"><div class="stat-ic" style="background:var(--p-dim);color:var(--p)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><div class="stat-v">6</div><div class="stat-l">Total users</div></div></div>
+        <div class="stat"><div class="stat-ic" style="background:var(--p-dim);color:var(--p)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></div><div><div class="stat-v">5</div><div class="stat-l">Active</div></div></div>
+        <div class="stat"><div class="stat-ic" style="background:var(--violet-dim);color:var(--violet)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg></div><div><div class="stat-v">4</div><div class="stat-l">With roles</div></div></div>
+        <div class="stat"><div class="stat-ic" style="background:var(--blue-dim);color:var(--blue)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div><div><div class="stat-v">2</div><div class="stat-l">From EM</div></div></div>
+      </div>
+
+      <!-- Slim EM banner -->
+      <div class="embar"><span class="dot"></span><span><b style="color:var(--text)">Event Management connected</b> — pull people straight from your EM directory.</span><a class="lk">Browse directory →</a><button class="x" aria-label="Dismiss"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+
+      <!-- Toolbar -->
+      <div class="tools">
+        <div class="search">
+          <span class="si"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+          <input id="q" placeholder="Search name or email…" oninput="filterRows()">
+          <button class="sx" id="qx" aria-label="Clear search" onclick="document.getElementById('q').value='';filterRows()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="seg"><button class="on">All</button><button>Active</button><button>Inactive</button></div>
+        <select class="sel" aria-label="Filter by role"><option>All roles</option><option>Organization Owner</option><option>Box Office Supervisor</option><option>Box Office User</option><option>Scan Only Operator</option></select>
+        <span class="count" id="count">6 users</span>
+      </div>
+
+      <!-- Bulk bar -->
+      <div class="bulk" id="bulk"><b id="bulkN">2</b><span>selected</span><div class="ba"><button class="bchip">Activate</button><button class="bchip">Deactivate</button><button class="bchip danger">Remove</button></div></div>
+
+      <!-- List -->
+      <div class="list">
+        <div class="lhead"><div></div><div>User</div><div>Roles</div><div>Source</div><div>Status</div><div style="text-align:right">Actions</div></div>
+        <div id="rows"></div>
+        <div class="lfoot"><span class="muted" id="showing">Showing 1–6 of 6</span><div class="pg-btns"><button class="pgb">‹</button><button class="pgb on">1</button><button class="pgb">›</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var AV=['#2DB89C','#6BA3E0','#E0A361','#9C82E0','#5AC8A0','#EAB044'];
+var USERS=[
+  {n:'Nova Circus Admin',e:'admin@novacircus.local',roles:['Organization Owner'],src:'Manual',active:true},
+  {n:'Yoa BO Supervisor',e:'bosupervisor@evinra.com',roles:['Box Office Supervisor','Event Manager'],src:'Manual',active:true},
+  {n:'Scanner Only',e:'scanner@nova.local',roles:['Scan Only Operator'],src:'EM',active:true},
+  {n:'Wristband Only',e:'wb@nova.local',roles:['Wristband Operator'],src:'Manual',active:false},
+  {n:'BO User',e:'bouser@nova.local',roles:['Box Office User'],src:'EM',active:true},
+  {n:'Riley Operator',e:'riley@nova.local',roles:[],src:'Manual',active:true}
+];
+function ini(n){return n.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();}
+function rolesHtml(r){
+  if(!r.length) return '<span class="rp none">No role yet</span>';
+  var out=r.slice(0,1).map(function(x){return '<span class="rp">'+x+'</span>';});
+  if(r.length>1) out.push('<span class="rp more">+'+(r.length-1)+'</span>');
+  return out.join('');
+}
+function render(){
+  document.getElementById('rows').innerHTML=USERS.map(function(u,i){
+    return '<div class="lrow" data-n="'+(u.n+' '+u.e).toLowerCase()+'">'
+      +'<div class="ckwrap"><input type="checkbox" class="ck" onchange="syncBulk()"></div>'
+      +'<div><div class="lcell-h">User</div><div class="u"><div class="u-av" style="background:'+AV[i%AV.length]+'">'+ini(u.n)+'</div><div style="min-width:0"><div class="u-n">'+u.n+'</div><div class="u-e">'+u.e+'</div></div></div></div>'
+      +'<div class="roles-wrap"><div class="lcell-h">Roles</div><div class="roles">'+rolesHtml(u.roles)+'</div></div>'
+      +'<div class="src-wrap"><div class="lcell-h">Source</div><span class="src'+(u.src==='EM'?' em':'')+'">'+u.src+'</span></div>'
+      +'<div class="st-wrap"><div class="lcell-h">Status</div><span class="st '+(u.active?'active':'inactive')+'"><span class="d"></span>'+(u.active?'Active':'Inactive')+'</span></div>'
+      +'<div><div class="lcell-h">Actions</div><div class="acts">'
+        +'<button class="act" title="Edit roles" aria-label="Edit roles for '+u.n+'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>'
+        +'<button class="act" title="'+(u.active?'Deactivate':'Activate')+'" aria-label="Toggle active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button>'
+        +'<button class="act danger" title="Remove" aria-label="Remove '+u.n+'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></button>'
+      +'</div></div>'
+    +'</div>';
+  }).join('');
+}
+function filterRows(){
+  var q=(document.getElementById('q').value||'').toLowerCase().trim();
+  document.getElementById('qx').classList.toggle('on',!!q);
+  var n=0;document.querySelectorAll('.lrow').forEach(function(r){var hit=!q||r.getAttribute('data-n').indexOf(q)>=0;r.style.display=hit?'':'none';if(hit)n++;});
+  document.getElementById('count').textContent=n+(n===1?' user':' users');
+  document.getElementById('showing').textContent='Showing 1–'+n+' of '+n;
+}
+function syncBulk(){
+  var n=document.querySelectorAll('.ck:checked').length;
+  document.getElementById('bulk').classList.toggle('on',n>0);
+  document.getElementById('bulkN').textContent=n;
+}
+render();
+</script>
+</body>
+</html>

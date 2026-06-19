@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="color-scheme" content="dark light"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<title>Evinra | Ticket System — Events</title>
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+/* ── Type families (theme-independent) ─── */
+:root{
+  --display:'Syne',sans-serif;--body:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+
+/* ── DARK (default) ─── */
+:root,[data-theme="dark"]{
+  --bg:#0B0F0E;--bg2:#131A18;--bg3:#1B2421;--bg4:#222B28;
+  --p:#2DB89C;--p-dim:rgba(45,184,156,.14);--p-border:rgba(45,184,156,.30);--p-glow:rgba(45,184,156,.08);--p-contrast:#06120F;
+  --amber:#E0A361;--amber-dim:rgba(224,163,97,.14);--amber-border:rgba(224,163,97,.30);
+  --violet:#9C82E0;--violet-dim:rgba(156,130,224,.14);--violet-border:rgba(156,130,224,.30);
+  --red:#E06363;--red-dim:rgba(224,99,99,.14);--red-border:rgba(224,99,99,.30);
+  --blue:#6BA3E0;--blue-dim:rgba(107,163,224,.14);--blue-border:rgba(107,163,224,.30);
+  --gold:#EAB044;--gold-dim:rgba(234,176,68,.14);--gold-border:rgba(234,176,68,.30);
+  --text:#ECF2F0;--text2:#A6B6B3;--text3:#6E827E;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.40);
+  --shadow-md:0 4px 12px rgba(0,0,0,.35);
+  --shadow-lg:0 16px 40px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+
+/* ── LIGHT ─── */
+[data-theme="light"]{
+  --bg:#F7F7F4;--bg2:#FFFFFF;--bg3:#F0F0EB;--bg4:#E6E6E0;
+  --p:#1E8A75;--p-dim:rgba(30,138,117,.10);--p-border:rgba(30,138,117,.32);--p-glow:rgba(30,138,117,.06);--p-contrast:#FFFFFF;
+  --amber:#B8772E;--amber-dim:rgba(184,119,46,.10);--amber-border:rgba(184,119,46,.32);
+  --violet:#6F50C2;--violet-dim:rgba(111,80,194,.10);--violet-border:rgba(111,80,194,.32);
+  --red:#B83C3C;--red-dim:rgba(184,60,60,.10);--red-border:rgba(184,60,60,.32);
+  --blue:#3A78C2;--blue-dim:rgba(58,120,194,.10);--blue-border:rgba(58,120,194,.32);
+  --gold:#B8862A;--gold-dim:rgba(184,134,42,.10);--gold-border:rgba(184,134,42,.32);
+  --text:#0E1614;--text2:#4F5E5B;--text3:#7B8C88;
+  --border:rgba(14,22,20,.08);--border2:rgba(14,22,20,.14);
+  --shadow-sm:0 1px 2px rgba(14,22,20,.05);
+  --shadow-md:0 4px 12px rgba(14,22,20,.08);
+  --shadow-lg:0 16px 40px rgba(14,22,20,.12);
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;line-height:1.5;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .25s ease,color .25s ease}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--text3);border-radius:3px}
+.shell{display:flex;flex:1;min-height:0;overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px);}
+.sb-section{padding:0 0 8px}
+.sb-group{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.10em;color:var(--text3);text-transform:uppercase;padding:8px 16px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-family:var(--body);font-size:12.5px;font-weight:400;color:var(--text2);text-decoration:none;border-radius:0;transition:background .12s,color .12s;position:relative;white-space:nowrap;}
+.sb-item i{font-size:14px;flex-shrink:0}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--p-dim);color:var(--p);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--p);border-radius:0 2px 2px 0;}
+.sb-bottom{margin-top:auto;padding:14px 10px;border-top:1px solid var(--border)}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px}
+.sb-user-name{font-size:12px;font-weight:500;color:var(--text)}
+.sb-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:var(--display);font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+.breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:6px;margin-top:2px}
+.breadcrumb span{color:var(--p)}
+.content{flex:1;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.stats-row{display:grid;gap:12px;flex-shrink:0}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+.stat-card.teal::before{background:var(--p)}
+.stat-card.amber::before{background:var(--amber)}
+.stat-card.violet::before{background:var(--violet)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.gold::before{background:var(--gold)}
+.stat-card.red::before{background:var(--red)}
+.stat-lbl{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
+.stat-val{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.stat-sub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-title i{font-size:15px}
+.filter-strip{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.flt{position:relative;display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.flt label{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase}
+.flt select{appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:5px 26px 5px 9px;cursor:pointer;outline:none;min-width:120px}
+.flt i.drop{position:absolute;right:7px;bottom:6px;font-size:13px;color:var(--text3);pointer-events:none}
+.filter-sep{width:1px;height:24px;background:var(--border2);align-self:center}
+.search-wrap{position:relative}
+.search-wrap i.si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none}
+.search-input{background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:5px 9px 5px 30px;outline:none;width:190px}
+.search-input::placeholder{color:var(--text3)}
+.btn{height:30px;border-radius:7px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;gap:6px;transition:all .16s;border:1px solid;white-space:nowrap}
+.btn i{font-size:13px}
+.btn-primary{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.btn-primary:hover{background:var(--p);color:#0B0F0E}
+.btn-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.btn-amber:hover{background:var(--amber);color:#0B0F0E}
+.btn-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.btn-violet:hover{background:var(--violet);color:#fff}
+.btn-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-ghost{border-color:var(--border);background:var(--bg4);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 12px;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:2}
+.tbl thead th.sortable{cursor:pointer}
+.tbl thead th.sortable:hover{color:var(--text2)}
+.tbl tbody tr{transition:background .12s;cursor:pointer}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.badge i{font-size:10px}
+.badge-teal{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.badge-amber{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.badge-violet{border-color:var(--violet-border);background:var(--violet-dim);color:var(--violet)}
+.badge-red{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.badge-blue{border-color:var(--blue-border);background:var(--blue-dim);color:var(--blue)}
+.badge-gold{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold)}
+.badge-muted{border-color:var(--border);background:var(--bg4);color:var(--text3)}
+.act-wrap{display:flex;gap:4px}
+.act-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .14s;color:var(--text3)}
+.act-btn i{font-size:13px}
+.act-btn:hover{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+.act-btn.red:hover{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.act-btn.amber:hover{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:500px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:14px;font-weight:700;font-family:var(--display);color:var(--text);display:flex;align-items:center;gap:8px}
+.modal-title i{font-size:16px;color:var(--p)}
+.modal-x{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all .14s}
+.modal-x:hover{color:var(--text);border-color:var(--border2)}
+.modal-body{padding:22px;display:flex;flex-direction:column;gap:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.full{grid-template-columns:1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:9.5px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.form-input,.form-select{background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:7px 10px;outline:none;width:100%;transition:border-color .14s}
+.form-select{appearance:none;cursor:pointer}
+.form-input:focus,.form-select:focus{border-color:var(--p-border)}
+.form-input::placeholder{color:var(--text3)}
+.form-hint{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.form-section{font-size:10px;font-family:var(--mono);color:var(--p);text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-top:4px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg2)}
+.toggle{width:36px;height:20px;border-radius:10px;cursor:pointer;position:relative;transition:background .2s;border:none;outline:none;flex-shrink:0}
+.toggle.on{background:var(--p)}
+.toggle.off{background:var(--bg4);border:1px solid var(--border2)}
+.toggle-thumb{width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.toggle.on .toggle-thumb{left:19px}
+.toggle.off .toggle-thumb{left:3px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;color:var(--text3)}
+.empty-state i{font-size:40px;opacity:.4}
+.empty-state p{font-size:13px;font-family:var(--mono)}
+.table-wrap{overflow:auto;flex:1;min-height:0}
+/* ── VIEW CONTAINERS fill .main ──────────────────── */
+#view-events-list{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+#view-event-detail{flex-direction:column;overflow:hidden;flex:1;min-height:0}
+#segContent > *{flex-shrink:0}
+/* ── PAGINATION BUTTONS ──────────────────────────── */
+.page-btn{height:28px;min-width:28px;padding:0 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .14s;user-select:none}
+.page-btn:hover{border-color:var(--border2);color:var(--text)}
+.page-btn.active{border-color:var(--p-border);background:var(--p-dim);color:var(--p)}
+/* ── EVENTS LIST TABLE SCROLL ────────────────────── */
+#view-events-list .content{overflow:hidden}
+#view-events-list .card{display:flex;flex-direction:column}
+#playDateListBody{flex:1;overflow-y:auto;min-height:0}
+
+
+/* ── EVENTS SPECIFIC ──────────────────────────── */
+.ev-topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.breadcrumb-link{color:var(--p);cursor:pointer;text-decoration:none}
+.breadcrumb-link:hover{text-decoration:underline}
+
+/* Segmented control tabs */
+.seg-ctrl{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;flex-shrink:0}
+.seg-btn{height:28px;border-radius:6px;border:none;background:transparent;color:var(--text3);font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;padding:0 14px;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+i[class*="hgi-"]{display:inline-flex;align-items:center;justify-content:center;line-height:1;vertical-align:middle}
+.seg-btn i{font-size:13px;flex-shrink:0}
+.seg-btn:hover{color:var(--text2)}
+.seg-btn.active{background:var(--bg2);color:var(--p);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* Left nav for event detail */
+.ev-left-nav{width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:16px 0}
+.ev-nav-item{padding:9px 16px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .12s;border-left:2px solid transparent}
+.ev-nav-item:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.ev-nav-item.active{color:var(--p);border-left-color:var(--p);background:var(--p-dim)}
+
+/* Color dot for ticket types */
+.color-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0}
+
+/* Ticket list item */
+.ticket-item{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);gap:12px;transition:background .12s}
+.ticket-item:hover{background:rgba(255,255,255,.02)}
+.ticket-item:last-child{border-bottom:none}
+
+/* Play date row */
+.play-date-row{display:grid;grid-template-columns:180px 140px 140px 100px 80px 120px;gap:0;align-items:center;border-bottom:1px solid var(--border)}
+.play-date-row:hover{background:rgba(255,255,255,.02)}
+.play-date-cell{padding:14px 10px;font-size:12px;color:var(--text2)}
+.play-date-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 10px;background:var(--bg3)}
+
+/* Form sections */
+.form-section-title{font-size:13px;font-weight:600;font-family:var(--display);color:var(--text);margin-bottom:4px}
+.form-section-sub{font-size:11px;color:var(--text3);margin-bottom:16px}
+
+/* Add-on / fee row */
+.addon-row{display:grid;grid-template-columns:1fr 100px 100px 80px 60px 80px;gap:0;align-items:center;border-bottom:1px solid var(--border)}
+.addon-row:hover{background:rgba(255,255,255,.02)}
+.addon-cell{padding:12px 10px;font-size:12px;color:var(--text2)}
+.addon-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:9px 10px;background:var(--bg3)}
+
+/* Event list row */
+.event-row{display:grid;grid-template-columns:100px 72px 72px 1fr 120px 65px 82px 72px 82px 90px;gap:0;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.event-row:hover{background:rgba(255,255,255,.02)}
+.event-cell{padding:14px 12px;font-size:12px;color:var(--text2)}
+.event-cell.hdr{font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 12px;background:var(--bg3);cursor:default}
+
+/* Drawer (Edit Ticket) */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:500;display:none;justify-content:flex-end}
+.drawer-overlay.open{display:flex}
+.drawer{width:560px;background:var(--bg2);height:100%;display:flex;flex-direction:column;border-left:1px solid var(--border2);box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+.drawer-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.drawer-title{font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)}
+.drawer-body{flex:1;overflow-y:auto;padding:24px}
+.drawer-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px}
+
+/* Visibility info box */
+.info-box{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--text3);line-height:1.6}
+
+/* Rich text area */
+.rich-area{background:var(--bg4);border:1px solid var(--border);border-radius:7px;min-height:120px;padding:10px 12px;color:var(--text);font-size:12px;font-family:var(--body);resize:vertical;width:100%;outline:none}
+.rich-area:focus{border-color:var(--p-border)}
+
+/* Status badge */
+.status-on{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:var(--p-dim);border:1px solid var(--p-border);color:var(--p)}
+.status-off{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:var(--bg4);border:1px solid var(--border);color:var(--text3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+
+/* ── INLINE SVG ICONS ──────────────────────────── */
+.ev-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ev-icon svg{width:14px;height:14px}
+svg[stroke="currentColor"]{stroke:currentColor!important}
+/* Sidebar icon color tracks item state */
+.sb-item svg{stroke:var(--text2)!important}
+.sb-item:hover svg{stroke:var(--text)!important}
+.sb-item.active svg{stroke:var(--p)!important}
+.btn .ev-icon{width:14px;height:14px}
+.seg-btn .ev-icon{width:13px;height:13px}
+.act-btn .ev-icon{width:14px;height:14px}
+.ev-icon.drop{position:absolute;right:7px;bottom:8px;width:13px;height:13px;color:var(--text3);pointer-events:none}
+.ev-icon.si{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text3);pointer-events:none}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:28px;height:28px;background:var(--p);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:13px;color:#0B0F0E;flex-shrink:0}
+.sb-logo-text{font-family:var(--display);font-weight:700;font-size:15px;color:var(--text);letter-spacing:-.3px}
+.sb-logo-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+
+/* ── GLOBAL APP HEADER ──────────────────────────── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 28px;height:auto;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:20px}
+.header-left{display:flex;align-items:center;gap:20px;flex:1;min-width:0}
+.header-logo{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.header-logo-label{font-size:8px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;line-height:1;white-space:nowrap;font-weight:600}
+.header-content{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;margin-left:90px}
+.header-page-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.header-breadcrumb{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-right{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-user{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .14s}
+.header-user:hover{background:rgba(255,255,255,.04)}
+.header-user-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);color:#0B0F0E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.header-user-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.header-user-name{font-size:12px;font-weight:600;color:var(--text)}
+.header-user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.header-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .14s}
+.header-icon-btn:hover{border-color:var(--border2);color:var(--text)}
+/* ── EM IMPORT (New Event Modal) ── */
+.em-check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .14s;margin-bottom:6px;background:var(--bg4)}
+.em-check-item:hover{border-color:var(--p-border);background:rgba(10,203,165,.04)}
+.em-check-item.selected{border-color:var(--p-border);background:rgba(10,203,165,.07);box-shadow:0 0 0 1px var(--p-border)}
+.em-check-item input[type="checkbox"]{width:16px;height:16px;margin-top:3px;accent-color:var(--p);flex-shrink:0;cursor:pointer}
+/* DATE FILTER PILLS */
+.date-filter-group{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.date-pill{height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;transition:all .14s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.date-pill:hover{border-color:var(--border2);color:var(--text)}
+.date-pill.on{border-color:var(--red-border);background:var(--red-dim);color:var(--red)}
+.date-range-wrap{display:none;align-items:center;gap:5px}
+.date-range-wrap.show{display:flex}
+.date-input{height:30px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11px;font-family:var(--mono);padding:0 9px;outline:none;cursor:pointer;min-width:110px}
+.date-input:focus{border-color:var(--red-border);color:var(--text)}
+/* ── Logo text — adapts to theme ────────────────────── */
+/* ── Theme toggle icon visibility ───────────────────── */
+[data-theme="dark"]  .icon-sun {display:none}
+[data-theme="dark"]  .icon-moon{display:inline-block}
+[data-theme="light"] .icon-sun {display:inline-block}
+[data-theme="light"] .icon-moon{display:none}
+/* ── Ticket row hover ────────────────────────────────── */
+.ticket-row{transition:background .12s}
+.ticket-row:hover{background:var(--bg3)!important}
+/* ── Header user hover light-mode fix ───────────────── */
+[data-theme="light"] .header-user:hover{background:rgba(14,22,20,.04)}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg style="height:38px;width:auto;display:block" viewBox="0 0 333 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.7968 48.8132C86.4453 35.347 84.4704 24.0335 74.0183 17.2985C67.6133 13.1712 60.3052 11.681 52.7482 11.9484C45.19 12.2158 38.0076 14.2187 31.913 18.7888C15.0842 31.4049 15.7507 64.0468 32.4588 76.4851C42.8714 84.2355 57.8511 85.0659 69.5401 79.9513C76.3381 76.9781 86.7175 74.6354 94.1328 75.1236C91.1724 79.6287 87.4272 83.4408 82.9674 86.5733C74.9004 92.2399 65.4807 94.6133 55.7111 94.9592C49.0264 95.1946 42.3528 94.4281 36.0179 92.2362C30.2966 90.2566 25.094 87.281 20.6539 83.1636C16.2139 79.0461 12.8629 74.0909 10.4741 68.5494C7.82905 62.413 6.58598 55.8412 6.34821 49.186C6.11044 42.5308 6.88289 35.8879 9.0832 29.5799C11.0704 23.8838 14.0604 18.7042 18.1961 14.2837C22.3319 9.86328 27.3091 6.5271 32.8752 4.14885C39.0388 1.51425 45.6397 0.277898 52.3244 0.0411761C59.0091 -0.195545 65.6815 0.572267 72.0176 2.76409C77.7389 4.74249 82.9415 7.71929 87.3816 11.8368C91.8204 15.953 95.1726 20.9107 97.5614 26.451C102.608 38.1582 100.506 52.5541 98.1392 64.4564C71.0837 57.7436 59.0609 73.7965 26.7892 62.4486C57.3632 65.4462 73.1744 47.399 87.7992 48.8119L87.7968 48.8132Z" fill="#3A4B70"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.05448 25.1929C4.05448 25.1929 4.51893 32.9103 14.9452 37.1737C17.7294 38.312 21.2246 39.2049 25.6104 39.6391C51.1321 42.1633 61.541 20.5603 86.9297 19.0222C95.641 18.4948 103.002 19.6257 105.981 24.7796C108.85 29.7446 110.029 40.0769 108.481 47.132C102.727 39.498 95.9613 37.4546 88.4893 38.361C72.497 40.3002 53.2683 55.7447 33.7957 58.7718C27.1208 59.8095 19.9076 59.6709 13.9202 57.6986C11.2 56.8032 8.73107 55.5276 6.68106 53.8141C-0.486593 47.8201 -2.67951 36.7518 4.05202 25.1917L4.05448 25.1929Z" fill="#209991"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M10.2496 26.5709C9.02256 25.1824 5.21328 23.7621 4.05522 25.191C4.05522 25.191 4.15378 28.9123 8.09118 32.7992C8.60245 30.6417 9.43897 28.629 10.2496 26.5721V26.5709Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M100.181 51.3072C102.487 50.5897 108.276 49.5287 108.483 47.1333C108.362 43.6573 100.679 40.2549 100.602 40.2782C100.785 44.1492 100.446 47.4829 100.181 51.3072Z" fill="#12615C"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M87.4743 45.787C96.4295 43.1806 100.451 47.5238 100.451 47.5238C100.569 45.8937 100.618 41.8216 100.568 40.2001C97.5913 38.039 91.0507 37.7581 86.4567 38.6755C86.6932 40.4135 87.4324 45.446 87.4743 45.787Z" fill="#263148"/>
+<path d="M158.795 37.1645C157.213 31.5048 152.545 28.2365 146.374 28.2365C140.203 28.2365 135.535 31.5048 133.953 37.1645H158.795ZM133.557 44.7374C134.665 51.4333 139.649 55.3393 146.374 55.3393C150.804 55.3393 154.523 53.6653 156.817 50.5565H165.758C162.751 58.209 155.71 62.9122 146.374 62.9122C133.873 62.9122 125.408 54.3828 125.408 41.7879C125.408 29.1931 133.873 20.6637 146.374 20.6637C158.874 20.6637 167.34 29.1931 167.34 41.7879C167.34 42.8242 167.261 43.7808 167.182 44.7374H133.557Z" fill="currentColor"/>
+<path d="M182.454 61.7165L166.552 21.8594H175.096L187.201 52.5493L199.069 21.8594H207.613L191.711 61.7165H182.454Z" fill="currentColor"/>
+<path d="M210.11 9.50373C210.11 6.71374 212.088 4.8006 214.936 4.8006C217.784 4.8006 219.762 6.71374 219.762 9.50373C219.762 12.3734 217.784 14.3663 214.936 14.3663C212.088 14.3663 210.11 12.3734 210.11 9.50373ZM210.743 61.7165V21.8594H219.05V61.7165H210.743Z" fill="currentColor"/>
+<path d="M233.257 41.7879V61.7165H224.95V21.8594H233.257V26.722C236.184 23.0551 240.536 20.6637 246.549 20.6637C257.388 20.6637 264.113 28.5554 264.113 39.1574V61.7165H255.805V38.9979C255.805 32.4614 252.483 28.2365 245.837 28.2365C238.558 28.2365 233.257 33.2585 233.257 41.7879Z" fill="currentColor"/>
+<path d="M277.924 61.7165H269.617V21.8594H277.924V24.8088C281.247 21.0623 286.073 19.6274 292.244 21.2217L290.82 28.396C281.801 26.8814 277.924 32.1425 277.924 41.7879V61.7165Z" fill="currentColor"/>
+<path d="M324.693 61.7165V57.2525C321.686 60.6802 317.177 62.9122 311.085 62.9122C299.138 62.9122 290.673 54.3828 290.673 41.7879C290.673 29.1931 299.138 20.6637 311.085 20.6637C317.177 20.6637 321.686 22.8957 324.693 26.3234V21.8594H333V61.7165H324.693ZM298.584 41.7879C298.584 50.3173 303.964 55.3393 311.638 55.3393C319.392 55.3393 324.693 50.3173 324.693 41.7879C324.693 33.2585 319.392 28.2365 311.638 28.2365C303.964 28.2365 298.584 33.2585 298.584 41.7879Z" fill="currentColor"/>
+<path d="M219.307 76.6345V74.2444H231.761V76.6345H226.936V89.9841H224.131V76.6345H219.307Z" style="fill:var(--text3)"/>
+<path d="M236.989 74.2444V89.9841H234.162V74.2444H236.989Z" style="fill:var(--text3)"/>
+<path d="M253.413 79.555H250.562C250.481 79.0836 250.331 78.666 250.112 78.3023C249.894 77.9334 249.622 77.6208 249.297 77.3646C248.971 77.1085 248.601 76.9163 248.184 76.7882C247.772 76.655 247.328 76.5884 246.85 76.5884C246.002 76.5884 245.249 76.8036 244.594 77.234C243.939 77.6593 243.425 78.2843 243.054 79.1092C242.683 79.929 242.498 80.9307 242.498 82.1143C242.498 83.3183 242.683 84.3328 243.054 85.1577C243.43 85.9775 243.944 86.5974 244.594 87.0176C245.249 87.4326 245.999 87.6401 246.842 87.6401C247.31 87.6401 247.747 87.5786 248.153 87.4556C248.565 87.3275 248.933 87.1405 249.259 86.8946C249.589 86.6487 249.866 86.3464 250.089 85.9877C250.318 85.6291 250.476 85.2192 250.562 84.758L253.413 84.7734C253.306 85.5215 253.075 86.2234 252.719 86.8792C252.368 87.5351 251.908 88.114 251.339 88.6161C250.77 89.1131 250.105 89.5025 249.342 89.7843C248.58 90.061 247.734 90.1993 246.804 90.1993C245.432 90.1993 244.208 89.8791 243.131 89.2387C242.053 88.5982 241.205 87.6734 240.585 86.4642C239.965 85.255 239.655 83.805 239.655 82.1143C239.655 80.4183 239.968 78.9683 240.593 77.7643C241.218 76.5551 242.069 75.6303 243.146 74.9898C244.223 74.3494 245.443 74.0292 246.804 74.0292C247.673 74.0292 248.481 74.1521 249.228 74.3981C249.975 74.644 250.641 75.0052 251.225 75.4817C251.809 75.9531 252.29 76.5321 252.666 77.2186C253.047 77.9001 253.296 78.6789 253.413 79.555Z" style="fill:var(--text3)"/>
+<path d="M256.002 89.9841V74.2444H258.83V81.4764H259.02L265.11 74.2444H268.563L262.526 81.3073L268.616 89.9841H265.217L260.56 83.2363L258.83 85.296V89.9841H256.002Z" style="fill:var(--text3)"/>
+<path d="M270.527 89.9841V74.2444H280.68V76.6345H273.355V80.9076H280.154V83.2978H273.355V87.594H280.741V89.9841H270.527Z" style="fill:var(--text3)"/>
+<path d="M282.879 76.6345V74.2444H295.333V76.6345H290.508V89.9841H287.703V76.6345H282.879Z" style="fill:var(--text3)"/>
+<path d="M300.561 74.2444V89.9841H297.734V74.2444H300.561Z" style="fill:var(--text3)"/>
+<path d="M316.451 74.2444V89.9841H313.936L306.581 79.263H306.451V89.9841H303.623V74.2444H306.154L313.501 84.9732H313.639V74.2444H316.451Z" style="fill:var(--text3)"/>
+<path d="M329.989 79.2706C329.862 78.8556 329.687 78.4842 329.463 78.1562C329.245 77.8232 328.981 77.5389 328.671 77.3032C328.366 77.0675 328.015 76.8907 327.619 76.7729C327.223 76.6499 326.791 76.5884 326.323 76.5884C325.485 76.5884 324.738 76.801 324.082 77.2263C323.427 77.6516 322.911 78.2767 322.535 79.1016C322.164 79.9213 321.979 80.9204 321.979 82.0989C321.979 83.2876 322.164 84.2944 322.535 85.1193C322.906 85.9442 323.422 86.5718 324.082 87.0022C324.743 87.4275 325.51 87.6401 326.384 87.6401C327.177 87.6401 327.863 87.4864 328.442 87.179C329.026 86.8715 329.476 86.436 329.791 85.8724C330.106 85.3037 330.264 84.6376 330.264 83.8742L330.904 83.9741H326.666V81.7453H333V83.636C333 84.9835 332.715 86.1491 332.146 87.1329C331.577 88.1166 330.795 88.8749 329.799 89.4077C328.803 89.9355 327.66 90.1993 326.369 90.1993C324.931 90.1993 323.668 89.874 322.581 89.2233C321.499 88.5675 320.653 87.6375 320.043 86.4335C319.438 85.2243 319.136 83.7897 319.136 82.1296C319.136 80.859 319.314 79.7241 319.669 78.725C320.03 77.7259 320.533 76.8779 321.178 76.1811C321.824 75.4792 322.581 74.9463 323.45 74.5825C324.319 74.2136 325.264 74.0292 326.285 74.0292C327.149 74.0292 327.954 74.1572 328.701 74.4134C329.448 74.6645 330.111 75.0232 330.691 75.4894C331.275 75.9557 331.755 76.509 332.131 77.1495C332.507 77.7899 332.754 78.497 332.87 79.2706H329.989Z" style="fill:var(--text3)"/>
+</svg>
+    </div>
+
+    <div class="header-content">
+      <div class="header-page-title">Events</div>
+      <div class="header-breadcrumb">Manage event types, shows, venues, event dates and layouts</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-actions">
+      <button type="button" class="header-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button type="button" class="header-icon-btn theme-toggle" aria-label="Toggle color theme" data-toggle-theme>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+    <div class="header-user">
+      <div class="header-user-avatar">YP</div>
+      <div class="header-user-info">
+        <div class="header-user-name">Yoaldis P.</div>
+        <div class="header-user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-group">Main</div>
+      <a href="evinra_dashboard_mvp.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg></span>Dashboard <span class="sb-badge">MVP</span></a>
+      <a href="evinra_events.html" class="sb-item active"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events</a>
+<a href="evinra_order_detail.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Orders</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Reports</div>
+      <a href="evinra_sales_overview.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/><path d="M2 21h20"/></svg></span>Sales Overview</a>
+      <a href="evinra_event_sales_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Sales Report</a>
+      <a href="evinra_attendance_scan_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg></span>Attendance &amp; Scan</a>
+      <a href="evinra_refund_report.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Refund Report</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-group">Settings</div>
+      <a href="evinra_general.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>General</a>
+      <a href="evinra_shows.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Shows</a>
+      <a href="evinra_seating_map.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Layout Management</a>
+      <a href="evinra_discounts.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>Promo Codes</a>
+      <a href="evinra_credit_plans.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Plans</a>
+      <a href="evinra_experience_tickets.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Experience Ticketing</a>
+      <a href="evinra_other_vendors.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></span>Others Vendors</a>
+      <a href="evinra_vendor_sales_links.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Vendor Referral Links</a>
+      <a href="evinra_fees_taxes.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Fees &amp; Taxes</a>
+      <a href="evinra_users.html" class="sb-item"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Users</a>
+    </div>
+  </aside>
+  <div class="main">
+
+    <!-- ══ VIEW 1: EVENTS LIST ══════════════════════════════════════════ -->
+    <div id="view-events-list">
+      <div class="ev-topbar" style="padding:12px 28px;height:auto;gap:10px;flex-wrap:wrap;background:var(--bg);border:none">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1">
+          <div class="date-filter-group">
+  <button class="date-pill" data-dp="range">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Range
+  </button>
+  <button class="date-pill" data-dp="today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Today
+  </button>
+  <button class="date-pill" data-dp="curr-week">Current Week</button>
+  <button class="date-pill" data-dp="week">Last Week</button>
+  <button class="date-pill" data-dp="month">Last Month</button>
+  <div class="date-range-wrap" id="dateRangeWrap">
+    <input type="date" id="dateFrom" class="date-input">
+    <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">–</span>
+    <input type="date" id="dateTo" class="date-input">
+  </div>
+</div>
+          <div class="flt"><label>Production</label>
+            <select id="fProd" onchange="filterPlayDates()"><option value="">All Productions</option></select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          <div class="flt"><label>Show</label>
+            <select id="fShow" onchange="filterPlayDates()"><option value="">All Shows</option></select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          <div class="flt"><label>Event</label>
+            <select id="fEvent" onchange="filterPlayDates()"><option value="">All Events</option></select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          <div class="flt"><label>On Sale</label>
+            <select id="fSale" onchange="filterPlayDates()">
+              <option value="">All</option>
+              <option value="on">On Sale</option>
+              <option value="off">Off Sale</option>
+            </select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          <div class="search-wrap"><span class="ev-icon si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><input class="search-input" id="fSearch" placeholder="Search date, venue, show…" oninput="filterPlayDates()"></div>
+          <button class="btn btn-primary" onclick="openNewEvent()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>New Event</button>
+        </div>
+      </div>
+
+      <div class="content" style="gap:0;padding:0;overflow:hidden">
+        <div class="card" style="border-radius:0;border:none;flex:1;display:flex;flex-direction:column;overflow-x:auto">
+          <!-- header row -->
+          <div class="event-row" style="cursor:default;flex-shrink:0">
+            <div class="event-cell hdr">Date</div>
+            <div class="event-cell hdr">Start Time</div>
+            <div class="event-cell hdr">End Time</div>
+            <div class="event-cell hdr">Event</div>
+            <div class="event-cell hdr">Show</div>
+            <div class="event-cell hdr">Seats</div>
+            <div class="event-cell hdr">Source</div>
+            <div class="event-cell hdr">On Sale</div>
+            <div class="event-cell hdr">Status</div>
+            <div class="event-cell hdr">Actions</div>
+          </div>
+          <div id="playDateListBody"></div>
+        </div>
+        <!-- Pagination -->
+        <div style="padding:12px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0">
+          <span style="font-size:11px;font-family:var(--mono);color:var(--text3)" id="pdPageInfo">Showing 1–10 of 13 play dates</span>
+          <div style="display:flex;gap:4px" id="pdPageBtns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VIEW 2: EVENT DETAIL ══════════════════════════════════════════ -->
+    <div id="view-event-detail" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="ev-topbar" style="padding:12px 28px;height:auto;gap:8px;background:var(--bg);border:none;justify-content:space-between">
+        <div style="display:none"><div class="page-title" id="evDetailTitle">Flying Lions — West Palm Beach</div></div>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+          <div class="breadcrumb" style="margin-top:0;gap:6px">
+            <span class="breadcrumb-link" onclick="showView('events-list')">Events</span>
+            <span>/</span>
+            <span id="evBreadcrumb">Event Settings</span>
+            <span>/</span>
+            <span id="evDateChip" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);color:var(--p);font-size:11px;background:var(--p-dim);border:1px solid var(--p-border);border-radius:10px;padding:1px 8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span id="evDateText">12/01/2025</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;flex-shrink:0;margin-left:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span id="evTimeText">2:00 PM – 4:00 PM</span>
+            </span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <div id="ev-em-banner" style="display:none;align-items:center;gap:8px;background:rgba(10,203,165,.07);border:1px solid var(--p-border);border-radius:8px;padding:6px 12px">
+            <span style="flex-shrink:0;display:inline-flex;color:var(--p)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <span style="font-size:11px;color:var(--text2)">Imported from <strong style="color:var(--p)">Evinra Management</strong> — read only</span>
+          </div>
+          <div id="ev-complete-banner" style="display:none;align-items:center;gap:8px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:6px 12px">
+            <span style="flex-shrink:0;display:inline-flex;color:var(--text3)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
+            <span style="font-size:11px;color:var(--text3)">This event is <strong style="color:var(--text2)">Complete</strong> — read only</span>
+          </div>
+          <button id="evDeleteBtn" class="btn btn-red" onclick="deleteEventRecord()" style="margin-right:4px"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span>Delete Event</button>
+          <button class="btn btn-ghost" onclick="showView('events-list')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span>Back</button>
+          <button id="evSaveBtn" class="btn btn-primary" onclick="saveEvent()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Save</button>
+        </div>
+      </div>
+
+      <!-- Segmented tabs -->
+      <div style="padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0">
+        <div class="seg-ctrl">
+          <button class="seg-btn active" id="seg-info"        onclick="switchSeg('info')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>Basic Information</button>
+          <button class="seg-btn"        id="seg-tickets"     onclick="switchSeg('tickets')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2zM9 3v18"/></svg></span>Tickets</button>
+          <button class="seg-btn"        id="seg-addons"      onclick="switchSeg('addons')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg></span>Add-Ons</button>
+          <button class="seg-btn"        id="seg-fees"        onclick="switchSeg('fees')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><rect x="7" y="5" width="10" height="4" rx="1"/><path d="M7 13h.01M12 13h.01M17 13h.01M7 17h.01M12 17h.01M17 17h.01"/></svg></span>Fees & Taxes</button>
+          <button class="seg-btn"        id="seg-layout"      onclick="switchSeg('layout')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v4M5 17v-3a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/></svg></span>Layout / Seat Map</button>
+          <button class="seg-btn"        id="seg-visibility"  onclick="switchSeg('visibility')"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>Visibility</button>
+        </div>
+      </div>
+
+      <!-- Tab content -->
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:24px 28px 60px;display:flex;flex-direction:column;gap:20px" id="segContent">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ══ TICKET DRAWER ════════════════════════════════════════════════════ -->
+<div class="drawer-overlay" id="ticketDrawer" onclick="if(event.target===this)closeTicketDrawer()">
+  <div class="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawerTitle">Edit Ticket</div>
+      <div class="modal-x" onclick="closeTicketDrawer()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="drawer-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Ticket Name *</label><input class="form-input" id="tName" placeholder="e.g. Adult General Admission"></div>
+        <div class="form-field"><label class="form-label">Ticket Type *</label>
+          <select class="form-select" id="tType">
+            <option>General Admission</option>
+            <option>VIP</option>
+            <option>Family Pack</option>
+            <option>Student</option>
+            <option>Senior</option>
+            <option>Group</option>
+            <option>Press</option>
+            <option>Complimentary</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Price ($)</label><input type="number" class="form-input" id="tPrice" placeholder="29.99" step="0.01"></div>
+        <div class="form-field"><label class="form-label">Quantity Available</label><input type="number" class="form-input" id="tQty" placeholder="500"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Min / Max per Order</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" class="form-input" placeholder="Min 1" min="1" style="flex:1">
+            <input type="number" class="form-input" placeholder="Max 10" min="1" style="flex:1">
+          </div>
+        </div>
+        <div></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <!-- Time Settings -->
+      <div style="font-size:13px;font-weight:600;font-family:var(--display);color:var(--text)">Time Settings</div>
+      <!-- Custom Sale Time toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div>
+          <p style="font-size:12px;color:var(--text);font-weight:500">Use Custom Sale Time</p>
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Override the event's default sale window for this ticket</span>
+        </div>
+        <button class="toggle off" id="tCustomTime" onclick="this.classList.toggle('on');this.classList.toggle('off');toggleCustomTime()"><div class="toggle-thumb"></div></button>
+      </div>
+      <!-- Custom date fields — hidden by default -->
+      <div id="tCustomTimeFields" style="display:none;flex-direction:column;gap:10px">
+        <div style="background:var(--bg3);border:1px solid var(--amber-border);border-radius:8px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 12l10 10 10-10L12 2z"/><path d="M12 8v5M12 16v.5"/></svg></span>
+          <p style="font-size:11px;color:var(--amber);line-height:1.5;font-family:var(--mono)">This ticket will use its own sale window instead of the event's sale dates.</p>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Sale Start *</label><input type="datetime-local" class="form-input" id="tSaleStart"></div>
+          <div class="form-field"><label class="form-label">Sale End *</label><input type="datetime-local" class="form-input" id="tSaleEnd"></div>
+        </div>
+      </div>
+      <!-- On Sale + Transferable -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div><p style="font-size:12px;color:var(--text);font-weight:500">On Sale</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Visible to customers when enabled</span></div>
+        <button class="toggle on" id="tOnSale" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+        <div><p style="font-size:12px;color:var(--text);font-weight:500">Transferable</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Allow ticket holder to transfer</span></div>
+        <button class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+      </div>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <div style="font-size:13px;font-weight:600;font-family:var(--display);color:var(--text)">Sales Channels</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:-6px">Where this ticket can be purchased</div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div>
+            <p style="font-size:12px;color:var(--text);font-weight:500">Box Office</p>
+            <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">In-person at venue</span>
+          </div>
+          <button class="toggle on" id="tBoxOffice" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div>
+            <p style="font-size:12px;color:var(--text);font-weight:500">Storefront (POS)</p>
+            <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Kiosk / POS terminal</span>
+          </div>
+          <button class="toggle on" id="tStorefront" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-ghost" onclick="closeTicketDrawer()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTicket()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Save Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NEW EVENT MODAL ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="newEventModal" onclick="if(event.target===this)closeNewEvent()">
+  <div class="modal-card" style="width:620px;max-height:92vh">
+    <div class="modal-header">
+      <div class="modal-title"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18M15 9v12"/></svg></span>New Event</div>
+      <div class="modal-x" onclick="closeNewEvent()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+
+    <!-- Tab bar — hidden when TENANT_HAS_EM_MODULE is false -->
+    <div id="nem-tab-bar" style="padding:12px 22px 0;border-bottom:1px solid var(--border)">
+      <div class="seg-ctrl">
+        <button class="seg-btn active" id="nem-tab-import" onclick="switchNewEventTab('import')">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span>
+          Import from Evinra EM
+        </button>
+        <button class="seg-btn" id="nem-tab-manual" onclick="switchNewEventTab('manual')">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+          Create Manually
+        </button>
+      </div>
+    </div>
+
+    <!-- ── IMPORT PANE ── -->
+    <div id="nem-pane-import" class="modal-body" style="display:flex;flex-direction:column;gap:12px;padding:18px 22px">
+      <!-- info banner -->
+      <div style="background:var(--p-dim);border:1px solid var(--p-border);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start">
+        <span class="ev-icon" style="color:var(--p);flex-shrink:0;margin-top:1px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        <p style="font-size:11px;color:var(--p);font-family:var(--mono);line-height:1.55">Select events from Evinra EM to import. Already-imported events are hidden.</p>
+      </div>
+      <!-- production filter -->
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="position:relative;flex:1">
+          <select id="nem-prod-filter" onchange="renderEMEventList()" style="appearance:none;width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:12px;font-family:var(--body);padding:7px 28px 7px 10px;outline:none;cursor:pointer">
+            <option value="">All Productions</option>
+            <option>Flying Lions Circus</option>
+            <option>Nova Circus</option>
+            <option>SunPeak Events</option>
+            <option>Solar Spectacular</option>
+            <option>Circus of Dreams</option>
+          </select>
+          <span class="ev-icon" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+      </div>
+      <!-- em events checklist -->
+      <div id="emEventsList" style="overflow-y:auto;max-height:340px;display:flex;flex-direction:column;gap:0"></div>
+    </div>
+
+    <!-- ── MANUAL PANE ── -->
+    <div id="nem-pane-manual" class="modal-body" style="display:none;flex-direction:column;gap:14px">
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Show / Event Name *</label>
+          <input class="form-input" id="nem-show" placeholder="e.g. Flying Lions Circus 2026">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Production</label>
+          <input class="form-input" id="nem-production" placeholder="e.g. Flying Lions Circus">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Layout</label>
+          <select class="form-select" id="nem-layout"><option>General Admission</option><option>Reserved Seating</option><option>Festival</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">City *</label><input class="form-input" id="nem-city" placeholder="e.g. Miami"></div>
+        <div class="form-field"><label class="form-label">Venue / Place Name *</label><input class="form-input" id="nem-venue" placeholder="e.g. AmericanAirlines Arena"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label class="form-label">Address</label><input class="form-input" id="nem-address" placeholder="Full venue address"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Total Seats</label><input type="number" class="form-input" id="nem-seats" placeholder="2500"></div>
+        <div class="form-field"></div>
+      </div>
+
+      <!-- ── PLAY DATES ────────────────────────────── -->
+      <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:8px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="form-label" style="margin:0">Play Dates &amp; Function Times <span style="color:var(--red)">*</span></span>
+          <span id="nem-pd-count" style="font-size:10px;font-family:var(--mono);color:var(--text3)"></span>
+        </div>
+
+        <!-- column headers -->
+        <div style="display:grid;grid-template-columns:118px 84px 84px 1fr 30px;gap:6px;padding:0 2px">
+          <span style="font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:.4px;text-transform:uppercase">Date</span>
+          <span style="font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:.4px;text-transform:uppercase">Start</span>
+          <span style="font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:.4px;text-transform:uppercase">End</span>
+          <span style="font-size:9px;font-family:var(--mono);color:var(--text3);letter-spacing:.4px;text-transform:uppercase">Function Name</span>
+          <span></span>
+        </div>
+
+        <!-- add row -->
+        <div style="display:grid;grid-template-columns:118px 84px 84px 1fr 30px;gap:6px;align-items:center">
+          <input type="date" class="form-input" id="nem-pd-date"  style="height:32px;font-size:11px;padding:5px 8px">
+          <input type="time" class="form-input" id="nem-pd-start" value="19:00" style="height:32px;font-size:11px;padding:5px 8px">
+          <input type="time" class="form-input" id="nem-pd-end"   value="21:30" style="height:32px;font-size:11px;padding:5px 8px">
+          <input            class="form-input" id="nem-pd-name"  placeholder="e.g. Opening Night" style="height:32px;font-size:11px;padding:5px 8px">
+          <button type="button" onclick="confirmAddManualPD()" title="Add date"
+            style="width:30px;height:32px;border-radius:6px;border:1px solid var(--p-border);background:var(--p-dim);color:var(--p);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 4v16M4 12h16"/></svg>
+          </button>
+        </div>
+
+        <!-- list of added dates -->
+        <div id="nem-pd-list" style="display:flex;flex-direction:column;gap:4px;max-height:168px;overflow-y:auto"></div>
+        <div id="nem-pd-empty" style="padding:14px;text-align:center;font-size:11px;font-family:var(--mono);color:var(--text3);border:1px dashed var(--border);border-radius:7px">
+          No function times added yet — at least one is required
+        </div>
+        <div id="nem-pd-err" style="display:none;font-size:11px;color:var(--red);font-family:var(--mono)">
+          &#9888; Add at least one play date before creating the event.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── IMPORT FOOTER ── -->
+    <div id="nem-foot-import" class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNewEvent()">Cancel</button>
+      <button class="btn btn-primary" onclick="importSelectedEMEvents()">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span>
+        Import Selected
+      </button>
+    </div>
+
+    <!-- ── MANUAL FOOTER ── -->
+    <div id="nem-foot-manual" class="modal-footer" style="display:none">
+      <button class="btn btn-ghost" onclick="closeNewEvent()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveManualEvent()">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
+        Create &amp; Configure
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+/* ── VIEW ROUTING ──────────────────────────────── */
+let currentEventIsEM       = false;
+let currentEventIsComplete = false;
+let currentPlayDate        = null;
+let currentEvent           = null;
+let currentEventIdx        = -1;
+
+/* ── Mock sold data ───────────────────────────────────────────────────── */
+// Tickets sold per play date — key: `${eventIdx}_${date}_${startTime}`
+const PD_SOLD = {
+  '0_04/28/2026_2:00 PM': { sold: 412, revenue: 12335.88 },
+  '0_04/28/2026_7:00 PM': { sold: 198, revenue:  5934.02 },
+  '1_05/20/2026_7:30 PM': { sold: 823, revenue: 24685.77 },
+  '5_07/01/2026_8:00 PM': { sold: 654, revenue: 19618.46 },
+  '5_07/02/2026_7:30 PM': { sold: 291, revenue:  8729.09 },
+};
+// Tickets sold per ticket ID
+const TICKET_SOLD = {
+  0: { sold: 312, revenue:  9358.88 },
+  2: { sold:  87, revenue:  7832.13 },
+  5: { sold:  44, revenue:  1099.56 },
+};
+const VIEWS = ['events-list','event-detail'];
+function showView(id){
+  VIEWS.forEach(v=>{
+    const el=document.getElementById('view-'+v);
+    if(!el) return;
+    if(v===id){
+      el.style.display='flex';
+      el.style.flexDirection='column';
+      el.style.flex='1';
+      el.style.minHeight='0';
+    } else {
+      el.style.display='none';
+    }
+  });
+}
+
+/* ── EVENTS LIST ───────────────────────────────── */
+const EVENTS = EVINRA.eventsList.map(function(o){ return Object.assign({}, o); });
+/* legacy demo data below — unused (kept for reference) */
+const _EVENTS_LEGACY=[
+  {city:'West Palm Beach',place:'Flying Lions Big Top',          show:'Flying Lions Circus',                 dates:'12/01/2025 – 12/31/2025',seats:2500},
+  {city:'Miami',          place:'AmericanAirlines Arena',        show:'Solar Spectacular',                   dates:'01/05/2026 – 01/20/2026',seats:6000},
+  {city:'Orlando',        place:'Orange County Arena',           show:'Nova Circus',                         dates:'02/10/2026 – 02/28/2026',seats:6000},
+  {city:'Tampa',          place:'Amalie Arena',                  show:'SunPeak Events',                      dates:'03/01/2026 – 03/15/2026',seats:5200},
+  {city:'Jacksonville',   place:'VyStar Veterans Memorial Arena',show:'Flying Lions 2026 — Spring Edition',  dates:'06/10/2026 – 06/14/2026',seats:2200},
+  {city:'Atlanta',        place:'State Farm Arena',              show:'Circus of Dreams — World Premiere',   dates:'07/01/2026 – 07/05/2026',seats:3000},
+  {city:'Charlotte',      place:'Spectrum Center',               show:'Nova Summer Spectacular 2026',        dates:'07/15/2026 – 07/19/2026',seats:1500},
+  {city:'Nashville',      place:'Bridgestone Arena',             show:'Circus of Dreams — West Coast Tour',  dates:'08/01/2026 – 08/07/2026',seats:2800},
+  {city:'New Orleans',    place:'Smoothie King Center',          show:'Solar Eclipse Show 2026',             dates:'08/20/2026 – 08/23/2026',seats:3500},
+  {city:'Houston',        place:'Toyota Center',                 show:'Lions World Tour 2027 — Preview',     dates:'09/05/2026 – 09/10/2026',seats:2500},
+];
+
+const PLAY_DATES = EVINRA.playDates.map(function(o){ return Object.assign({}, o); });
+/* legacy demo data below — unused (kept for reference) */
+const _PLAY_DATES_LEGACY=[
+  {date:'04/28/2026',start:'2:00 PM', end:'4:00 PM', place:'Flying Lions Big Top',    event:'WPB Evening Show I',   show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'04/28/2026',start:'7:00 PM', end:'9:30 PM', place:'Flying Lions Big Top',    event:'WPB Evening Show II',  show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'04/28/2026',start:'4:00 PM', end:'6:30 PM', place:'Flying Lions Big Top',    event:'WPB Matinée',          show:'Flying Lions Circus',  seats:2500,sale:false,idx:0},
+  {date:'05/16/2026',start:'2:00 PM', end:'4:00 PM', place:'Flying Lions Big Top',    event:'WPB Weekend Show',     show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'05/16/2026',start:'10:00 AM',end:'12:00 PM',place:'Flying Lions Big Top',    event:'WPB Morning Gala',     show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'05/16/2026',start:'6:00 PM', end:'8:30 PM', place:'Flying Lions Big Top',    event:'WPB Holiday Show',     show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'05/20/2026',start:'7:30 PM', end:'9:30 PM', place:'AmericanAirlines Arena', event:'MIA Opening Night',    show:'Solar Spectacular',    seats:6000,sale:true, idx:1},
+  {date:'05/20/2026',start:'3:00 PM', end:'5:00 PM', place:'AmericanAirlines Arena', event:'MIA Weekend Matinée',  show:'Solar Spectacular',    seats:6000,sale:true, idx:1},
+  {date:'05/20/2026',start:'7:30 PM', end:'9:30 PM', place:'AmericanAirlines Arena', event:'MIA Closing Night',    show:'Solar Spectacular',    seats:6000,sale:false,idx:1},
+  {date:'05/21/2026',start:'2:00 PM', end:'4:30 PM', place:'Orange County Arena',    event:'ORL Premiere',         show:'Nova Circus',          seats:6000,sale:true, idx:2},
+  {date:'05/21/2026',start:'6:00 PM', end:'8:30 PM', place:'Orange County Arena',    event:"ORL Valentine's Show", show:'Nova Circus',          seats:6000,sale:true, idx:2},
+  {date:'05/21/2026',start:'5:00 PM', end:'7:30 PM', place:'Amalie Arena',           event:'TPA Opening Show',     show:'SunPeak Events',       seats:5200,sale:false,idx:3},
+  {date:'05/21/2026',start:'2:00 PM', end:'4:00 PM', place:'Amalie Arena',                  event:'TPA Weekend Show',        show:'SunPeak Events',                   seats:5200,sale:true, idx:3},
+  {date:'05/25/2026',start:'2:00 PM', end:'4:00 PM', place:'Flying Lions Big Top',    event:'WPB Monday Kickoff',      show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'05/26/2026',start:'7:30 PM', end:'9:30 PM', place:'AmericanAirlines Arena', event:'MIA Tuesday Night',       show:'Solar Spectacular',    seats:6000,sale:true, idx:1},
+  {date:'05/26/2026',start:'3:00 PM', end:'5:00 PM', place:'AmericanAirlines Arena', event:'MIA Afternoon Show',      show:'Solar Spectacular',    seats:6000,sale:false,idx:1},
+  {date:'05/27/2026',start:'7:00 PM', end:'9:30 PM', place:'Orange County Arena',    event:'ORL Mid-Week Special',    show:'Nova Circus',          seats:6000,sale:true, idx:2},
+  {date:'05/28/2026',start:'6:00 PM', end:'8:30 PM', place:'Flying Lions Big Top',   event:'WPB Thursday Evening',   show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'05/28/2026',start:'2:00 PM', end:'4:30 PM', place:'Amalie Arena',           event:'TPA Thursday Matinée',   show:'SunPeak Events',       seats:5200,sale:false,idx:3},
+  {date:'05/30/2026',start:'7:00 PM', end:'9:30 PM', place:'Orange County Arena',    event:'ORL Weekend Spectacular', show:'Nova Circus',         seats:6000,sale:true, idx:2},
+  {date:'05/30/2026',start:'3:00 PM', end:'5:00 PM', place:'AmericanAirlines Arena', event:'MIA Saturday Show',      show:'Solar Spectacular',    seats:6000,sale:true, idx:1},
+  {date:'05/31/2026',start:'4:00 PM', end:'6:30 PM', place:'Flying Lions Big Top',   event:'WPB Sunday Finale',      show:'Flying Lions Circus',  seats:2500,sale:true, idx:0},
+  {date:'06/10/2026',start:'7:00 PM', end:'9:30 PM', place:'VyStar Veterans Memorial Arena',event:'JAX Spring Opening Night',       show:'Flying Lions 2026 — Spring Edition', seats:2200,sale:false,idx:4, emId:'EME001'},
+  {date:'06/12/2026',start:'2:00 PM', end:'4:30 PM', place:'VyStar Veterans Memorial Arena',event:'JAX Spring Matinée',             show:'Flying Lions 2026 — Spring Edition', seats:2200,sale:false,idx:4, emId:'EME001'},
+  {date:'07/01/2026',start:'8:00 PM', end:'10:00 PM',place:'State Farm Arena',              event:'ATL World Premiere Night I',     show:'Circus of Dreams — World Premiere',  seats:3000,sale:true, idx:5, emId:'EME002'},
+  {date:'07/02/2026',start:'7:30 PM', end:'9:30 PM', place:'State Farm Arena',              event:'ATL World Premiere Night II',    show:'Circus of Dreams — World Premiere',  seats:3000,sale:true, idx:5, emId:'EME002'},
+  {date:'07/03/2026',start:'3:00 PM', end:'5:00 PM', place:'State Farm Arena',              event:'ATL Matinée Special',            show:'Circus of Dreams — World Premiere',  seats:3000,sale:false,idx:5, emId:'EME002'},
+  {date:'07/15/2026',start:'7:00 PM', end:'9:00 PM', place:'Spectrum Center',               event:'CLT Summer Spectacular Opening', show:'Nova Summer Spectacular 2026',       seats:1500,sale:true, idx:6, emId:'EME003'},
+  {date:'07/17/2026',start:'6:30 PM', end:'8:30 PM', place:'Spectrum Center',               event:'CLT Summer Spectacular Closing', show:'Nova Summer Spectacular 2026',       seats:1500,sale:false,idx:6, emId:'EME003'},
+  {date:'08/01/2026',start:'7:00 PM', end:'9:30 PM', place:'Bridgestone Arena',             event:'NSH West Coast Tour Kickoff',    show:'Circus of Dreams — West Coast Tour', seats:2800,sale:true, idx:7, emId:'EME004'},
+  {date:'08/04/2026',start:'7:00 PM', end:'9:30 PM', place:'Bridgestone Arena',             event:'NSH West Coast Tour Night II',   show:'Circus of Dreams — West Coast Tour', seats:2800,sale:true, idx:7, emId:'EME004'},
+  {date:'08/20/2026',start:'8:00 PM', end:'10:00 PM',place:'Smoothie King Center',          event:'NOL Solar Eclipse Opening',      show:'Solar Eclipse Show 2026',            seats:3500,sale:true, idx:8, emId:'EME005'},
+  {date:'08/22/2026',start:'7:30 PM', end:'9:30 PM', place:'Smoothie King Center',          event:'NOL Solar Eclipse Closing',      show:'Solar Eclipse Show 2026',            seats:3500,sale:false,idx:8, emId:'EME005'},
+  {date:'09/05/2026',start:'7:00 PM', end:'9:30 PM', place:'Toyota Center',                 event:'HOU Lions World Tour Preview',   show:'Lions World Tour 2027 — Preview',   seats:2500,sale:true, idx:9, emId:'EME006'},
+  {date:'09/07/2026',start:'3:00 PM', end:'5:30 PM', place:'Toyota Center',                 event:'HOU Lions Tour Matinée',         show:'Lions World Tour 2027 — Preview',   seats:2500,sale:false,idx:9, emId:'EME006'},
+];
+
+let filteredDates=[...PLAY_DATES], pdPage=1;
+const PD_PER_PAGE=10;
+
+function getEventStatus(dateStr, sale) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const parts = dateStr.split('/'); // MM/DD/YYYY
+  const d = new Date(+parts[2], +parts[0]-1, +parts[1]);
+  d.setHours(0,0,0,0);
+  if (d < today)  return 'complete';
+  if (d.getTime() === today.getTime()) return 'running';
+  if (sale) return 'open';
+  return 'waiting';
+}
+
+function renderPlayDateList(){
+  const body=document.getElementById('playDateListBody');
+  if(!body)return;
+  const total=filteredDates.length,pages=Math.max(1,Math.ceil(total/PD_PER_PAGE));
+  if(pdPage>pages)pdPage=pages;
+  const start=(pdPage-1)*PD_PER_PAGE,slice=filteredDates.slice(start,start+PD_PER_PAGE);
+  body.innerHTML=slice.map(p=>{
+    const sw=p.sale
+      ?`<span class="status-on"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>On Sale</span>`
+      :`<span class="status-off">Off Sale</span>`;
+    const evStatus = getEventStatus(p.date, p.sale);
+    const stBadge = evStatus==='complete' ? `<span class="badge badge-muted">Complete</span>`
+      : evStatus==='running'  ? `<span class="badge badge-teal" style="animation:pulse 1.8s infinite">Running</span>`
+      : evStatus==='open'     ? `<span class="badge" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)">Open</span>`
+      : `<span class="badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">Waiting</span>`;
+    return `<div class="event-row" onclick="openEvent(${p.idx},{date:'${p.date}',start:'${p.start}',end:'${p.end}',emId:'${p.emId||''}'})">
+      <div class="event-cell"><span style="font-family:var(--mono);font-size:11px;color:var(--text)">${p.date}</span></div>
+      <div class="event-cell"><span style="font-family:var(--mono);font-size:11px;color:var(--p);font-weight:600">${p.start}</span></div>
+      <div class="event-cell"><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${p.end}</span></div>
+      <div class="event-cell"><div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:12px;color:var(--text);font-weight:500">${p.event}</span>
+        <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">${p.place}</span>
+      </div></div>
+      <div class="event-cell"><span style="font-size:11px;color:var(--text2)">${p.show}</span></div>
+      <div class="event-cell"><span style="font-family:var(--mono);font-size:12px;color:var(--text)">${p.seats.toLocaleString()}</span></div>
+      <div class="event-cell">${p.emId
+        ? `<span class="badge badge-teal" style="display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Evinra EM</span>`
+        : `<span class="badge badge-muted">Manual</span>`
+      }</div>
+      <div class="event-cell">${sw}</div>
+      <div class="event-cell">${stBadge}</div>
+      <div class="event-cell"><div class="act-wrap">
+        <div class="act-btn" onclick="event.stopPropagation();openEvent(${p.idx},{date:'${p.date}',start:'${p.start}',end:'${p.end}',emId:'${p.emId||''}'})" title="Configure"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span></div>
+        <div class="act-btn amber" onclick="event.stopPropagation()" title="Toggle On Sale"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
+        <div class="act-btn red" onclick="event.stopPropagation();deletePlayDate(${PLAY_DATES.indexOf(p)})" title="Delete function"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span></div>
+      </div></div>
+    </div>`;
+  }).join('');
+  const info=document.getElementById('pdPageInfo');
+  if(info)info.textContent=`Showing ${start+1}–${Math.min(start+PD_PER_PAGE,total)} of ${total} play dates`;
+  const pb=document.getElementById('pdPageBtns');
+  if(pb){
+    let h=`<div class="page-btn" onclick="gopdPage(${pdPage-1})"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></span></div>`;
+    for(let p=1;p<=pages;p++){
+      if(pages>7&&p>2&&p<pages-1&&Math.abs(p-pdPage)>1){if(p===3||p===pages-2)h+=`<div class="page-btn">…</div>`;continue;}
+      h+=`<div class="page-btn ${p===pdPage?'active':''}" onclick="gopdPage(${p})">${p}</div>`;
+    }
+    h+=`<div class="page-btn" onclick="gopdPage(${pdPage+1})"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span></div>`;
+    pb.innerHTML=h;
+  }
+}
+
+function gopdPage(p){const pages=Math.ceil(filteredDates.length/PD_PER_PAGE);if(p<1||p>pages)return;pdPage=p;renderPlayDateList();}
+
+function parseMMDDYYYY(str){ const [m,d,y]=str.split('/'); return new Date(+y,+m-1,+d); }
+let dateMode = '';   // '' = show all dates (events run Aug/Oct, beyond "current week")
+
+/* show name → production name (for the Production filter) */
+function _evProdName(showName){
+  var s=(window.EVINRA?EVINRA.shows:[]).filter(function(x){return x.name===showName;})[0];
+  if(!s) return '';
+  var p=EVINRA.getProduction(s.productionId);
+  return p?p.name:'';
+}
+/* fill the Production / Show / Event dropdowns from the canonical dataset */
+function populateEventFilters(){
+  if(!window.EVINRA) return;
+  var prodSel=document.getElementById('fProd');
+  if(prodSel) prodSel.innerHTML='<option value="">All Productions</option>'+EVINRA.productions.map(function(p){return '<option>'+p.name+'</option>';}).join('');
+  var showSel=document.getElementById('fShow');
+  if(showSel) showSel.innerHTML='<option value="">All Shows</option>'+EVINRA.shows.map(function(s){return '<option>'+s.name+'</option>';}).join('');
+  var evSel=document.getElementById('fEvent');
+  if(evSel) evSel.innerHTML='<option value="">All Events</option>'+EVINRA.events.map(function(e){return '<option value="'+e.id+'">'+e.cityState+' — '+e.monthName+'</option>';}).join('');
+}
+
+function filterPlayDates(){
+  const prod=(document.getElementById('fProd')||{}).value||'';
+  const show=(document.getElementById('fShow')||{}).value||'';
+  const sale=(document.getElementById('fSale')||{}).value||'';
+  const q=((document.getElementById('fSearch')||{}).value||'').toLowerCase();
+  const evVal=((document.getElementById('fEvent')||{}).value||'');
+  filteredDates=PLAY_DATES.filter(p=>{
+    if(prod&&_evProdName(p.show)!==prod)return false;
+    if(show&&p.show!==show)return false;
+    if(evVal&&p.eventId!==evVal)return false;
+    if(sale==='on'&&!p.sale)return false;
+    if(sale==='off'&&p.sale)return false;
+    if(q&&!`${p.date} ${p.place} ${p.event} ${p.show}`.toLowerCase().includes(q))return false;
+    if(dateMode){
+      const d=parseMMDDYYYY(p.date);
+      const now=new Date(); now.setHours(23,59,59,999);
+      if(dateMode==='today'){
+        const s=new Date(); s.setHours(0,0,0,0); if(d<s||d>now) return false;
+      } else if(dateMode==='curr-week'){
+        const ref=new Date(); const day=ref.getDay();
+        const s=new Date(ref); s.setDate(ref.getDate()-(day===0?6:day-1)); s.setHours(0,0,0,0);
+        const e=new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999);
+        if(d<s||d>e) return false;
+      } else if(dateMode==='week'){
+        const s=new Date(); s.setDate(s.getDate()-7); s.setHours(0,0,0,0); if(d<s||d>now) return false;
+      } else if(dateMode==='month'){
+        const s=new Date(); s.setDate(s.getDate()-30); s.setHours(0,0,0,0); if(d<s||d>now) return false;
+      } else if(dateMode==='range'){
+        const fv=document.getElementById('dateFrom').value;
+        const tv=document.getElementById('dateTo').value;
+        if(fv){const fd=new Date(fv); fd.setHours(0,0,0,0); if(d<fd) return false;}
+        if(tv){const td=new Date(tv); td.setHours(23,59,59,999); if(d>td) return false;}
+      }
+    }
+    return true;
+  });
+  pdPage=1; renderPlayDateList();
+}
+
+function openEvent(idx, playDate){
+  currentEventIsEM       = !!(playDate && playDate.emId);
+  currentPlayDate        = playDate || null;
+  currentEventIsComplete = !!(playDate && playDate.date && getEventStatus(playDate.date, playDate.sale) === 'complete');
+  const isReadOnly = currentEventIsEM || currentEventIsComplete;
+
+  const evBanner      = document.getElementById('ev-em-banner');
+  const evCompBanner  = document.getElementById('ev-complete-banner');
+  const evSaveBtn     = document.getElementById('evSaveBtn');
+  if (evBanner)     evBanner.style.display     = currentEventIsEM       ? 'flex' : 'none';
+  if (evCompBanner) evCompBanner.style.display = currentEventIsComplete ? 'flex' : 'none';
+  if (evSaveBtn)    evSaveBtn.style.display    = isReadOnly ? 'none' : '';
+  const evDelBtn = document.getElementById('evDeleteBtn');
+  if (evDelBtn)     evDelBtn.style.display     = isReadOnly ? 'none' : '';
+
+  const e = EVENTS[idx] || EVENTS[0];
+  currentEvent    = e;
+  currentEventIdx = idx;
+  document.getElementById('evDetailTitle').textContent = e.show + ' — ' + e.city;
+  document.getElementById('evBreadcrumb').textContent  = 'Event Settings';
+  // Update show inheritance banner names
+  const tkSN = document.getElementById('evTkShowName');
+  const rdSN = document.getElementById('evRdShowName');
+  if(tkSN) tkSN.textContent = e.show;
+  if(rdSN) rdSN.textContent = e.show;
+
+  // Populate date/time chip from the play date row that was clicked
+  const pd = playDate || null;
+  const dateText = pd ? pd.date  : (e.dates ? e.dates.split('–')[0].trim() : '');
+  const timeText = pd ? pd.start + ' – ' + pd.end : '';
+  const dateEl = document.getElementById('evDateText');
+  const timeEl = document.getElementById('evTimeText');
+  const chip   = document.getElementById('evDateChip');
+  if(dateEl) dateEl.textContent = dateText;
+  if(timeEl) timeEl.textContent = timeText;
+  if(chip)   chip.style.display = dateText ? 'inline-flex' : 'none';
+
+  showView('event-detail');
+  switchSeg('info');
+}
+
+
+/* ── SEGMENTED TABS ────────────────────────────── */
+const SEGS=['info','tickets','addons','fees','layout','visibility'];
+function switchSeg(tab){
+  SEGS.forEach(s=>{
+    const btn=document.getElementById('seg-'+s);
+    if(btn)btn.classList.toggle('active',s===tab);
+  });
+  renderSegContent(tab);
+}
+
+function renderSegContent(tab){
+  const c=document.getElementById('segContent');
+
+  if(tab==='info'){
+    c.innerHTML=`
+      ${currentEventIsEM ? `
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(10,203,165,.07);border:1px solid var(--p-border);border-radius:8px;padding:10px 14px">
+        <span style="flex-shrink:0;display:inline-flex;color:var(--p)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <span style="font-size:12px;color:var(--text2)">This event was imported from <strong style="color:var(--p)">Evinra Management</strong> and cannot be edited here. Manage it directly in EM.</span>
+      </div>` : ''}
+      ${currentEventIsComplete && !currentEventIsEM ? `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:10px 14px">
+        <span style="flex-shrink:0;display:inline-flex;color:var(--text3)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
+        <span style="font-size:12px;color:var(--text2)">This event has already <strong style="color:var(--text)">completed</strong> and can no longer be edited.</span>
+      </div>` : ''}
+      <div>
+        <div class="form-section-title">Venue Information</div>
+        <div class="form-section-sub">Basic details about this event location</div>
+      </div>
+      ${(()=>{
+        const pd = currentPlayDate;
+        if (!pd || !pd.date) return '';
+        const st = getEventStatus(pd.date, pd.sale);
+        const badge = st==='complete'
+          ? `<span class="badge badge-muted" style="font-size:11px;padding:3px 10px">Complete</span>`
+          : st==='running'
+          ? `<span class="badge badge-teal" style="font-size:11px;padding:3px 10px;animation:pulse 1.8s infinite">Running</span>`
+          : st==='open'
+          ? `<span class="badge badge-blue" style="font-size:11px;padding:3px 10px">Open</span>`
+          : `<span class="badge badge-amber" style="font-size:11px;padding:3px 10px">Waiting</span>`;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:8px">
+          <span style="font-size:11px;font-family:var(--mono);color:var(--text3);flex-shrink:0">Event Status</span>
+          ${badge}
+          <span style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-left:auto">${pd.date}${pd.start ? ' &nbsp;·&nbsp; ' + pd.start + ' – ' + pd.end : ''}</span>
+        </div>`;
+      })()}
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Event / Place Name *</label><input class="form-input" id="evPlace" value="${(currentEvent&&currentEvent.place)||''}" placeholder="Venue or place name"></div>
+        <div class="form-field"><label class="form-label">City *</label><input class="form-input" id="evCity" value="${(currentEvent&&currentEvent.city)||''}" placeholder="e.g. Miami"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label class="form-label">Full Address</label><input class="form-input" id="evAddress" value="${(currentEvent&&currentEvent.address)||''}" placeholder="Full venue address"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Start Date</label><input type="date" class="form-input" id="evStart" value="${(()=>{ const d=(currentEvent&&currentEvent.dates||'').split('–')[0].trim(); if(!d) return ''; const p=d.split('/'); return p.length===3?p[2]+'-'+p[0]+'-'+p[1]:''; })()}"></div>
+        <div class="form-field"><label class="form-label">End Date</label><input type="date" class="form-input" id="evEnd" value="${(()=>{ const d=(currentEvent&&currentEvent.dates||'').split('–')[1]||''; const t=d.trim(); if(!t) return ''; const p=t.split('/'); return p.length===3?p[2]+'-'+p[0]+'-'+p[1]:''; })()}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Total Seats</label>
+          <div style="display:flex">
+            <span style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3);display:flex;align-items:center"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span>
+            <input type="number" class="form-input" id="evSeats" placeholder="e.g. 2500" min="0" value="${(currentEvent&&currentEvent.seats)||''}" style="border-radius:0 7px 7px 0;border-left:none">
+          </div>
+          <div class="form-hint">Total capacity for this event venue</div>
+        </div>
+        <div class="form-field"><label class="form-label">Show</label><input class="form-input" id="evShow" value="${(currentEvent&&currentEvent.show)||''}" placeholder="Show name"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <textarea class="rich-area" rows="5">${(currentEvent&&currentEvent.description)||''}</textarea>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field">
+          <label class="form-label">Event Image</label>
+          <div class="upload-zone" onclick="document.getElementById('evImg').click()" style="border:1.5px dashed var(--border2);border-radius:8px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:var(--bg3)">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span>
+            <p style="font-size:11px;color:var(--text3);font-family:var(--mono)">Drag files here or click to upload event banner</p>
+            <span style="font-size:10px;color:var(--p);text-decoration:underline">browse for files</span>
+          </div>
+          <input type="file" id="evImg" accept="image/*" style="display:none">
+        </div>
+      </div>`;
+    if (currentEventIsEM || currentEventIsComplete) {
+      c.querySelectorAll('input, select, textarea').forEach(function(el) {
+        el.disabled = true;
+        el.style.opacity = '0.5';
+        el.style.cursor  = 'not-allowed';
+      });
+      var uz = c.querySelector('.upload-zone');
+      if (uz) { uz.style.pointerEvents = 'none'; uz.style.opacity = '0.5'; }
+    }
+  }
+
+  
+
+  else if(tab==='tickets'){
+    c.innerHTML=`
+      <div id="evTkInheritBanner" style="background:var(--p-dim);border:1px solid var(--p-border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;margin-bottom:2px">
+        <span style="display:inline-flex;align-items:center;color:var(--p);flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+        <p style="font-size:11px;font-family:var(--mono);color:var(--p);flex:1">
+          <strong>Inherited from Show.</strong> Ticket types are templated from <strong id="evTkShowName">Flying Lions Circus 2026</strong>. Changes here override the show template for this event only.
+        </p>
+        <span style="font-size:9px;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:var(--p);color:#0B0F0E;font-weight:700;flex-shrink:0">SHOW TEMPLATE</span>
+      </div>
+      
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><div class="form-section-title">Ticket Types</div><div class="form-section-sub">Define ticket categories, pricing and availability</div></div>
+        <button class="btn btn-primary" onclick="openTicketDrawer(-1)"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>Add Ticket</button>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <div class="flt"><label>Ticket Type</label>
+          <select id="tkTypeFilter" onchange="renderTicketsTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:5px 26px 5px 9px;cursor:pointer;outline:none;min-width:160px">
+            <option value="">All Types</option>
+            <option>General Admission</option>
+            <option>VIP</option>
+            <option>Family Pack</option>
+            <option>Student</option>
+            <option>Senior</option>
+            <option>Group</option>
+            <option>Press</option>
+            <option>Complimentary</option>
+          </select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+        <div class="flt"><label>Status</label>
+          <select id="tkSaleFilter" onchange="renderTicketsTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:5px 26px 5px 9px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">All</option>
+            <option value="on">On Sale</option>
+            <option value="off">Off Sale</option>
+          </select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+        <div class="search-wrap">
+          <span class="ev-icon si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+          <input class="search-input" id="tkSearch" placeholder="Search ticket name…" oninput="renderTicketsTable()" style="width:200px">
+        </div>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 160px 80px 80px 100px 60px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg3);gap:0">
+          <span style="font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Ticket Name</span>
+          <span style="font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Ticket Type</span>
+          <span style="font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Qty</span>
+          <span style="font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:right">Price</span>
+          <span style="font-size:9px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;text-align:center">Status</span>
+          <span></span>
+        </div>
+        <div id="ticketsTableBody"></div>
+      </div>`;
+    renderTicketsTable();
+  }
+
+  else if(tab==='addons'){
+    c.innerHTML=`
+      <div id="evRdInheritBanner" style="background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;margin-bottom:2px">
+        <span style="display:inline-flex;align-items:center;color:var(--amber);flex-shrink:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></span>
+        <p style="font-size:11px;font-family:var(--mono);color:var(--amber);flex:1">
+          <strong>Inherited from Show.</strong> Rides & Experiences are templated from <strong id="evRdShowName">Flying Lions Circus 2026</strong>. Credit overrides here apply to this event only.
+        </p>
+        <span style="font-size:9px;font-family:var(--mono);padding:2px 8px;border-radius:10px;background:var(--amber);color:#0B0F0E;font-weight:700;flex-shrink:0">SHOW TEMPLATE</span>
+      </div>
+      
+      <!-- ── RIDES & EXPERIENCES ── -->
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg></span>
+            <div class="form-section-title" style="margin:0">Rides & Experiences</div>
+          </div>
+          <div class="form-section-sub">Credit-based items assigned to this event. Credits required per scan are set here.</div>
+        </div>
+        <button class="btn btn-amber" onclick="openRideModal()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg></span>Add Ride / Experience</button>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <div class="flt"><label>Type</label>
+          <select id="rdTypeFilter" onchange="renderRidesTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:5px 26px 5px 9px;cursor:pointer;outline:none;min-width:140px">
+            <option value="">All Types</option>
+            <option value="Ride">Rides</option>
+            <option value="Experience">Experiences</option>
+          </select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+        <div class="flt"><label>In-Show Sales</label>
+          <select id="rdInshowFilter" onchange="renderRidesTable()" style="appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11.5px;font-family:var(--body);padding:5px 26px 5px 9px;cursor:pointer;outline:none;min-width:120px">
+            <option value="">All</option>
+            <option value="on">Enabled</option>
+            <option value="off">Disabled</option>
+          </select><span class="ev-icon drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+        <div class="search-wrap">
+          <span class="ev-icon si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+          <input class="search-input" id="rdSearch" placeholder="Search name…" oninput="renderRidesTable()" style="width:180px">
+        </div>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 80px 80px 100px 80px 60px 88px;border-bottom:1px solid var(--border);background:var(--bg3)">
+          <div class="addon-cell hdr">Name</div>
+          <div class="addon-cell hdr">Type</div>
+          <div class="addon-cell hdr">Price</div>
+          <div class="addon-cell hdr">Credits</div>
+          <div class="addon-cell hdr">In-Show</div>
+          <div class="addon-cell hdr">POS</div>
+          <div class="addon-cell hdr">Actions</div>
+        </div>
+        <div id="ridesTableBody"></div>
+      </div>`;
+    renderRidesTable();
+  }
+
+  else if(tab==='fees'){
+    c.innerHTML=`
+      <div>
+        <div class="form-section-title">Fees & Taxes</div>
+        <div class="form-section-sub">Inherited from global Settings. Override values for this event if needed.</div>
+      </div>
+      <!-- Info banner -->
+      <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:center">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 12l10 10 10-10L12 2z"/><path d="M12 8v5M12 16v.5"/></svg></span>
+        <div>
+          <p style="font-size:11px;color:var(--text2);line-height:1.5">
+            These fees and taxes are pulled from <strong style="color:var(--text)">Settings → Fees & Taxes</strong>.
+            You can override the value for this specific event. Overridden items are marked
+            <span style="color:var(--amber);font-family:var(--mono);font-size:10px">OVERRIDE</span>.
+            Toggle active/inactive to exclude a fee from this event.
+          </p>
+        </div>
+      </div>
+      <!-- Fees -->
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">Fees</span>
+        <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">From Settings · ${FEES.length} item${FEES.length!==1?'s':''}</span>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 100px 100px 70px 80px;border-bottom:1px solid var(--border);background:var(--bg3)">
+          <div class="addon-cell hdr">Fee Name</div>
+          <div class="addon-cell hdr">Default</div>
+          <div class="addon-cell hdr">Override</div>
+          <div class="addon-cell hdr">Active</div>
+          <div class="addon-cell hdr">Actions</div>
+        </div>
+        <div id="feesTableBody"></div>
+      </div>
+      <!-- Taxes -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">Taxes</span>
+        <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">From Settings · ${TAXES.length} item${TAXES.length!==1?'s':''}</span>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 100px 100px 70px 80px;border-bottom:1px solid var(--border);background:var(--bg3)">
+          <div class="addon-cell hdr">Tax Name</div>
+          <div class="addon-cell hdr">Default</div>
+          <div class="addon-cell hdr">Override</div>
+          <div class="addon-cell hdr">Active</div>
+          <div class="addon-cell hdr">Actions</div>
+        </div>
+        <div id="taxesTableBody"></div>
+      </div>`;
+    renderFeesTable();
+    renderTaxesTable();
+  }
+
+  else if(tab==='layout'){
+    c.innerHTML=`
+      <div>
+        <div class="form-section-title">Layout / Seat Map</div>
+        <div class="form-section-sub">Assign a seating layout to this event and configure zone visibility</div>
+      </div>
+      <!-- Layout selector -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v4M5 17v-3a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/></svg></span>
+          <span style="font-size:13px;font-weight:600;font-family:var(--display);color:var(--text)">Seating Layout</span>
+        </div>
+        <div style="display:flex;gap:14px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+            <label style="font-size:9.5px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Select Layout *</label>
+            <div style="position:relative">
+              <select id="layoutSelect" onchange="onLayoutChange()" style="width:100%;appearance:none;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:var(--body);padding:8px 32px 8px 12px;outline:none;cursor:pointer">
+                <option value="">-- Select a layout --</option>
+                <option value="ga">General Admission — 2,500 capacity</option>
+                <option value="reserved">Reserved Seating — 1,800 seats</option>
+                <option value="festival">Festival Layout — 5,000 capacity</option>
+                <option value="theatre">Theatre Style — 1,200 seats</option>
+              </select>
+              <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+            <label style="font-size:9.5px;font-family:var(--mono);font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Zones / Sections</label>
+            <div id="layoutZoneCount" style="background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:11px;font-family:var(--mono);color:var(--text3);line-height:1.5">Select a layout to see zones</div>
+          </div>
+        </div>
+      </div>
+      <!-- Seat Map — Seats.io Designer Embed -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+            <span style="font-size:13px;font-weight:600;font-family:var(--display);color:var(--text)">Seat Map Designer</span>
+            <span style="font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">Seats.io</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="document.getElementById('seatsioFrame').requestFullscreen()">
+              <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>Full Screen
+            </button>
+          </div>
+        </div>
+        <!-- Embed area -->
+        <div style="position:relative;height:520px;background:var(--bg3)">
+          <!-- Placeholder -->
+          <div id="seatsioPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+            <div style="text-align:center">
+              <p style="font-size:13px;font-weight:600;color:var(--text2);font-family:var(--display)">Seats.io Chart Designer</p>
+              <p style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:4px">Enter your Secret Key and Chart Key below to open the designer</p>
+            </div>
+            <button class="btn btn-amber" style="height:34px;font-size:11px" onclick="loadSeatsioDesigner()">
+              <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>Open Designer
+            </button>
+          </div>
+          <!-- Seats.io designer iframe -->
+          <iframe id="seatsioFrame"
+            style="width:100%;height:100%;border:none;display:none"
+            allow="fullscreen clipboard-read clipboard-write"
+            title="Seats.io Chart Designer">
+          </iframe>
+        </div>
+        <!-- Config bar -->
+        <div style="padding:10px 18px;border-top:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap">Secret Key</span>
+            <input id="seatsioSecretKey" type="password" placeholder="Your Seats.io secret key"
+              style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--mono);padding:5px 8px;width:200px;outline:none">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap">Chart Key</span>
+            <input id="seatsioChartKey" type="text" placeholder="e.g. 83c5e5b7-3c7d-..."
+              style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--mono);padding:5px 8px;width:220px;outline:none">
+          </div>
+          <button class="btn btn-primary" style="height:28px;font-size:10px" onclick="loadSeatsioDesigner()">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>Load Designer
+          </button>
+          <button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="closeSeatsioDesigner()">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span>Close
+          </button>
+          <a href="https://app.seats.io" target="_blank"
+            style="margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--p);text-decoration:none;display:flex;align-items:center;gap:4px">
+            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Seats.io Dashboard ↗
+          </a>
+        </div>
+      </div>
+      <!-- Zones table -->
+      <div id="layoutZonesSection" style="display:none;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">Zones & Sections</span>
+          <span style="font-size:10px;font-family:var(--mono);color:var(--text3)">Toggle visibility per zone for this event</span>
+        </div>
+        <div class="card" style="overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 100px 80px 80px 70px;border-bottom:1px solid var(--border);background:var(--bg3)">
+            <div class="addon-cell hdr">Zone / Section</div>
+            <div class="addon-cell hdr">Type</div>
+            <div class="addon-cell hdr">Capacity</div>
+            <div class="addon-cell hdr">Available</div>
+            <div class="addon-cell hdr">Visible</div>
+          </div>
+          <div id="zonesTableBody"></div>
+        </div>
+      </div>`;
+    // Pre-select if already chosen
+    const sel = document.getElementById('layoutSelect');
+    if(sel && currentLayout) { sel.value = currentLayout; onLayoutChange(); }
+  }
+
+  else if(tab==='visibility'){
+    c.innerHTML=`
+      <div>
+        <div class="form-section-title">Visibility Settings</div>
+        <div class="form-section-sub">Control when and how this event appears to customers</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:10px">
+        <div>
+          <p style="font-size:13px;font-weight:600;color:var(--text)">On Sale</p>
+          <p style="font-size:11px;color:var(--text3);margin-top:2px">Make this event visible and purchasable on the event list page</p>
+        </div>
+        <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+      </div>
+      <div class="info-box" style="display:flex;gap:10px;align-items:flex-start">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 12l10 10 10-10L12 2z"/><path d="M12 8v5M12 16v.5"/></svg></span>
+        <p>The settings that are set as visible will be effective once the event is published on the Event List Page. Make sure all ticket types and play dates are configured before enabling.</p>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>`;
+  }
+}
+
+/* ── TICKET DRAWER ─────────────────────────────── */
+const TICKETS=[
+  {id:0, name:'Adult General Admission', ticketType:'General Admission', price:29.99, qty:500, color:'#2A9B85', sale:true},
+  {id:1, name:'Child General Admission', ticketType:'General Admission', price:14.99, qty:200, color:'#2A9B85', sale:true},
+  {id:2, name:'VIP Front Row',           ticketType:'VIP',               price:89.99, qty:100, color:'#8B6BD4', sale:true},
+  {id:3, name:'Family Pack (2+2)',       ticketType:'Family Pack',       price:99.99, qty:200, color:'#D4884A', sale:false},
+  {id:4, name:'Student ID',              ticketType:'Student',           price:19.99, qty:150, color:'#4A8BD4', sale:true},
+  {id:5, name:'Senior 65+',             ticketType:'Senior',            price:24.99, qty:100, color:'#E8A020', sale:true},
+];
+let ticketNextId=6, ticketEditId=null;
+
+const TICKET_TYPES = ['General Admission','VIP','Family Pack','Student','Senior','Group','Press','Complimentary'];
+
+function renderTicketsTable(){
+  const body = document.getElementById('ticketsTableBody');
+  if(!body) return;
+  const typeFilter = (document.getElementById('tkTypeFilter')||{}).value || '';
+  const saleFilter = (document.getElementById('tkSaleFilter')||{}).value || '';
+  const q          = ((document.getElementById('tkSearch')||{}).value || '').toLowerCase();
+
+  const filtered = TICKETS.filter(t => {
+    if(typeFilter && t.ticketType !== typeFilter) return false;
+    if(saleFilter === 'on'  && !t.sale) return false;
+    if(saleFilter === 'off' &&  t.sale) return false;
+    if(q && !`${t.name} ${t.ticketType}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    body.innerHTML='<div style="padding:30px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">'+(TICKETS.length ? 'No tickets match your filters' : 'No tickets added yet')+'</div>';
+    return;
+  }
+  body.innerHTML = filtered.map(t=>{
+    const sw = t.sale
+      ?`<span class="status-on"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>On Sale</span>`
+      :`<span class="status-off">Off Sale</span>`;
+    return `<div class="ticket-row" style="display:grid;grid-template-columns:1fr 160px 80px 80px 100px 60px;padding:10px 12px;border-bottom:1px solid var(--border);align-items:center;gap:0">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="color-dot" style="background:${t.color||'#2A9B85'}"></div>
+        <div style="font-size:12px;font-weight:500;color:var(--text)">${t.name}</div>
+      </div>
+      <div><span style="font-size:11px;color:var(--text2)">${t.ticketType}</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text2);text-align:right">${t.qty}</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text);font-weight:600;text-align:right">$${t.price.toFixed(2)}</div>
+      <div style="text-align:center">${sw}</div>
+      <div style="display:flex;gap:4px;justify-content:flex-end">
+        <div class="act-btn" onclick="openTicketDrawer(${t.id})" title="Edit"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+        <div class="act-btn red" onclick="deleteTicket(${t.id})" title="Remove"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VALIDATION BLOCK ENGINE — shared by play-date, event & ticket deletes
+   ═══════════════════════════════════════════════════════════════════════ */
+var _evtBlockCb = null;
+
+function _showEvtBlock(opts){
+  // opts: { title, hard, lines[], warnings[], confirmText, onConfirm }
+  var m = document.getElementById('evtBlockModal');
+  document.getElementById('evtBlockTitle').textContent = opts.title || 'Cannot Delete';
+  var body = document.getElementById('evtBlockBody');
+  var hard = !!opts.hard;
+  var color   = hard ? 'var(--red)'        : 'var(--amber)';
+  var dimColor= hard ? 'var(--red-dim)'    : 'var(--amber-dim)';
+  var bdrColor= hard ? 'var(--red-border)' : 'var(--amber-border)';
+  var icon    = hard ? '&#9940;' : '&#9888;&#65039;';
+  body.innerHTML = (opts.lines||[]).map(function(l){
+    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:'+dimColor+';border:1px solid '+bdrColor+';border-radius:7px;margin-bottom:6px">'
+      +'<span style="font-size:15px;flex-shrink:0;line-height:1.4">'+icon+'</span>'
+      +'<span style="font-size:12px;color:var(--text2);line-height:1.55">'+l+'</span></div>';
+  }).join('')
+  + (opts.warnings||[]).map(function(w){
+    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:7px;margin-bottom:6px">'
+      +'<span style="font-size:15px;flex-shrink:0;line-height:1.4">&#9888;&#65039;</span>'
+      +'<span style="font-size:12px;color:var(--text2);line-height:1.55">'+w+'</span></div>';
+  }).join('');
+  document.getElementById('evtBlockFooterHard').style.display = hard ? '' : 'none';
+  document.getElementById('evtBlockFooterSoft').style.display = hard ? 'none' : '';
+  var btn = document.getElementById('evtBlockConfirmBtn');
+  if (btn) btn.textContent = opts.confirmText || 'Delete Anyway';
+  _evtBlockCb = opts.onConfirm || null;
+  m.style.display = 'flex';
+}
+function _closeEvtBlock(){ document.getElementById('evtBlockModal').style.display='none'; _evtBlockCb=null; }
+function _confirmEvtBlock(){ if(_evtBlockCb)_evtBlockCb(); _closeEvtBlock(); }
+window._closeEvtBlock=_closeEvtBlock; window._confirmEvtBlock=_confirmEvtBlock;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DELETE PLAY DATE
+   ═══════════════════════════════════════════════════════════════════════ */
+var _pdDeleteIdx = -1;
+
+function deletePlayDate(pdIdx){
+  var p = PLAY_DATES[pdIdx]; if(!p) return;
+  var key    = p.idx+'_'+p.date+'_'+p.start;
+  var sold   = PD_SOLD[key];
+  var status = getEventStatus(p.date, p.sale);
+  var siblings = PLAY_DATES.filter(function(x){ return x.idx===p.idx; });
+  var isLast   = siblings.length === 1;
+
+  // HARD — currently running
+  if(status==='running'){
+    _showEvtBlock({ hard:true, title:'Cannot Delete — Event Is Live',
+      lines:['<strong>'+p.event+'</strong> is currently in progress. A live function cannot be deleted.'] });
+    return;
+  }
+  // HARD — tickets already sold
+  if(sold){
+    _showEvtBlock({ hard:true, title:'Cannot Delete — Tickets Sold',
+      lines:['<strong>'+sold.sold.toLocaleString()+' tickets sold</strong> &middot; <strong>$'+sold.revenue.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong> in revenue for <em>'+p.event+'</em>. All tickets must be refunded before this function can be removed.'] });
+    return;
+  }
+
+  // Soft warnings
+  var warnings=[];
+  if(p.sale) warnings.push('<strong>'+p.event+'</strong> is currently <strong>On Sale</strong> — customers may be browsing or expecting this date to be available.');
+  if(isLast) warnings.push('This is the <strong>only scheduled function</strong> for <strong>'+p.show+'</strong>. Removing it will leave the event with no play dates.');
+
+  var doDelete=function(){
+    PLAY_DATES.splice(pdIdx,1);
+    filterPlayDates();
+  };
+
+  if(warnings.length){
+    _showEvtBlock({ hard:false, title:'Delete Function?', warnings:warnings, confirmText:'Delete Anyway', onConfirm:doDelete });
+  } else {
+    _pdDeleteIdx=pdIdx;
+    document.getElementById('pdDeleteName').textContent = p.event+' · '+p.date+' at '+p.start;
+    document.getElementById('pdDeleteModal').classList.add('open');
+  }
+}
+function closePdDelete(){ document.getElementById('pdDeleteModal').classList.remove('open'); _pdDeleteIdx=-1; }
+function confirmPdDelete(){
+  if(_pdDeleteIdx>-1){ PLAY_DATES.splice(_pdDeleteIdx,1); filterPlayDates(); }
+  closePdDelete();
+}
+window.deletePlayDate=deletePlayDate; window.closePdDelete=closePdDelete; window.confirmPdDelete=confirmPdDelete;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DELETE EVENT (all functions for an event index)
+   ═══════════════════════════════════════════════════════════════════════ */
+function deleteEventRecord(){
+  var idx = currentEventIdx;
+  var ev  = EVENTS[idx]; if(!ev) return;
+  var evDates = PLAY_DATES.filter(function(p){ return p.idx===idx; });
+
+  // HARD — any function is running
+  var running = evDates.find(function(p){ return getEventStatus(p.date,p.sale)==='running'; });
+  if(running){
+    _showEvtBlock({ hard:true, title:'Cannot Delete — Event Is Live',
+      lines:['<strong>'+running.event+'</strong> is currently in progress. You cannot delete an event while one of its functions is live.'] });
+    return;
+  }
+  // HARD — any function has tickets sold
+  var soldPD = evDates.find(function(p){ return !!PD_SOLD[p.idx+'_'+p.date+'_'+p.start]; });
+  if(soldPD){
+    var sk  = soldPD.idx+'_'+soldPD.date+'_'+soldPD.start;
+    var sdt = PD_SOLD[sk];
+    var totalSold = evDates.reduce(function(a,p){ var s=PD_SOLD[p.idx+'_'+p.date+'_'+p.start]; return a+(s?s.sold:0); },0);
+    var totalRev  = evDates.reduce(function(a,p){ var s=PD_SOLD[p.idx+'_'+p.date+'_'+p.start]; return a+(s?s.revenue:0); },0);
+    _showEvtBlock({ hard:true, title:'Cannot Delete — Tickets Sold',
+      lines:['<strong>'+totalSold.toLocaleString()+' tickets sold</strong> &middot; <strong>$'+totalRev.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong> in revenue across '+evDates.length+' function'+(evDates.length!==1?'s':'')+' of <em>'+ev.show+'</em>. All tickets must be refunded before this event can be deleted.'] });
+    return;
+  }
+
+  // Soft warnings
+  var warnings=[];
+  var onSale=evDates.filter(function(p){ return p.sale; });
+  if(onSale.length) warnings.push('<strong>'+onSale.length+' function'+(onSale.length!==1?'s are':' is')+' currently On Sale</strong> for this event. Customers may be expecting to purchase tickets.');
+  if(currentEventIsEM) warnings.push('This event was <strong>imported from Evinra EM</strong>. Deleting it here will not remove it from the source system.');
+
+  var doDelete=function(){
+    // Remove all play dates for this event
+    for(var i=PLAY_DATES.length-1;i>=0;i--){ if(PLAY_DATES[i].idx===idx) PLAY_DATES.splice(i,1); }
+    // Fix idx references for events after this one
+    PLAY_DATES.forEach(function(p){ if(p.idx>idx) p.idx--; });
+    EVENTS.splice(idx,1);
+    filterPlayDates();
+    showView('events-list');
+  };
+
+  if(warnings.length){
+    _showEvtBlock({ hard:false, title:'Delete Event?', warnings:warnings, confirmText:'Delete Event', onConfirm:doDelete });
+  } else {
+    _showEvtBlock({ hard:false, title:'Delete Event?',
+      warnings:['Delete <strong>'+ev.show+'</strong> and all '+evDates.length+' scheduled function'+(evDates.length!==1?'s':'')+' in '+ev.city+'? This cannot be undone.'],
+      confirmText:'Delete Event', onConfirm:doDelete });
+  }
+}
+window.deleteEventRecord=deleteEventRecord;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DELETE TICKET (upgraded from confirm())
+   ═══════════════════════════════════════════════════════════════════════ */
+function deleteTicket(id){
+  const t = TICKETS.find(x=>x.id===id); if(!t) return;
+  const sold = TICKET_SOLD[id];
+
+  // HARD — tickets have been sold
+  if(sold){
+    _showEvtBlock({ hard:true, title:'Cannot Delete — Tickets Sold',
+      lines:['<strong>'+sold.sold.toLocaleString()+' tickets sold</strong> &middot; <strong>$'+sold.revenue.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong> in revenue for <em>'+t.name+'</em>. Ticket types with active sales cannot be removed.'] });
+    return;
+  }
+
+  // Soft warning — ticket is on sale
+  var doDelete=function(){ const idx=TICKETS.findIndex(x=>x.id===id); if(idx>-1){TICKETS.splice(idx,1); renderTicketsTable();} };
+  if(t.sale){
+    _showEvtBlock({ hard:false, title:'Remove Ticket Type?',
+      warnings:['<strong>'+t.name+'</strong> is currently <strong>On Sale</strong>. Removing it will make this ticket type unavailable for purchase immediately.'],
+      confirmText:'Remove Anyway', onConfirm:doDelete });
+    return;
+  }
+
+  // Clean — simple confirm
+  _showEvtBlock({ hard:false, title:'Remove Ticket Type?',
+    warnings:['Remove <strong>'+t.name+'</strong> from this event? This cannot be undone.'],
+    confirmText:'Remove', onConfirm:doDelete });
+}
+
+function openTicketDrawer(id){
+  const t = id===-1 ? null : TICKETS.find(x=>x.id===id);
+  ticketEditId = t ? t.id : null;
+  document.getElementById('drawerTitle').textContent = t ? 'Edit Ticket — '+t.name : 'New Ticket';
+  document.getElementById('tName').value  = t ? t.name        : '';
+  document.getElementById('tType').value  = t ? t.ticketType  : 'General Admission';
+  document.getElementById('tPrice').value = t ? t.price        : '';
+  document.getElementById('tQty').value   = t ? t.qty          : '';
+  const sw=document.getElementById('tOnSale');
+  sw.className='toggle '+(t&&t.sale?'on':'off');
+  // Reset custom time toggle
+  const ct=document.getElementById('tCustomTime');
+  if(ct){ ct.className='toggle '+(t&&t.customTime?'on':'off'); }
+  const ctf=document.getElementById('tCustomTimeFields');
+  if(ctf){ ctf.style.display=(t&&t.customTime)?'flex':'none'; }
+  if(t&&t.saleStart) document.getElementById('tSaleStart').value=t.saleStart;
+  if(t&&t.saleEnd)   document.getElementById('tSaleEnd').value=t.saleEnd;
+  const bo=document.getElementById('tBoxOffice');
+  if(bo) bo.className='toggle '+((t&&t.boxOffice!==false)?'on':'off');
+  const sf=document.getElementById('tStorefront');
+  if(sf) sf.className='toggle '+((t&&t.storefront!==false)?'on':'off');
+  document.getElementById('ticketDrawer').classList.add('open');
+}
+
+function closeTicketDrawer(){
+  document.getElementById('ticketDrawer').classList.remove('open');
+  ticketEditId = null;
+}
+
+function saveTicket(){
+  const name       = document.getElementById('tName').value.trim();
+  const ticketType = document.getElementById('tType').value;
+  const price      = parseFloat(document.getElementById('tPrice').value)||0;
+  const qty        = parseInt(document.getElementById('tQty').value)||0;
+  const sale       = document.getElementById('tOnSale').classList.contains('on');
+  const customTime = document.getElementById('tCustomTime').classList.contains('on');
+  const saleStart  = customTime ? (document.getElementById('tSaleStart').value||'') : '';
+  const saleEnd    = customTime ? (document.getElementById('tSaleEnd').value||'')   : '';
+  const boxOffice  = document.getElementById('tBoxOffice').classList.contains('on');
+  const storefront = document.getElementById('tStorefront').classList.contains('on');
+  if(!name){ alert('Ticket name is required.'); return; }
+  if(ticketEditId !== null){
+    const t = TICKETS.find(x=>x.id===ticketEditId);
+    if(t) Object.assign(t,{name,ticketType,price,qty,sale,customTime,saleStart,saleEnd,boxOffice,storefront});
+  } else {
+    TICKETS.push({id:ticketNextId++,name,ticketType,price,qty,sale,customTime,saleStart,saleEnd,boxOffice,storefront});
+  }
+  closeTicketDrawer();
+  if(document.getElementById('ticketsTableBody')) renderTicketsTable();
+}
+
+function toggleCustomTime(){
+  const on = document.getElementById('tCustomTime').classList.contains('on');
+  const fields = document.getElementById('tCustomTimeFields');
+  if(fields) fields.style.display = on ? 'flex' : 'none';
+}
+
+window.toggleCustomTime=toggleCustomTime;
+window.renderTicketsTable=renderTicketsTable;
+window.deleteTicket=deleteTicket;
+window.saveTicket=saveTicket;
+
+/* ══ TENANT MODULE FLAGS ══════════════════════════════════════════ */
+const TENANT_HAS_EM_MODULE = true;
+
+/* ══ EM EVENTS DATA ═══════════════════════════════════════════════ */
+const EM_EVENTS = [];
+/* legacy EM import pool below — unused (kept for reference) */
+const _EM_EVENTS_LEGACY = [
+  {id:'EME001', production:'Flying Lions Circus', show:'Flying Lions 2026 — Spring Edition', city:'Jacksonville',   venue:'VyStar Veterans Memorial Arena', address:'300 A. Philip Randolph Blvd, Jacksonville, FL 32202', startDate:'2026-06-10', endDate:'2026-06-14', seats:2200},
+  {id:'EME002', production:'Circus of Dreams',    show:'Circus of Dreams — World Premiere',  city:'Atlanta',        venue:'State Farm Arena',               address:'1 State Farm Dr, Atlanta, GA 30303',               startDate:'2026-07-01', endDate:'2026-07-05', seats:3000},
+  {id:'EME003', production:'Nova Circus',          show:'Nova Summer Spectacular 2026',        city:'Charlotte',      venue:'Spectrum Center',                address:'333 E Trade St, Charlotte, NC 28202',              startDate:'2026-07-15', endDate:'2026-07-19', seats:1500},
+  {id:'EME004', production:'Circus of Dreams',    show:'Circus of Dreams — West Coast Tour', city:'Nashville',      venue:'Bridgestone Arena',              address:'501 Broadway, Nashville, TN 37203',                startDate:'2026-08-01', endDate:'2026-08-07', seats:2800},
+  {id:'EME005', production:'Solar Spectacular',   show:'Solar Eclipse Show 2026',            city:'New Orleans',   venue:'Smoothie King Center',           address:'1501 Dave Dixon Dr, New Orleans, LA 70113',        startDate:'2026-08-20', endDate:'2026-08-23', seats:3500},
+  {id:'EME006', production:'Flying Lions Circus', show:'Lions World Tour 2027 — Preview',    city:'Houston',       venue:'Toyota Center',                  address:'1510 Polk St, Houston, TX 77002',                  startDate:'2026-09-05', endDate:'2026-09-10', seats:2500},
+  {id:'EME007', production:'Nova Circus',          show:'Nova Winter Grand Tour 2026',         city:'Denver',         venue:'Ball Arena',                     address:'1000 Chopper Cir, Denver, CO 80204',               startDate:'2026-10-12', endDate:'2026-10-18', seats:4000},
+  {id:'EME008', production:'Solar Spectacular',   show:'Solar Year-End Gala 2026',           city:'Phoenix',        venue:'Footprint Center',               address:'201 E Jefferson St, Phoenix, AZ 85004',            startDate:'2026-11-05', endDate:'2026-11-09', seats:4500},
+  {id:'EME009', production:'Flying Lions Circus', show:'Flying Lions 2027 — World Stage',    city:'Las Vegas',      venue:'T-Mobile Arena',                 address:'3780 Las Vegas Blvd S, Las Vegas, NV 89158',       startDate:'2027-01-15', endDate:'2027-01-21', seats:5200},
+  {id:'EME010', production:'Circus of Dreams',    show:'Circus of Dreams — Grand Finale',    city:'New York',       venue:'Madison Square Garden',          address:'4 Pennsylvania Plaza, New York, NY 10001',         startDate:'2027-02-10', endDate:'2027-02-16', seats:6000},
+];
+
+/* ── NEW EVENT MODAL ───────────────────────────── */
+function openNewEvent() {
+  // Clear manual form fields
+  ['nem-show','nem-production','nem-city','nem-venue','nem-address','nem-seats'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var ly = document.getElementById('nem-layout'); if (ly) ly.selectedIndex = 0;
+  // Reset play dates
+  _manualPDs = [];
+  _renderManualPDs();
+
+  var tabBar = document.getElementById('nem-tab-bar');
+  if (TENANT_HAS_EM_MODULE) {
+    if (tabBar) tabBar.style.display = '';
+    switchNewEventTab('import');
+    var pf = document.getElementById('nem-prod-filter'); if (pf) pf.value = '';
+    renderEMEventList();
+  } else {
+    if (tabBar) tabBar.style.display = 'none';
+    switchNewEventTab('manual');
+  }
+  document.getElementById('newEventModal').classList.add('open');
+}
+function closeNewEvent(){ document.getElementById('newEventModal').classList.remove('open'); }
+
+/* ── Play-date helpers for manual creation ───────── */
+var _manualPDs = [];
+
+function _fmt12(t) {
+  if (!t) return '';
+  var p = t.split(':'), h = +p[0], m = +p[1];
+  return (h%12||12) + ':' + String(m).padStart(2,'0') + ' ' + (h>=12?'PM':'AM');
+}
+
+function confirmAddManualPD() {
+  var dv = document.getElementById('nem-pd-date').value;
+  var sv = document.getElementById('nem-pd-start').value;
+  var ev = document.getElementById('nem-pd-end').value;
+  var nv = document.getElementById('nem-pd-name').value.trim();
+  if (!dv) { document.getElementById('nem-pd-date').focus(); return; }
+  if (!sv) { document.getElementById('nem-pd-start').focus(); return; }
+  var dp = dv.split('-');
+  _manualPDs.push({ date: dp[1]+'/'+dp[2]+'/'+dp[0], start: _fmt12(sv), end: _fmt12(ev), name: nv||('Show '+(_manualPDs.length+1)), sale: false });
+  document.getElementById('nem-pd-date').value = '';
+  document.getElementById('nem-pd-name').value = '';
+  document.getElementById('nem-pd-err').style.display = 'none';
+  _renderManualPDs();
+}
+
+function removeManualPD(i) { _manualPDs.splice(i,1); _renderManualPDs(); }
+
+function toggleManualPDSale(i) { _manualPDs[i].sale = !_manualPDs[i].sale; _renderManualPDs(); }
+
+function _renderManualPDs() {
+  var list  = document.getElementById('nem-pd-list');
+  var empty = document.getElementById('nem-pd-empty');
+  var count = document.getElementById('nem-pd-count');
+  if (!list) return;
+  var n = _manualPDs.length;
+  if (count) count.textContent = n ? n+' date'+(n!==1?'s':'')+' added' : '';
+  if (!n) { list.innerHTML=''; if(empty)empty.style.display=''; return; }
+  if (empty) empty.style.display='none';
+  list.innerHTML = _manualPDs.map(function(pd,i){
+    var saleStyle = pd.sale
+      ? 'border:1px solid var(--p-border);background:var(--p-dim);color:var(--p)'
+      : 'border:1px solid var(--border);background:transparent;color:var(--text3)';
+    return '<div style="display:flex;align-items:center;gap:7px;padding:6px 10px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;min-width:0">'
+      +'<span style="width:7px;height:7px;border-radius:50%;background:var(--p);flex-shrink:0"></span>'
+      +'<span style="font-size:11px;font-family:var(--mono);color:var(--text);flex-shrink:0;min-width:82px">'+pd.date+'</span>'
+      +'<span style="font-size:10px;font-family:var(--mono);color:var(--text3);flex-shrink:0">·</span>'
+      +'<span style="font-size:11px;font-family:var(--mono);color:var(--text2);flex-shrink:0;white-space:nowrap">'+pd.start+(pd.end?' → '+pd.end:'')+'</span>'
+      +'<span style="font-size:10px;font-family:var(--mono);color:var(--text3);flex-shrink:0">·</span>'
+      +'<span style="font-size:11px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+pd.name+'</span>'
+      +'<button type="button" onclick="toggleManualPDSale('+i+')" style="height:18px;padding:0 7px;border-radius:4px;font-size:9px;font-family:var(--mono);cursor:pointer;flex-shrink:0;white-space:nowrap;letter-spacing:.3px;'+saleStyle+'">'+(pd.sale?'● ON SALE':'○ OFF SALE')+'</button>'
+      +'<button type="button" onclick="removeManualPD('+i+')" title="Remove" style="width:20px;height:20px;border:none;background:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:4px;padding:0">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M18 6L6 18M6 6l12 12"/></svg></button>'
+      +'</div>';
+  }).join('');
+}
+
+function saveManualEvent() {
+  var production = document.getElementById('nem-production').value.trim();
+  var show       = document.getElementById('nem-show').value.trim();
+  var city       = document.getElementById('nem-city').value.trim();
+  var venue      = document.getElementById('nem-venue').value.trim();
+  var address    = document.getElementById('nem-address').value.trim();
+  var seats      = parseInt(document.getElementById('nem-seats').value) || 0;
+
+  // Validate required fields
+  if (!show)  { alert('Show name is required.'); document.getElementById('nem-show').focus(); return; }
+  if (!city)  { alert('City is required.'); document.getElementById('nem-city').focus(); return; }
+  if (!venue) { alert('Venue is required.'); document.getElementById('nem-venue').focus(); return; }
+  if (!_manualPDs.length) {
+    var errEl = document.getElementById('nem-pd-err');
+    if (errEl) { errEl.style.display=''; errEl.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    return;
+  }
+
+  // Derive event date range from the added play dates (MM/DD/YYYY sort)
+  var sorted = _manualPDs.map(function(p){ return p.date; }).slice().sort(function(a,b){
+    var pa=a.split('/'), pb=b.split('/');
+    return new Date(+pa[2],+pa[0]-1,+pa[1]) - new Date(+pb[2],+pb[0]-1,+pb[1]);
+  });
+  var datesStr = sorted[0] === sorted[sorted.length-1] ? sorted[0] : sorted[0] + ' – ' + sorted[sorted.length-1];
+
+  // Push new event record
+  var newIdx = EVENTS.length;
+  EVENTS.push({ city:city, place:venue, show:show, dates:datesStr, seats:seats, production:production, address:address });
+
+  // Push all play dates
+  _manualPDs.forEach(function(pd){
+    PLAY_DATES.push({ date:pd.date, start:pd.start, end:pd.end, place:venue, event:pd.name, show:show, seats:seats, sale:pd.sale||false, idx:newIdx });
+  });
+
+  filteredDates = [...PLAY_DATES];
+  renderPlayDateList();
+  closeNewEvent();
+  openEvent(newIdx, _manualPDs[0]);
+}
+
+function switchNewEventTab(tab) {
+  ['import','manual'].forEach(function(t) {
+    var pane = document.getElementById('nem-pane-'+t);
+    var btn  = document.getElementById('nem-tab-'+t);
+    var foot = document.getElementById('nem-foot-'+t);
+    if (pane) pane.style.display = t === tab ? 'flex' : 'none';
+    if (btn)  btn.classList.toggle('active', t === tab);
+    if (foot) foot.style.display = t === tab ? 'flex' : 'none';
+  });
+}
+
+function renderEMEventList() {
+  var prodFilter = (document.getElementById('nem-prod-filter') || {}).value || '';
+  var importedEmIds = new Set(
+    PLAY_DATES.filter(function(p){ return p.emId; }).map(function(p){ return p.emId; })
+  );
+  var available = EM_EVENTS.filter(function(ev) {
+    if (prodFilter && ev.production !== prodFilter) return false;
+    if (importedEmIds.has(ev.id)) return false;
+    return true;
+  });
+  var list = document.getElementById('emEventsList');
+  if (!list) return;
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">All available Evinra EM events have been imported.</div>';
+    return;
+  }
+  list.innerHTML = available.map(function(ev) {
+    return '<label class="em-check-item">' +
+      '<input type="checkbox" class="nem-em-check" value="' + ev.id + '" onchange="this.closest(\'.em-check-item\').classList.toggle(\'selected\',this.checked)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px">' + ev.show + '</div>' +
+        '<div style="font-size:10px;font-family:var(--mono);color:var(--text3)">' +
+          ev.production + ' &middot; ' + ev.city + ' &middot; ' + ev.venue +
+        '</div>' +
+        '<div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:2px">' +
+          ev.startDate + ' – ' + ev.endDate + ' &middot; ' + ev.seats.toLocaleString() + ' seats' +
+        '</div>' +
+      '</div>' +
+    '</label>';
+  }).join('');
+}
+
+function importSelectedEMEvents() {
+  var checked = document.querySelectorAll('#emEventsList .nem-em-check:checked');
+  if (!checked.length) { alert('Select at least one event to import.'); return; }
+  checked.forEach(function(cb) {
+    var em = EM_EVENTS.find(function(e){ return e.id === cb.value; });
+    if (!em) return;
+    var newIdx = EVENTS.length;
+    EVENTS.push({ city: em.city, place: em.venue, show: em.show, dates: em.startDate + ' – ' + em.endDate, seats: em.seats });
+    PLAY_DATES.push({
+      date: em.startDate.replace(/(\d{4})-(\d{2})-(\d{2})/, '$2/$3/$1'),
+      start: '7:00 PM', end: '9:30 PM',
+      place: em.venue, event: em.show, show: em.show,
+      seats: em.seats, sale: false, idx: newIdx, emId: em.id
+    });
+  });
+  filteredDates = [...PLAY_DATES];
+  renderPlayDateList();
+  closeNewEvent();
+}
+
+function saveEvent(){
+  if (currentEventIsEM || currentEventIsComplete) return; /* read-only */
+  const toast=document.getElementById('toast');
+  if(toast){
+    document.getElementById('toastMsg').textContent='Event saved successfully';
+    toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t=setTimeout(()=>toast.classList.remove('show'),2200);
+  }
+}
+
+/* ── KEYBOARD ──────────────────────────────────── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeTicketDrawer();
+    closeNewEvent();
+    if(typeof closeRideModal==='function') closeRideModal();
+    if(typeof closeRideDelete==='function') closeRideDelete();
+    if(typeof closeFeeModal==='function') closeFeeModal();
+    if(typeof closeTaxModal==='function') closeTaxModal();
+    if(typeof _closeEvtBlock==='function') _closeEvtBlock();
+    if(typeof closePdDelete==='function') closePdDelete();
+  }
+});
+
+/* ── EXPOSE ────────────────────────────────────── */
+/* ── RIDES & EXPERIENCES CRUD ──────────────────── */
+const RIDES_EXP = [
+  {id:1, name:'Roller Coaster',    type:'Ride',       color:'#D4884A', price:5.00,  credits:3,  inshow:true,  pos:true},
+  {id:2, name:'Ferris Wheel',      type:'Ride',       color:'#D4884A', price:4.00,  credits:2,  inshow:true,  pos:true},
+  {id:3, name:'Carousel',          type:'Ride',       color:'#D4884A', price:2.00,  credits:1,  inshow:true,  pos:true},
+  {id:4, name:'VIP Backstage Pass',type:'Experience', color:'#8B6BD4', price:79.99, credits:10, inshow:true,  pos:false},
+  {id:5, name:'Cast Photo Package',type:'Experience', color:'#8B6BD4', price:24.99, credits:5,  inshow:true,  pos:true},
+  {id:6, name:'Meet & Greet',      type:'Experience', color:'#8B6BD4', price:49.99, credits:8,  inshow:false, pos:true},
+];
+let rideNextId = 7, rideEditId = null, rideDeleteId = null;
+
+function renderRidesTable(){
+  const body = document.getElementById('ridesTableBody');
+  if(!body) return;
+  const typeFilter   = (document.getElementById('rdTypeFilter')||{}).value   || '';
+  const inshowFilter = (document.getElementById('rdInshowFilter')||{}).value || '';
+  const q            = ((document.getElementById('rdSearch')||{}).value || '').toLowerCase();
+
+  const filtered = RIDES_EXP.filter(r => {
+    if(typeFilter   && r.type !== typeFilter)           return false;
+    if(inshowFilter === 'on'  && !r.inshow)             return false;
+    if(inshowFilter === 'off' &&  r.inshow)             return false;
+    if(q && !r.name.toLowerCase().includes(q))          return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    body.innerHTML='<div style="padding:30px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px">'+(RIDES_EXP.length?'No items match your filters':'No rides or experiences added yet')+'</div>';
+    return;
+  }
+  body.innerHTML = filtered.map(r => `
+    <div style="display:grid;grid-template-columns:1fr 80px 80px 100px 80px 60px 88px;border-bottom:1px solid var(--border);align-items:center">
+      <div class="addon-cell"><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:14px;height:14px;border-radius:50%;background:${r.color};flex-shrink:0"></div>
+        <span style="color:var(--text);font-weight:500;font-size:12px">${r.name}</span>
+      </div></div>
+      <div class="addon-cell"><span class="badge ${r.type==='Ride'?'badge-amber':'badge-violet'}" style="font-size:9px">${r.type}</span></div>
+      <div class="addon-cell" style="font-family:var(--mono);color:var(--text);font-size:12px">$${r.price.toFixed(2)}</div>
+      <div class="addon-cell">
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-family:var(--mono);padding:2px 8px;border-radius:12px;border:1px solid var(--p-border);background:var(--p-dim);color:var(--p)">
+          <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>${r.credits} cr = $${r.credits.toFixed(2)}
+        </span>
+      </div>
+      <div class="addon-cell"><button class="toggle ${r.inshow?'on':'off'}" onclick="rideToggle(${r.id},'inshow',this)"><div class="toggle-thumb"></div></button></div>
+      <div class="addon-cell"><button class="toggle ${r.pos?'on':'off'}" onclick="rideToggle(${r.id},'pos',this)"><div class="toggle-thumb"></div></button></div>
+      <div class="addon-cell"><div style="display:flex;gap:4px">
+        <div class="act-btn" onclick="openRideModal(${r.id})" title="Edit"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+        <div class="act-btn red" onclick="deleteRide(${r.id})" title="Remove"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span></div>
+      </div></div>
+    </div>`).join('');
+}
+
+function rideToggle(id, field, btn){
+  const r = RIDES_EXP.find(x=>x.id===id);
+  if(r){ r[field]=!r[field]; btn.classList.toggle('on'); btn.classList.toggle('off'); }
+}
+
+function openRideModal(id){
+  rideEditId = id || null;
+  const r = id ? RIDES_EXP.find(x=>x.id===id) : null;
+  document.getElementById('rideModalTitle').textContent = r ? 'Edit — '+r.name : 'Add Ride / Experience';
+  document.getElementById('rideName').value    = r ? r.name    : '';
+  document.getElementById('rideType').value    = r ? r.type    : 'Ride';
+  document.getElementById('ridePrice').value   = r ? r.price   : '';
+  document.getElementById('rideCredits').value = r ? r.credits : '';
+  document.getElementById('rideCreditUSD').textContent = r ? '$'+r.credits.toFixed(2) : '$0.00';
+  document.getElementById('rideInshow').className = 'toggle '+(r&&r.inshow?'on':'off');
+  document.getElementById('ridePos').className    = 'toggle '+(r&&r.pos?'on':'off');
+  document.getElementById('rideModal').classList.add('open');
+}
+
+function saveRide(){
+  const name    = document.getElementById('rideName').value.trim();
+  const type    = document.getElementById('rideType').value;
+  const price   = parseFloat(document.getElementById('ridePrice').value)||0;
+  const credits = parseInt(document.getElementById('rideCredits').value)||0;
+  const inshow  = document.getElementById('rideInshow').classList.contains('on');
+  const pos     = document.getElementById('ridePos').classList.contains('on');
+  if(!name){ alert('Name is required.'); return; }
+  if(!credits){ alert('Credits required must be greater than 0.'); return; }
+  if(rideEditId){
+    const r = RIDES_EXP.find(x=>x.id===rideEditId);
+    if(r) Object.assign(r,{name,type,price,credits,inshow,pos});
+  } else {
+    RIDES_EXP.push({id:rideNextId++,name,type,price,credits,inshow,pos});
+  }
+  closeRideModal();
+  renderRidesTable();
+}
+
+function closeRideModal(){ document.getElementById('rideModal').classList.remove('open'); rideEditId=null; }
+
+function deleteRide(id){
+  rideDeleteId = id;
+  const r = RIDES_EXP.find(x=>x.id===id);
+  document.getElementById('rideDeleteName').textContent = r ? r.name : '';
+  document.getElementById('rideDeleteModal').classList.add('open');
+}
+function closeRideDelete(){ document.getElementById('rideDeleteModal').classList.remove('open'); rideDeleteId=null; }
+function confirmRideDelete(){
+  const idx = RIDES_EXP.findIndex(x=>x.id===rideDeleteId);
+  if(idx>-1) RIDES_EXP.splice(idx,1);
+  closeRideDelete();
+  renderRidesTable();
+}
+
+/* ── FEES & TAXES CRUD ─────────────────────────── */
+// Simulates data pulled from Settings → Fees & Taxes
+const FEES = [
+  {id:1, name:'Service Fee',    type:'Percentage', value:5,   applied:'Per Ticket', active:true,  override:null},
+  {id:2, name:'Facility Fee',   type:'Fixed',      value:2,   applied:'Per Order',  active:true,  override:null},
+  {id:3, name:'Processing Fee', type:'Percentage', value:2.5, applied:'Per Ticket', active:false, override:null},
+];
+const TAXES = [
+  {id:1, name:'Florida Sales Tax', type:'Percentage', value:7, applied:'Subtotal', active:true, override:null},
+];
+let feeNextId=4, taxNextId=2, feeEditId=null, taxEditId=null;
+
+function fmtFeeVal(type, val){
+  return type==='Fixed' ? `$${parseFloat(val).toFixed(2)}` : `${val}%`;
+}
+
+function renderFeesTable(){
+  const body=document.getElementById('feesTableBody');
+  if(!body) return;
+  body.innerHTML=FEES.map(f=>{
+    const effectiveVal = f.override!==null ? f.override : f.value;
+    const hasOverride  = f.override!==null;
+    return `<div style="display:grid;grid-template-columns:1fr 100px 100px 70px 80px;border-bottom:1px solid var(--border);align-items:center;${!f.active?'opacity:.5':''}">
+      <div class="addon-cell"><div>
+        <span style="color:var(--text);font-weight:500;font-size:12px">${f.name}</span>
+        ${hasOverride?`<span style="margin-left:6px;font-size:9px;font-family:var(--mono);color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:4px;padding:1px 5px">OVERRIDE</span>`:''}
+      </div></div>
+      <div class="addon-cell" style="font-family:var(--mono);font-size:12px;color:var(--text3);${hasOverride?'text-decoration:line-through':''}">${fmtFeeVal(f.type,f.value)}</div>
+      <div class="addon-cell" style="font-family:var(--mono);font-size:12px;color:${hasOverride?'var(--amber)':'var(--p)'}">${hasOverride?fmtFeeVal(f.type,f.override):'—'}</div>
+      <div class="addon-cell"><button class="toggle ${f.active?'on':'off'}" onclick="feeToggle(${f.id},this)"><div class="toggle-thumb"></div></button></div>
+      <div class="addon-cell"><div style="display:flex;gap:4px">
+        <div class="act-btn" onclick="openFeeModal(${f.id})" title="Override value"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+        ${hasOverride?`<div class="act-btn amber" onclick="clearFeeOverride(${f.id})" title="Reset to default"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12H4"/></svg></span></div>`:''}
+      </div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderTaxesTable(){
+  const body=document.getElementById('taxesTableBody');
+  if(!body) return;
+  body.innerHTML=TAXES.map(t=>{
+    const hasOverride = t.override!==null;
+    return `<div style="display:grid;grid-template-columns:1fr 100px 100px 70px 80px;border-bottom:1px solid var(--border);align-items:center;${!t.active?'opacity:.5':''}">
+      <div class="addon-cell"><div>
+        <span style="color:var(--text);font-weight:500;font-size:12px">${t.name}</span>
+        ${hasOverride?`<span style="margin-left:6px;font-size:9px;font-family:var(--mono);color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:4px;padding:1px 5px">OVERRIDE</span>`:''}
+      </div></div>
+      <div class="addon-cell" style="font-family:var(--mono);font-size:12px;color:var(--text3);${hasOverride?'text-decoration:line-through':''}">${fmtFeeVal(t.type,t.value)}</div>
+      <div class="addon-cell" style="font-family:var(--mono);font-size:12px;color:${hasOverride?'var(--amber)':'var(--p)'}">${hasOverride?fmtFeeVal(t.type,t.override):'—'}</div>
+      <div class="addon-cell"><button class="toggle ${t.active?'on':'off'}" onclick="taxToggle(${t.id},this)"><div class="toggle-thumb"></div></button></div>
+      <div class="addon-cell"><div style="display:flex;gap:4px">
+        <div class="act-btn" onclick="openTaxModal(${t.id})" title="Override value"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span></div>
+        ${hasOverride?`<div class="act-btn amber" onclick="clearTaxOverride(${t.id})" title="Reset to default"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12H4"/></svg></span></div>`:''}
+      </div></div>
+    </div>`;
+  }).join('');
+}
+
+function feeToggle(id,btn){const f=FEES.find(x=>x.id===id);if(f){f.active=!f.active;btn.classList.toggle('on');btn.classList.toggle('off');}}
+function taxToggle(id,btn){const t=TAXES.find(x=>x.id===id);if(t){t.active=!t.active;btn.classList.toggle('on');btn.classList.toggle('off');}}
+function clearFeeOverride(id){const f=FEES.find(x=>x.id===id);if(f){f.override=null;renderFeesTable();}}
+function clearTaxOverride(id){const t=TAXES.find(x=>x.id===id);if(t){t.override=null;renderTaxesTable();}}
+
+/* Fee override modal */
+function openFeeModal(id){
+  feeEditId=id||null;
+  const f=FEES.find(x=>x.id===id);
+  if(!f) return;
+  document.getElementById('feeModalTitle').textContent='Override — '+f.name;
+  document.getElementById('feeDefaultBadge').textContent='Default: '+fmtFeeVal(f.type,f.value);
+  document.getElementById('feeType').value   = f.type;
+  document.getElementById('feeValue').value  = f.override!==null ? f.override : '';
+  document.getElementById('feeValue').placeholder = String(f.value);
+  document.getElementById('feeApplied').value= f.applied;
+  document.getElementById('feeActive').className='toggle '+(f.active?'on':'off');
+  updateFeePrefix();
+  document.getElementById('feeModal').classList.add('open');
+}
+function closeFeeModal(){document.getElementById('feeModal').classList.remove('open');feeEditId=null;}
+function updateFeePrefix(){
+  const t=document.getElementById('feeType').value;
+  const prefix=document.getElementById('feePrefix');
+  const suffix=document.getElementById('feeSuffix');
+  if(prefix) prefix.textContent=t==='Fixed'?'$':'';
+  if(suffix) suffix.textContent=t==='Percentage'?'%':'';
+}
+function saveFee(){
+  const f=FEES.find(x=>x.id===feeEditId);
+  if(!f) return;
+  const val=parseFloat(document.getElementById('feeValue').value);
+  const active=document.getElementById('feeActive').classList.contains('on');
+  f.override = isNaN(val)||val===f.value ? null : val;
+  f.active   = active;
+  closeFeeModal(); renderFeesTable();
+}
+
+/* Tax override modal */
+function openTaxModal(id){
+  taxEditId=id||null;
+  const t=TAXES.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('taxModalTitle').textContent='Override — '+t.name;
+  document.getElementById('taxDefaultBadge').textContent='Default: '+fmtFeeVal(t.type,t.value);
+  document.getElementById('taxType').value   = t.type;
+  document.getElementById('taxValue').value  = t.override!==null ? t.override : '';
+  document.getElementById('taxValue').placeholder = String(t.value);
+  document.getElementById('taxApplied').value= t.applied;
+  document.getElementById('taxActive').className='toggle '+(t.active?'on':'off');
+  updateTaxPrefix();
+  document.getElementById('taxModal').classList.add('open');
+}
+function closeTaxModal(){document.getElementById('taxModal').classList.remove('open');taxEditId=null;}
+function updateTaxPrefix(){
+  const t=document.getElementById('taxType').value;
+  const prefix=document.getElementById('taxPrefix');
+  const suffix=document.getElementById('taxSuffix');
+  if(prefix) prefix.textContent=t==='Fixed'?'$':'';
+  if(suffix) suffix.textContent=t==='Percentage'?'%':'';
+}
+function saveTax(){
+  const t=TAXES.find(x=>x.id===taxEditId);
+  if(!t) return;
+  const val=parseFloat(document.getElementById('taxValue').value);
+  const active=document.getElementById('taxActive').classList.contains('on');
+  t.override = isNaN(val)||val===t.value ? null : val;
+  t.active   = active;
+  closeTaxModal(); renderTaxesTable();
+}
+function deleteFee(id){
+  if(!confirm('Remove this fee?'))return;
+  const idx=FEES.findIndex(x=>x.id===id);
+  if(idx>-1){FEES.splice(idx,1);renderFeesTable();}
+}
+function deleteTax(id){
+  if(!confirm('Remove this tax?'))return;
+  const idx=TAXES.findIndex(x=>x.id===id);
+  if(idx>-1){TAXES.splice(idx,1);renderTaxesTable();}
+}
+
+window.openFeeModal=openFeeModal; window.closeFeeModal=closeFeeModal;
+window.saveFee=saveFee; window.deleteFee=deleteFee;
+window.feeToggle=feeToggle; window.updateFeePrefix=updateFeePrefix;
+window.clearFeeOverride=clearFeeOverride;
+window.openTaxModal=openTaxModal; window.closeTaxModal=closeTaxModal;
+window.saveTax=saveTax; window.deleteTax=deleteTax;
+window.taxToggle=taxToggle; window.updateTaxPrefix=updateTaxPrefix;
+window.clearTaxOverride=clearTaxOverride;
+window.renderFeesTable=renderFeesTable; window.renderTaxesTable=renderTaxesTable;
+
+/* ── LAYOUT / SEAT MAP ─────────────────────────── */
+let currentLayout = '';
+const LAYOUTS = {
+  ga:       {name:'General Admission', capacity:2500, zones:[
+    {id:1,name:'Floor GA',      type:'GA',       cap:1200,avail:1200,visible:true},
+    {id:2,name:'Bleachers A',   type:'Reserved', cap:600, avail:600, visible:true},
+    {id:3,name:'Bleachers B',   type:'Reserved', cap:500, avail:500, visible:true},
+    {id:4,name:'VIP Pit',       type:'VIP',      cap:200, avail:200, visible:true},
+  ]},
+  reserved: {name:'Reserved Seating', capacity:1800, zones:[
+    {id:1,name:'Orchestra',     type:'Reserved', cap:500, avail:500, visible:true},
+    {id:2,name:'Mezzanine',     type:'Reserved', cap:400, avail:400, visible:true},
+    {id:3,name:'Balcony Left',  type:'Reserved', cap:300, avail:300, visible:true},
+    {id:4,name:'Balcony Right', type:'Reserved', cap:300, avail:300, visible:true},
+    {id:5,name:'VIP Box',       type:'VIP',      cap:200, avail:200, visible:false},
+    {id:6,name:'Accessible',    type:'ADA',      cap:100, avail:100, visible:true},
+  ]},
+  festival: {name:'Festival Layout', capacity:5000, zones:[
+    {id:1,name:'Main Stage GA', type:'GA',       cap:3000,avail:3000,visible:true},
+    {id:2,name:'Side Stage',    type:'GA',       cap:1000,avail:1000,visible:true},
+    {id:3,name:'VIP Area',      type:'VIP',      cap:500, avail:500, visible:true},
+    {id:4,name:'Backstage',     type:'Staff',    cap:500, avail:500, visible:false},
+  ]},
+  theatre:  {name:'Theatre Style', capacity:1200, zones:[
+    {id:1,name:'Stalls',        type:'Reserved', cap:600, avail:600, visible:true},
+    {id:2,name:'Circle',        type:'Reserved', cap:400, avail:400, visible:true},
+    {id:3,name:'Gallery',       type:'Reserved', cap:150, avail:150, visible:true},
+    {id:4,name:'Royal Box',     type:'VIP',      cap:50,  avail:50,  visible:true},
+  ]},
+};
+const ZONE_COLOR={'GA':'var(--p)','Reserved':'var(--blue)','VIP':'var(--violet)','ADA':'var(--amber)','Staff':'var(--text3)'};
+
+function onLayoutChange(){
+  const sel=document.getElementById('layoutSelect'); if(!sel)return;
+  currentLayout=sel.value;
+  const layout=LAYOUTS[currentLayout];
+  const zc=document.getElementById('layoutZoneCount');
+  const placeholder=document.getElementById('seatsioPlaceholder');
+  const frame=document.getElementById('seatsioFrame');
+  const sec=document.getElementById('layoutZonesSection');
+  if(!layout){
+    if(zc)zc.textContent='Select a layout to see zones';
+    if(frame){frame.src='';frame.style.display='none';}
+    if(placeholder)placeholder.style.display='flex';
+    if(sec)sec.style.display='none'; return;
+  }
+  if(zc)zc.textContent=`${layout.zones.length} zones · ${layout.capacity.toLocaleString()} total capacity`;
+  // Don't reload iframe if already showing a chart — just update zones table
+  if(sec)sec.style.display='flex';
+  renderZonesTable();
+}
+
+function renderZonesTable(){
+  const body=document.getElementById('zonesTableBody'); if(!body)return;
+  const layout=LAYOUTS[currentLayout]; if(!layout)return;
+  body.innerHTML=layout.zones.map(z=>`
+    <div style="display:grid;grid-template-columns:1fr 100px 80px 80px 70px;border-bottom:1px solid var(--border);align-items:center">
+      <div class="addon-cell"><span style="font-size:12px;font-weight:500;color:var(--text)">${z.name}</span></div>
+      <div class="addon-cell"><span style="font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:10px;background:var(--bg4);color:${ZONE_COLOR[z.type]||'var(--text3)'}">${z.type}</span></div>
+      <div class="addon-cell" style="font-family:var(--mono);font-size:12px;color:var(--text2)">${z.cap.toLocaleString()}</div>
+      <div class="addon-cell" style="font-family:var(--mono);font-size:12px;color:var(--p)">${z.avail.toLocaleString()}</div>
+      <div class="addon-cell"><button class="toggle ${z.visible?'on':'off'}" onclick="toggleZone('${currentLayout}',${z.id},this)"><div class="toggle-thumb"></div></button></div>
+    </div>`).join('');
+}
+
+function toggleZone(lk,zid,btn){
+  const z=(LAYOUTS[lk]?.zones||[]).find(x=>x.id===zid);
+  if(z){z.visible=!z.visible;btn.classList.toggle('on');btn.classList.toggle('off');onLayoutChange();}
+}
+
+function loadSeatsioDesigner(){
+  const secretKey  = (document.getElementById('seatsioSecretKey') ||{}).value||'';
+  const chartKey   = (document.getElementById('seatsioChartKey')  ||{}).value||'';
+  if(!secretKey){ alert('Enter your Seats.io Secret Key.'); return; }
+  if(!chartKey) { alert('Enter a Chart Key.'); return; }
+
+  const frame       = document.getElementById('seatsioFrame');
+  const placeholder = document.getElementById('seatsioPlaceholder');
+
+  // Seats.io embedded designer URL
+  // Docs: https://docs.seats.io/docs/embedded-designer
+  const url = `https://app.seats.io/chart-designer?secretKey=${encodeURIComponent(secretKey)}&chartKey=${encodeURIComponent(chartKey)}`;
+  frame.src = url;
+  frame.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+}
+
+function closeSeatsioDesigner(){
+  const frame       = document.getElementById('seatsioFrame');
+  const placeholder = document.getElementById('seatsioPlaceholder');
+  if(frame){ frame.src=''; frame.style.display='none'; }
+  if(placeholder) placeholder.style.display = 'flex';
+}
+
+window.loadSeatsioDesigner = loadSeatsioDesigner;
+window.closeSeatsioDesigner = closeSeatsioDesigner;
+
+window.onLayoutChange=onLayoutChange; window.toggleZone=toggleZone;
+
+window.openRideModal=openRideModal; window.saveRide=saveRide; window.closeRideModal=closeRideModal;
+window.rideToggle=rideToggle; window.deleteRide=deleteRide;
+window.closeRideDelete=closeRideDelete; window.confirmRideDelete=confirmRideDelete;
+window.renderRidesTable=renderRidesTable;
+
+window.showView=showView; window.openEvent=openEvent; window.switchSeg=switchSeg;
+window.openTicketDrawer=openTicketDrawer; window.closeTicketDrawer=closeTicketDrawer;
+window.openNewEvent=openNewEvent; window.closeNewEvent=closeNewEvent; window.saveManualEvent=saveManualEvent;
+window.switchNewEventTab=switchNewEventTab; window.renderEMEventList=renderEMEventList; window.importSelectedEMEvents=importSelectedEMEvents;
+window.saveEvent=saveEvent; window.gopdPage=gopdPage; window.filterPlayDates=filterPlayDates;
+window.confirmAddManualPD=confirmAddManualPD; window.removeManualPD=removeManualPD; window.toggleManualPDSale=toggleManualPDSale;
+
+/* ── DATE PILL LISTENERS ───────────────────────── */
+document.getElementById('dateFrom').addEventListener('change', filterPlayDates);
+document.getElementById('dateTo').addEventListener('change', filterPlayDates);
+document.querySelectorAll('.date-pill').forEach(btn=>{
+  btn.addEventListener('click', function(){
+    const dp=this.dataset.dp;
+    const rw=document.getElementById('dateRangeWrap');
+    if(dateMode===dp){ dateMode=''; this.classList.remove('on'); rw.classList.remove('show'); }
+    else { document.querySelectorAll('.date-pill').forEach(b=>b.classList.remove('on')); dateMode=dp; this.classList.add('on'); rw.classList.toggle('show',dp==='range'); }
+    filterPlayDates();
+  });
+});
+
+/* ── INIT ──────────────────────────────────────── */
+populateEventFilters();
+showView('events-list');
+filterPlayDates();
+
+})();
+</script>
+
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--p-border);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:10px;font-size:12px;font-family:var(--mono);color:var(--p);box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none;z-index:2000">
+  <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>
+  <span id="toastMsg">Saved</span>
+</div>
+<style>#toast.show{opacity:1;transform:translateY(0)}</style>
+<!-- ══ RIDE / EXPERIENCE MODAL ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="rideModal" onclick="if(event.target===this)closeRideModal()">
+  <div class="modal-card" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg></span><span id="rideModalTitle">Add Ride / Experience</span></div>
+      <div class="modal-x" onclick="closeRideModal()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Name *</label><input class="form-input" id="rideName" placeholder="e.g. Roller Coaster"></div>
+        <div class="form-field"><label class="form-label">Type *</label>
+          <select class="form-select" id="rideType">
+            <option value="Ride">Ride</option>
+            <option value="Experience">Experience</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Price ($)</label>
+          <div style="display:flex">
+            <span style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3)">$</span>
+            <input type="number" class="form-input" id="ridePrice" placeholder="5.00" step="0.01" min="0" style="border-radius:0 7px 7px 0">
+          </div>
+        </div>
+        <div></div>
+      </div>
+      <!-- Credit Assignment -->
+      <div style="background:var(--bg3);border:1px solid var(--violet-border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--violet);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:6px"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M9.5 10a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/></svg></span>Credit Assignment</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">Credits deducted per scan at the ride / experience point. 1 credit = global rate.</div>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Credits Required *</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" class="form-input" id="rideCredits" placeholder="3" min="1" max="100" style="font-family:var(--mono);font-size:14px;font-weight:600;width:80px" oninput="document.getElementById('rideCreditUSD').textContent='$'+(parseInt(this.value)||0).toFixed(2)">
+              <span style="font-size:11px;font-family:var(--mono);color:var(--text3)">= <span id="rideCreditUSD" style="color:var(--p)">$0.00</span></span>
+            </div>
+          </div>
+          <div></div>
+        </div>
+      </div>
+      <!-- Channels -->
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div><p style="font-size:12px;color:var(--text);font-weight:500">In-Show Sales</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Web & mobile</span></div>
+          <button class="toggle on" id="rideInshow" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border)">
+          <div><p style="font-size:12px;color:var(--text);font-weight:500">Storefront (POS)</p><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">POS / kiosk</span></div>
+          <button class="toggle on" id="ridePos" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRideModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRide()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RIDE DELETE CONFIRM ══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="rideDeleteModal" onclick="if(event.target===this)closeRideDelete()">
+  <div class="modal-card" style="width:400px">
+    <div class="modal-header"><div class="modal-title" style="color:var(--red)"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span>Remove Item</div><div class="modal-x" onclick="closeRideDelete()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div></div>
+    <div class="modal-body"><p style="font-size:13px;color:var(--text2);line-height:1.6">Remove <strong id="rideDeleteName" style="color:var(--text)"></strong> from this event? This cannot be undone.</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRideDelete()">Cancel</button>
+      <button class="btn btn-red" onclick="confirmRideDelete()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span>Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEE MODAL ════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="feeModal" onclick="if(event.target===this)closeFeeModal()">
+  <div class="modal-card" style="width:460px">
+    <div class="modal-header">
+      <div class="modal-title"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span id="feeModalTitle">Override Fee</span></div>
+      <div class="modal-x" onclick="closeFeeModal()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">From Settings (read-only)</span>
+        <span id="feeDefaultBadge" style="font-size:11px;font-family:var(--mono);color:var(--text2)"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Type</label>
+          <select class="form-select" id="feeType" disabled style="opacity:.6;cursor:not-allowed">
+            <option value="Percentage">Percentage</option>
+            <option value="Fixed">Fixed Amount</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Override Value</label>
+          <div style="display:flex;align-items:center">
+            <span id="feePrefix" style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3);min-width:28px;text-align:center"></span>
+            <input type="number" class="form-input" id="feeValue" step="0.01" min="0" style="border-radius:0;border-left:none;border-right:none;flex:1">
+            <span id="feeSuffix" style="background:var(--bg3);border:1px solid var(--border);border-left:none;border-radius:0 7px 7px 0;padding:7px 10px;font-size:12px;color:var(--text3);min-width:28px;text-align:center">%</span>
+          </div>
+          <div class="form-hint">Leave blank to use the default value</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Applied To</label>
+          <select class="form-select" id="feeApplied" disabled style="opacity:.6;cursor:not-allowed">
+            <option value="Per Ticket">Per Ticket</option>
+            <option value="Per Order">Per Order</option>
+            <option value="Subtotal">Subtotal</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Active for this event</label>
+          <button class="toggle on" id="feeActive" onclick="this.classList.toggle('on');this.classList.toggle('off')" style="margin-top:8px"><div class="toggle-thumb"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeFeeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFee()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Apply Override</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAX MODAL ════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="taxModal" onclick="if(event.target===this)closeTaxModal()">
+  <div class="modal-card" style="width:460px">
+    <div class="modal-header">
+      <div class="modal-title"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><rect x="7" y="5" width="10" height="4" rx="1"/><path d="M7 13h.01M12 13h.01M17 13h.01M7 17h.01M12 17h.01M17 17h.01"/></svg></span><span id="taxModalTitle">Override Tax</span></div>
+      <div class="modal-x" onclick="closeTaxModal()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">From Settings (read-only)</span>
+        <span id="taxDefaultBadge" style="font-size:11px;font-family:var(--mono);color:var(--text2)"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Type</label>
+          <select class="form-select" id="taxType" disabled style="opacity:.6;cursor:not-allowed">
+            <option value="Percentage">Percentage</option>
+            <option value="Fixed">Fixed Amount</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Override Rate</label>
+          <div style="display:flex;align-items:center">
+            <span id="taxPrefix" style="background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:7px 10px;font-size:12px;color:var(--text3);min-width:28px;text-align:center"></span>
+            <input type="number" class="form-input" id="taxValue" step="0.01" min="0" style="border-radius:0;border-left:none;border-right:none;flex:1">
+            <span id="taxSuffix" style="background:var(--bg3);border:1px solid var(--border);border-left:none;border-radius:0 7px 7px 0;padding:7px 10px;font-size:12px;color:var(--text3);min-width:28px;text-align:center">%</span>
+          </div>
+          <div class="form-hint">Leave blank to use the default rate</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Applied To</label>
+          <select class="form-select" id="taxApplied" disabled style="opacity:.6;cursor:not-allowed">
+            <option value="Subtotal">Subtotal</option>
+            <option value="Per Ticket">Per Ticket</option>
+            <option value="Per Order">Per Order</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Active for this event</label>
+          <button class="toggle on" id="taxActive" onclick="this.classList.toggle('on');this.classList.toggle('off')" style="margin-top:8px"><div class="toggle-thumb"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeTaxModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTax()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12l3 3 6-6"/></svg></span>Apply Override</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VALIDATION BLOCK MODAL (shared) ═════════════════════════════════ -->
+<div id="evtBlockModal" onclick="if(event.target===this)_closeEvtBlock()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:2000;align-items:center;justify-content:center">
+  <div class="modal-card" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red)">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        <span id="evtBlockTitle">Cannot Delete</span>
+      </div>
+      <div class="modal-x" onclick="_closeEvtBlock()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="modal-body" id="evtBlockBody"></div>
+    <div id="evtBlockFooterHard" class="modal-footer">
+      <button class="btn btn-ghost" onclick="_closeEvtBlock()">Close</button>
+    </div>
+    <div id="evtBlockFooterSoft" class="modal-footer" style="display:none">
+      <button class="btn btn-ghost" onclick="_closeEvtBlock()">Cancel</button>
+      <button id="evtBlockConfirmBtn" class="btn btn-red" onclick="_confirmEvtBlock()">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span>
+        Delete Anyway
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PLAY DATE DELETE CONFIRM ═════════════════════════════════════════ -->
+<div class="modal-overlay" id="pdDeleteModal" onclick="if(event.target===this)closePdDelete()">
+  <div class="modal-card" style="width:420px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red)">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span>
+        Delete Function
+      </div>
+      <div class="modal-x" onclick="closePdDelete()"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);line-height:1.6">Remove <strong id="pdDeleteName" style="color:var(--text)"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closePdDelete()">Cancel</button>
+      <button class="btn btn-red" onclick="confirmPdDelete()">
+        <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></span>
+        Delete Function
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
