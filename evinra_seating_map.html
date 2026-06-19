@@ -1053,6 +1053,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }).catch(function(){});
   // Show API banner if no key configured
   if (!seatsKey) document.getElementById('apiBanner').style.display = 'flex';
+  // Auto-configure the embedded designer from the backend (demo convenience): the
+  // server returns its seats.io SECRET key — gated by the API key — so the admin
+  // doesn't have to paste it. Respects a key already entered in-page (localStorage);
+  // falls back silently to the key form if the endpoint is unavailable.
+  fetch(smDbBase().replace('/api/db','/api/seatsio/designer-config')).then(function(r){return r.ok?r.json():null;}).then(function(c){
+    if(c && c.region){ seatsRegion=c.region; }
+    if(c && c.secretKey && !seatsKey){
+      seatsKey = c.secretKey;
+      var b=document.getElementById('apiBanner'); if(b) b.style.display='none';
+    }
+  }).catch(function(){});
 });
 
 /* ── Render table ───────────────────────────────────────── */
