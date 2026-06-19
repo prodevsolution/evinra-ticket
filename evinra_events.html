@@ -9,6 +9,8 @@
 <title>Evinra | Ticket System — Events</title>
 <script src="assets/theme.js"></script>
 <script src="assets/data.js"></script>
+<!-- seats.io SDK — embedded Chart Designer (rendered into a div via the SDK, not an iframe) -->
+<script src="https://cdn-na.seatsio.net/chart.js"></script>
 <!-- Google Maps JS + Places (venue autocomplete). Key is referrer-restricted in Google Cloud. -->
 <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZEnlV3tW3WoVz14LmKtCPHTAIRVW-7aQ&libraries=places&loading=async"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1359,63 +1361,89 @@ function renderSegContent(tab){
           </div>
         </div>
       </div>
-      <!-- Seat Map — Seats.io Designer Embed -->
+      <!-- Seat Map — seats.io Designer (SDK, layout-driven, auto-configured) -->
+      <style>
+        .evsm-state{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+        .evsm-ico{color:var(--text3)}
+        .evsm-ttl{font-size:14px;font-weight:600;font-family:var(--display);color:var(--text2)}
+        .evsm-sub{font-size:12px;font-family:var(--body);color:var(--text3);max-width:360px;line-height:1.5}
+        .evsm-spin{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--border);border-top-color:var(--p);animation:evsmspin .7s linear infinite}
+        @keyframes evsmspin{to{transform:rotate(360deg)}}
+        @media (prefers-reduced-motion:reduce){.evsm-spin{animation:none}}
+        .evsm-adv-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;height:36px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;font-family:var(--display);font-weight:600;letter-spacing:.02em;transition:color .15s ease}
+        .evsm-adv-toggle:hover{color:var(--text2)}
+        .evsm-adv-chev{transition:transform .2s ease}
+        .evsm-adv-toggle[aria-expanded="true"] .evsm-adv-chev{transform:rotate(90deg)}
+        .evsm-input{background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:11px;font-family:var(--body);padding:7px 10px;outline:none;transition:border-color .15s ease}
+        .evsm-input:focus{border-color:var(--p)}
+      </style>
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px">
             <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
             <span style="font-size:13px;font-weight:600;font-family:var(--display);color:var(--text)">Seat Map Designer</span>
-            <span style="font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">Seats.io</span>
+            <span style="font-size:9px;font-family:var(--body);font-weight:600;padding:2px 8px;border-radius:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">seats.io</span>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="document.getElementById('seatsioFrame').requestFullscreen()">
+          <div id="evsmActions" style="display:none;gap:8px;align-items:center">
+            <button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="evsmFullscreen()" aria-label="Full screen designer">
               <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span>Full Screen
+            </button>
+            <button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="evsmClose()" aria-label="Close designer">
+              <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span>Close
             </button>
           </div>
         </div>
-        <!-- Embed area -->
-        <div style="position:relative;height:520px;background:var(--bg3)">
-          <!-- Placeholder -->
-          <div id="seatsioPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
-            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
-            <div style="text-align:center">
-              <p style="font-size:13px;font-weight:600;color:var(--text2);font-family:var(--display)">Seats.io Chart Designer</p>
-              <p style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:4px">Enter your Secret Key and Chart Key below to open the designer</p>
-            </div>
-            <button class="btn btn-amber" style="height:34px;font-size:11px" onclick="loadSeatsioDesigner()">
+        <!-- Stage -->
+        <div id="evsmStage" style="position:relative;height:520px;background:var(--bg3)">
+          <!-- Live designer mounts here -->
+          <div id="evsmDesigner" style="position:absolute;inset:0;display:none"></div>
+          <!-- Empty: no layout selected -->
+          <div id="evsmEmpty" class="evsm-state">
+            <span class="evsm-ico ev-icon" style="display:inline-flex;transform:scale(1.7)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+            <div><p class="evsm-ttl">Select a layout to design its seat map</p><p class="evsm-sub" style="margin-top:6px">Pick a published layout from the dropdown above to open its seats.io designer.</p></div>
+          </div>
+          <!-- Ready: layout selected, designer not yet open -->
+          <div id="evsmReady" class="evsm-state" style="display:none">
+            <span class="evsm-ico ev-icon" style="display:inline-flex;transform:scale(1.7);color:var(--p)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></span>
+            <div><p class="evsm-ttl" id="evsmReadyName">Layout</p><p class="evsm-sub" id="evsmReadySub" style="margin-top:6px">Ready to design.</p></div>
+            <button class="btn btn-primary" style="height:38px;font-size:12px" onclick="evsmOpen()">
               <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>Open Designer
             </button>
           </div>
-          <!-- Seats.io designer iframe -->
-          <iframe id="seatsioFrame"
-            style="width:100%;height:100%;border:none;display:none"
-            allow="fullscreen clipboard-read clipboard-write"
-            title="Seats.io Chart Designer">
-          </iframe>
+          <!-- Loading -->
+          <div id="evsmLoading" class="evsm-state" style="display:none" aria-live="polite">
+            <div class="evsm-spin" role="status" aria-label="Loading"></div>
+            <p class="evsm-sub">Loading the seat map designer…</p>
+          </div>
+          <!-- Error -->
+          <div id="evsmError" class="evsm-state" style="display:none" aria-live="polite">
+            <span class="evsm-ico ev-icon" style="display:inline-flex;transform:scale(1.6);color:var(--amber)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <div><p class="evsm-ttl">The designer couldn't load</p><p class="evsm-sub" id="evsmErrorMsg" style="margin-top:6px">Verify the seats.io workspace is configured.</p></div>
+            <button class="btn btn-ghost" style="height:34px;font-size:11px" onclick="evsmOpen()">
+              <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></span>Try again
+            </button>
+          </div>
         </div>
-        <!-- Config bar -->
-        <div style="padding:10px 18px;border-top:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap">Secret Key</span>
-            <input id="seatsioSecretKey" type="password" placeholder="Your Seats.io secret key"
-              style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--mono);padding:5px 8px;width:200px;outline:none">
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:9.5px;font-family:var(--mono);color:var(--text3);white-space:nowrap">Chart Key</span>
-            <input id="seatsioChartKey" type="text" placeholder="e.g. 83c5e5b7-3c7d-..."
-              style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--mono);padding:5px 8px;width:220px;outline:none">
-          </div>
-          <button class="btn btn-primary" style="height:28px;font-size:10px" onclick="loadSeatsioDesigner()">
-            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>Load Designer
+        <!-- Advanced (collapsed) — manual override, rarely needed -->
+        <div style="border-top:1px solid var(--border);background:var(--bg3)">
+          <button id="evsmAdvToggle" class="evsm-adv-toggle" aria-expanded="false" aria-controls="evsmAdv" onclick="evsmToggleAdv()">
+            <svg class="evsm-adv-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            Advanced · manual workspace keys
           </button>
-          <button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="closeSeatsioDesigner()">
-            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span>Close
-          </button>
-          <a href="https://app.seats.io" target="_blank"
-            style="margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--p);text-decoration:none;display:flex;align-items:center;gap:4px">
-            <span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>Seats.io Dashboard ↗
-          </a>
+          <div id="evsmAdv" style="display:none;padding:0 18px 14px;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px">
+              <label for="evsmSecret" style="font-size:10px;font-family:var(--display);font-weight:600;color:var(--text3);white-space:nowrap">Secret key</label>
+              <input id="evsmSecret" class="evsm-input" type="password" autocomplete="off" placeholder="Override workspace secret" style="width:200px">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label for="evsmChart" style="font-size:10px;font-family:var(--display);font-weight:600;color:var(--text3);white-space:nowrap">Chart key</label>
+              <input id="evsmChart" class="evsm-input" type="text" autocomplete="off" placeholder="Override chart key" style="width:220px">
+            </div>
+            <button class="btn btn-secondary" style="height:30px;font-size:11px" onclick="evsmOpen()">Apply &amp; open</button>
+            <a href="https://app.seats.io" target="_blank" rel="noopener" style="margin-left:auto;font-size:11px;font-family:var(--body);color:var(--p);text-decoration:none;display:flex;align-items:center;gap:4px"><span class="ev-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>seats.io dashboard ↗</a>
+            <p class="evsm-sub" style="flex-basis:100%;margin:4px 0 0;max-width:none">Normally not needed — the workspace key is configured automatically. Use these only to point at a different chart or workspace.</p>
+          </div>
         </div>
       </div>
       <!-- Zones table -->
@@ -2591,6 +2619,7 @@ async function evFillLayoutSelect(){
     const r=await fetch(evDbBase()+'/layouts?tenant_id=eq.'+encodeURIComponent(tid)+'&status=eq.published');
     EV_LAYOUTS=await r.json(); if(!Array.isArray(EV_LAYOUTS)) EV_LAYOUTS=[];
   }catch(e){ EV_LAYOUTS=[]; }
+  if(typeof evsmLoadConfig==='function'){ evsmLoadConfig(); } // preload seats.io secret (gated)
   sel.innerHTML='<option value="">-- Select a layout --</option>'+EV_LAYOUTS.map(function(l){
     var cap=(l.seats>0)?(' — '+(l.seats).toLocaleString()+' seats'):'';
     return '<option value="'+(l.id||l._id)+'">'+(l.name||'Layout')+cap+'</option>';
@@ -2599,6 +2628,7 @@ async function evFillLayoutSelect(){
 function onLayoutChange(){
   const sel=document.getElementById('layoutSelect'); if(!sel)return;
   currentLayout=sel.value;
+  if(typeof evsmSync==='function'){ try{ evsmSync(); }catch(e){} }
   const L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
   const zc=document.getElementById('layoutZoneCount');
   const sec=document.getElementById('layoutZonesSection');
@@ -2626,32 +2656,96 @@ function toggleZone(lk,zid,btn){
   if(z){z.visible=!z.visible;btn.classList.toggle('on');btn.classList.toggle('off');onLayoutChange();}
 }
 
-function loadSeatsioDesigner(){
-  const secretKey  = (document.getElementById('seatsioSecretKey') ||{}).value||'';
-  const chartKey   = (document.getElementById('seatsioChartKey')  ||{}).value||'';
-  if(!secretKey){ alert('Enter your Seats.io Secret Key.'); return; }
-  if(!chartKey) { alert('Enter a Chart Key.'); return; }
+/* ── Seat Map Designer (seats.io SDK, layout-driven, auto-configured) ──── */
+let evsmSecret = '';      // workspace secret, auto-filled from backend (gated) — kept in memory only
+let evsmRegion = 'na';
+let evsmDesigner = null;  // live seats.io designer instance
+let evsmConfigLoaded = false;
 
-  const frame       = document.getElementById('seatsioFrame');
-  const placeholder = document.getElementById('seatsioPlaceholder');
+function evSeatsioBase(){ return evDbBase().replace('/api/db','/api/seatsio'); }
 
-  // Seats.io embedded designer URL
-  // Docs: https://docs.seats.io/docs/embedded-designer
-  const url = `https://app.seats.io/chart-designer?secretKey=${encodeURIComponent(secretKey)}&chartKey=${encodeURIComponent(chartKey)}`;
-  frame.src = url;
-  frame.style.display = 'block';
-  if(placeholder) placeholder.style.display = 'none';
+// Pull the workspace secret + region from the backend once (protected by the API key).
+async function evsmLoadConfig(){
+  if(evsmConfigLoaded) return;
+  try{
+    const r = await fetch(evSeatsioBase()+'/designer-config');
+    if(r.ok){ const c = await r.json(); if(c){ if(c.region) evsmRegion=c.region; if(c.secretKey) evsmSecret=c.secretKey; } }
+  }catch(e){}
+  evsmConfigLoaded = true;
 }
 
-function closeSeatsioDesigner(){
-  const frame       = document.getElementById('seatsioFrame');
-  const placeholder = document.getElementById('seatsioPlaceholder');
-  if(frame){ frame.src=''; frame.style.display='none'; }
-  if(placeholder) placeholder.style.display = 'flex';
+// State machine: 'empty' | 'ready' | 'loading' | 'live' | 'error'
+function evsmShow(state){
+  ['Empty','Ready','Loading','Error'].forEach(function(s){
+    var el=document.getElementById('evsm'+s); if(el) el.style.display = (s.toLowerCase()===state)?'flex':'none';
+  });
+  var dz=document.getElementById('evsmDesigner'); if(dz) dz.style.display = (state==='live')?'block':'none';
+  var act=document.getElementById('evsmActions'); if(act) act.style.display = (state==='live')?'flex':'none';
 }
 
-window.loadSeatsioDesigner = loadSeatsioDesigner;
-window.closeSeatsioDesigner = closeSeatsioDesigner;
+function evsmShowError(msg){
+  var m=document.getElementById('evsmErrorMsg'); if(m) m.textContent = msg || 'Verify the seats.io workspace is configured.';
+  evsmShow('error');
+}
+
+// Chart key comes from the selected layout (or the Advanced override).
+function evsmChartKey(){
+  var ov=((document.getElementById('evsmChart')||{}).value||'').trim();
+  if(ov) return ov;
+  var L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
+  return (L && L.key) ? L.key : '';
+}
+
+// Sync the panel with the layout dropdown (called from onLayoutChange).
+function evsmSync(){
+  evsmDestroy();
+  var L=(EV_LAYOUTS||[]).find(function(x){return String(x.id||x._id)===String(currentLayout);});
+  if(!currentLayout || !L){ evsmShow('empty'); return; }
+  var nm=document.getElementById('evsmReadyName'); if(nm) nm.textContent = L.name||'Layout';
+  var sb=document.getElementById('evsmReadySub');
+  if(sb) sb.textContent = (L.seats>0?(L.seats.toLocaleString()+' seats · '):'') + 'Ready to design.';
+  evsmShow('ready');
+}
+
+async function evsmOpen(){
+  await evsmLoadConfig();
+  var secret = (((document.getElementById('evsmSecret')||{}).value||'').trim()) || evsmSecret;
+  var chartKey = evsmChartKey();
+  if(!chartKey){ evsmShowError('Select a layout above (or enter a chart key under Advanced) to open the designer.'); return; }
+  if(!secret){ evsmShowError('No seats.io workspace key available. Add it under Advanced, or set SEATSIO_SECRET_KEY on the server.'); return; }
+  if(typeof seatsio==='undefined'){ evsmShowError('The seats.io SDK failed to load — check your connection and try again.'); return; }
+  evsmShow('loading');
+  evsmDestroy();
+  try{
+    evsmDesigner = new seatsio.SeatingChartDesigner({
+      divId:'evsmDesigner', secretKey:secret, chartKey:chartKey, region:evsmRegion||'na',
+      onExitRequested: function(){ evsmClose(); },
+      onDesignerRenderingFailed: function(){ evsmShowError('The designer failed to render — verify the workspace secret key is correct.'); }
+    });
+    evsmDesigner.render();
+    evsmShow('live');
+  }catch(e){ evsmShowError(e && e.message ? e.message : 'Could not open the designer.'); }
+}
+
+function evsmDestroy(){
+  if(evsmDesigner){ try{ evsmDesigner.destroy(); }catch(e){} evsmDesigner=null; }
+  var dz=document.getElementById('evsmDesigner'); if(dz) dz.innerHTML='';
+}
+
+function evsmClose(){ evsmDestroy(); evsmSync(); }
+
+function evsmFullscreen(){ var s=document.getElementById('evsmStage'); if(s && s.requestFullscreen) s.requestFullscreen(); }
+
+function evsmToggleAdv(){
+  var t=document.getElementById('evsmAdvToggle'), p=document.getElementById('evsmAdv');
+  if(!t||!p) return;
+  var open = t.getAttribute('aria-expanded')==='true';
+  t.setAttribute('aria-expanded', open?'false':'true');
+  p.style.display = open?'none':'flex';
+}
+
+window.evsmOpen=evsmOpen; window.evsmClose=evsmClose; window.evsmFullscreen=evsmFullscreen;
+window.evsmToggleAdv=evsmToggleAdv; window.evsmSync=evsmSync;
 
 window.onLayoutChange=onLayoutChange; window.toggleZone=toggleZone; window.evFillLayoutSelect=evFillLayoutSelect;
 
